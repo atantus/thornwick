@@ -119,7 +119,7 @@ h1 span{color:var(--ember)}
 .ovcard .st.go{color:var(--ember)}
 .ovcard .st.ok{color:var(--moss)}
 .ovcard.on{border-color:var(--ember)}
-.back{font:inherit;font-size:.85rem;font-weight:600;color:var(--muted);background:none;border:0;padding:6px 0;cursor:pointer}
+.back{font:inherit;font-size:.9rem;font-weight:600;color:var(--muted);background:none;border:0;padding:10px 0;cursor:pointer}
 .back:hover{color:var(--fg)}
 details.more{margin-top:8px;font-size:.8rem;color:var(--muted)}
 details.more summary{cursor:pointer;list-style:none}
@@ -128,7 +128,7 @@ details.more summary::before{content:"+ ";color:var(--ember)}
 details.more[open] summary::before{content:"− "}
 details.more .perks{margin-top:6px}
 .filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;scrollbar-width:none}
-.filters button{font:inherit;font-size:.78rem;font-weight:600;white-space:nowrap;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 11px;cursor:pointer}
+.filters button{font:inherit;font-size:.8rem;font-weight:600;white-space:nowrap;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;min-height:36px;padding:6px 13px;cursor:pointer}
 .filters button[aria-pressed="true"]{color:var(--bg);background:var(--ember);border-color:var(--ember)}
 .pagehead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:6px 0 10px}
 .pagehead h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:1.8rem;line-height:1;color:var(--fg)}
@@ -175,7 +175,7 @@ details.more .perks{margin-top:6px}
 .eqslot.full{border-style:solid;background:var(--panel-2)}
 .eqslot.sel{border-color:var(--ember);box-shadow:0 0 0 1px var(--ember) inset}
 .eqslot .ico{width:38px;height:38px}
-.eqslot .sl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.eqslot .sl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .eqslot .warn{position:absolute;top:2px;right:5px;color:var(--danger);font-weight:800}
 .eqstats{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .eqstats .stat{display:flex;justify-content:space-between;font-size:.86rem;padding:3px 0;border-bottom:1px solid var(--line)}
@@ -201,7 +201,7 @@ details.more .perks{margin-top:6px}
 .quest .rws{display:flex;flex-wrap:wrap;gap:6px}
 .rw{display:inline-flex;align-items:center;gap:4px;font-size:.76rem;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:1px 9px 1px 3px}
 .rw .ico{width:18px;height:18px}
-.linkbtn{font:inherit;font-size:.8rem;font-weight:600;color:var(--ember);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.linkbtn{font:inherit;font-size:.84rem;font-weight:600;color:var(--ember);background:none;border:0;padding:8px 2px;cursor:pointer;text-decoration:underline}
 button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
 button{touch-action:manipulation}
 
@@ -238,7 +238,7 @@ button{touch-action:manipulation}
 .slot.rare{border-color:#5a4475}
 .slot.rare .n{color:var(--rare)}
 .btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.btn{font:inherit;font-weight:600;font-size:.8rem;padding:6px 10px;border-radius:7px;border:1px solid var(--ember-dim);background:transparent;color:var(--ember);cursor:pointer}
+.btn{font:inherit;font-weight:600;font-size:.84rem;min-height:40px;padding:8px 12px;border-radius:7px;border:1px solid var(--ember-dim);background:transparent;color:var(--ember);cursor:pointer}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .btn.danger{border-color:#6a3128;color:var(--danger)}
 .btn.solid{background:var(--ember);color:var(--bg);border-color:var(--ember)}
@@ -261,11 +261,11 @@ button{touch-action:manipulation}
 .hpbar i{display:block;height:100%;background:var(--danger);width:100%}
 .cskills{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-block:4px 12px}
 .cskill{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;min-width:0;display:flex;flex-direction:column;gap:3px}
-.cskill span{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cskill span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cskill b{font-family:var(--f-display);font-weight:400;font-size:1.6rem;line-height:1;color:var(--ember)}
 .cskill .bar{margin:0;height:4px}
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:10px}
-.seg button{font:inherit;font-size:.82rem;font-weight:600;padding:8px 4px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button{font:inherit;font-size:.84rem;font-weight:600;min-height:42px;padding:8px 4px;border:0;background:transparent;color:var(--muted);cursor:pointer}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--ember)}
 .foe{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
@@ -303,7 +303,7 @@ h3 span{text-transform:none;letter-spacing:0;color:var(--ember);font-family:var(
 .now .top em{font-style:normal;color:var(--muted)}
 .now .bar{height:6px;margin:0}
 .now .bar i{background:var(--ember)}
-#stopBtn{padding:4px 12px}
+#stopBtn{min-height:36px;padding:6px 16px}
 
 #toastHost{position:fixed;left:50%;transform:translateX(-50%);top:calc(14px + env(safe-area-inset-top,0px));z-index:9;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(420px,calc(100% - 32px));pointer-events:none;transition:top .25s ease}
 .toast{position:relative;background:var(--panel-2);border:1px solid var(--ember-dim);color:var(--fg);padding:8px 14px;border-radius:999px;font-size:.85rem;font-weight:600;z-index:9;max-width:calc(100% - 32px);text-align:center;transition:opacity .3s;pointer-events:none}
@@ -320,7 +320,7 @@ h3 span{text-transform:none;letter-spacing:0;color:var(--ember);font-family:var(
 .lvlpop .uc .ico{width:24px;height:24px;grid-row:auto}
 .lvlpop .uc.more{color:var(--muted);border-color:var(--line);padding:4px 9px}
 .lvlpop .in.has-un{outline-color:var(--moss)}
-.lvlpop .tap{grid-column:1/-1;justify-self:end;font-size:.66rem;color:var(--muted);margin-top:2px}
+.lvlpop .tap{grid-column:1/-1;justify-self:end;font-size:.72rem;color:var(--muted);margin-top:2px}
 .lvlpop.show .in{animation:lvlIn .35s cubic-bezier(.2,1.4,.4,1) both}
 .lvlpop.hide .in{animation:lvlOut .25s ease-in both}
 @keyframes lvlIn{from{transform:translateY(-130%);opacity:0}to{transform:none;opacity:1}}
@@ -593,7 +593,7 @@ const TREES = [
   { id:"willow", name:"Willow tree", lvl:30, time:5.0, xp:67.5, item:"willow_logs", nest:1/100 },
   { id:"maple",  name:"Maple tree",  lvl:45, time:6.0, xp:100,  item:"maple_logs",  nest:1/80  },
   { id:"yew",    name:"Yew tree",    lvl:60, time:7.0, xp:175,  item:"yew_logs",    nest:1/60  },
-  { id:"magic",  name:"Magic tree",  lvl:75, time:8.5, xp:250,  item:"magic_logs",  nest:1/45  },
+  { id:"magic",  name:"Magic tree",  lvl:75, time:8.5, xp:280,  item:"magic_logs",  nest:1/45  },
   { id:"elder",  name:"Elder tree",  lvl:90, time:10,  xp:380,  item:"elder_logs",  nest:1/35  },
 ];
 const FIRES = [
@@ -612,7 +612,7 @@ const COURSES = [
   { id:"castle",  name:"Castle walls",     lvl:40, time:22, xp:240, fail:0.20, mark:1/3,  rare:1/180 },
   { id:"cliff",   name:"Cliffside run",    lvl:60, time:26, xp:400, fail:0.20, mark:1/2.5,rare:1/120 },
   { id:"spires",  name:"Sky spires",       lvl:75, time:30, xp:600, fail:0.20, mark:1/2,  rare:1/100 },
-  { id:"storm",   name:"Storm peaks",      lvl:90, time:34, xp:850, fail:0.20, mark:1/1.8,rare:1/80 },
+  { id:"storm",   name:"Storm peaks",      lvl:90, time:34, xp:1050, fail:0.20, mark:1/1.8,rare:1/80 },
 ];
 // Rare roll on a lap: a Lightfoot piece you don't own yet (falls back to 5 Skyfeathers)
 // Thieving: each target has its own weighted loot table. Failing stuns you.
@@ -632,10 +632,10 @@ const SPOTS = [
   { id:"trout",     name:"Lure trout",      lvl:20, time:4.0, xp:50,  item:"raw_trout",     casket:1/200 },
   { id:"salmon",    name:"Lure salmon",     lvl:30, time:4.5, xp:70,  item:"raw_salmon",    casket:1/175 },
   { id:"lobster",   name:"Cage lobster",    lvl:40, time:5.0, xp:90,  item:"raw_lobster",   casket:1/150 },
-  { id:"swordfish", name:"Harpoon swordfish",lvl:50,time:6.0, xp:100, item:"raw_swordfish", casket:1/120 },
-  { id:"shark",     name:"Harpoon shark",    lvl:76, time:7.0, xp:110, item:"raw_shark",      casket:1/100 },
-  { id:"angler",    name:"Bait anglerfish",  lvl:82, time:7.5, xp:120, item:"raw_anglerfish", casket:1/90 },
-  { id:"eel",       name:"Abyssal eels",     lvl:90, time:8.0, xp:140, item:"raw_eel",        casket:1/80 },
+  { id:"swordfish", name:"Harpoon swordfish",lvl:50,time:6.0, xp:125, item:"raw_swordfish", casket:1/120 },
+  { id:"shark",     name:"Harpoon shark",    lvl:76, time:7.0, xp:210, item:"raw_shark",      casket:1/100 },
+  { id:"angler",    name:"Bait anglerfish",  lvl:82, time:7.5, xp:250, item:"raw_anglerfish", casket:1/90 },
+  { id:"eel",       name:"Abyssal eels",     lvl:90, time:8.0, xp:300, item:"raw_eel",        casket:1/80 },
 ];
 const CASKET_TABLE = [
   { item:"coins",       weight:50, min:30, max:150 },
@@ -657,7 +657,7 @@ const RECIPES = [
   { id:"swordfish", name:"Cook swordfish",  lvl:45, time:2.8, xp:140, item:"raw_swordfish", out:"swordfish",    burn:0.45, hint:"Go fishing first." },
   { id:"shark",     name:"Cook shark",      lvl:80, time:3.0, xp:210, item:"raw_shark",      out:"shark",        burn:0.50, hint:"Go fishing first." },
   { id:"angler",    name:"Cook anglerfish", lvl:84, time:3.0, xp:230, item:"raw_anglerfish", out:"anglerfish",   burn:0.50, hint:"Go fishing first." },
-  { id:"eel",       name:"Cook abyssal eel",lvl:92, time:3.2, xp:260, item:"raw_eel",        out:"eel",          burn:0.55, hint:"Go fishing first." },
+  { id:"eel",       name:"Cook abyssal eel",lvl:92, time:3.2, xp:320, item:"raw_eel",        out:"eel",          burn:0.55, hint:"Go fishing first." },
 ];
 RECIPES.unshift({ id:"chicken", name:"Cook chicken", lvl:1, time:2.0, xp:30, item:"raw_chicken", out:"cooked_chicken", burn:0.40, hint:"Fight some chickens first." });
 const FUEL = ["logs","oak_logs","willow_logs","maple_logs","yew_logs","magic_logs","elder_logs"];
@@ -671,8 +671,8 @@ const ROCKS = [
   { id:"iron",    name:"Iron rock",    lvl:15, time:4.0, xp:35,   item:"iron_ore",    geode:1/200 },
   { id:"coal",    name:"Coal seam",    lvl:30, time:5.0, xp:50,   item:"coal",        geode:1/175 },
   { id:"mithril", name:"Mithril vein", lvl:40, time:6.0, xp:80,   item:"mithril_ore", geode:1/150 },
-  { id:"cobalt",  name:"Cobalt vein",  lvl:70, time:7.0, xp:95,   item:"cobalt_ore",  geode:1/120 },
-  { id:"runite",  name:"Runite vein",  lvl:85, time:9.0, xp:125,  item:"runite_ore",  geode:1/100, gem:1/60 },
+  { id:"cobalt",  name:"Cobalt vein",  lvl:70, time:6.5, xp:140,   item:"cobalt_ore",  geode:1/120 },
+  { id:"runite",  name:"Runite vein",  lvl:85, time:7.5, xp:200,  item:"runite_ore",  geode:1/100, gem:1/60 },
 ];
 ROCKS.unshift({ id:"essence", name:"Essence rock", lvl:1, time:2.5, xp:5, item:"rune_essence", geode:1/300, gem:1/80 });
 const GEM_TABLE = [ { item:"uncut_sapphire", weight:60, min:1, max:1 }, { item:"uncut_emerald", weight:30, min:1, max:1 }, { item:"uncut_ruby", weight:10, min:1, max:1 }, { item:"uncut_diamond", weight:3, min:1, max:1 } ];
@@ -722,13 +722,13 @@ const ENCHANT = [
 ];
 // Brewing: fill a barrel, it ferments in real time, collect 3 brews. Drinking adds 30 minutes of the buff.
 const BREWS = [
-  { id:"forester", name:"Forester's stout", lvl:1,  inputs:{ barley:4, logs:2 },                         ferment:3,  startXp:15,  xp:60,  out:"brew_forester" },
-  { id:"angler",   name:"Angler's ale",     lvl:10, inputs:{ barley:4, shrimp:2 },                       ferment:5,  startXp:25,  xp:100, out:"brew_angler" },
-  { id:"miner",    name:"Miner's porter",   lvl:20, inputs:{ barley:4, hops:2, coal:1 },                 ferment:8,  startXp:40,  xp:160, out:"brew_miner" },
-  { id:"thief",    name:"Thief's ale",      lvl:30, inputs:{ hops:4, potato:3 },                         ferment:12, startXp:60,  xp:240, out:"brew_thief" },
-  { id:"giant",    name:"Giant's mead",     lvl:40, inputs:{ hops:4, barley:4, salmon:2 },               ferment:15, startXp:80,  xp:330, out:"brew_giant" },
-  { id:"scholar",  name:"Scholar's brandy", lvl:55, inputs:{ hops:6, maple_logs:2, uncut_emerald:1 },    ferment:20, startXp:120, xp:500, out:"brew_scholar" },
-  { id:"sailor",   name:"Sailor's rum",     lvl:70, inputs:{ hops:6, sunfruit:2, maple_logs:2 },     ferment:25, startXp:150, xp:650, out:"brew_sailor" },
+  { id:"forester", name:"Forester's stout", lvl:1,  inputs:{ barley:4, logs:2 },                         ferment:3,  startXp:120,  xp:480,  out:"brew_forester" },
+  { id:"angler",   name:"Angler's ale",     lvl:10, inputs:{ barley:4, shrimp:2 },                       ferment:5,  startXp:200,  xp:800, out:"brew_angler" },
+  { id:"miner",    name:"Miner's porter",   lvl:20, inputs:{ barley:4, hops:2, coal:1 },                 ferment:8,  startXp:320,  xp:1280, out:"brew_miner" },
+  { id:"thief",    name:"Thief's ale",      lvl:30, inputs:{ hops:4, potato:3 },                         ferment:12, startXp:480,  xp:1920, out:"brew_thief" },
+  { id:"giant",    name:"Giant's mead",     lvl:40, inputs:{ hops:4, barley:4, salmon:2 },               ferment:15, startXp:640,  xp:2640, out:"brew_giant" },
+  { id:"scholar",  name:"Scholar's brandy", lvl:55, inputs:{ hops:6, maple_logs:2, uncut_emerald:1 },    ferment:20, startXp:960, xp:4000, out:"brew_scholar" },
+  { id:"sailor",   name:"Sailor's rum",     lvl:70, inputs:{ hops:6, sunfruit:2, maple_logs:2 },     ferment:25, startXp:1200, xp:5200, out:"brew_sailor" },
 ];
 const BARREL_LEVELS = [1, 1, 30];
 const BREW_YIELD = 3, BUFF_MS = 30 * 60000, BUFF_CAP = 4 * 3600000;
@@ -750,33 +750,33 @@ const TRADER_GOODS = [
   { id:"ship_biscuit", name:"Ship's biscuits ×10", desc:"Cheap rations. Heals 2 each.", price:6, qty:10 },
 ];
 const BOATS = [
-  { id:"rowboat", name:"Rowboat", lvl:1,  tier:1, cost:{ logs:40, bronze_bar:5 },                       xp:150 },
-  { id:"cutter",  name:"Cutter",  lvl:20, tier:2, cost:{ willow_logs:60, iron_bar:10, steel_bar:5 },     xp:1200 },
-  { id:"galleon", name:"Galleon", lvl:45, tier:3, cost:{ maple_logs:80, steel_bar:20, mithril_bar:10 },   xp:6000 },
+  { id:"rowboat", name:"Rowboat", lvl:1,  tier:1, cost:{ logs:40, bronze_bar:5 },                       xp:1200 },
+  { id:"cutter",  name:"Cutter",  lvl:20, tier:2, cost:{ willow_logs:60, iron_bar:10, steel_bar:5 },     xp:9600 },
+  { id:"galleon", name:"Galleon", lvl:45, tier:3, cost:{ maple_logs:80, steel_bar:20, mithril_bar:10 },   xp:48000 },
 ];
 const VOYAGES = [
-  { id:"gull",    name:"Gull Rocks",       type:"fishing", gold:[4,8],    lvl:1,  tier:1, mins:30,  food:5,  xp:300,   rolls:3,
+  { id:"gull",    name:"Gull Rocks",       type:"fishing", gold:[4,8],    lvl:1,  tier:1, mins:30,  food:5,  xp:2400,   rolls:3,
     table:[{item:"coins",weight:40,min:20,max:80},{item:"raw_shrimp",weight:25,min:5,max:15},{item:"raw_trout",weight:15,min:3,max:8},{item:"skyfeather",weight:12,min:2,max:5},{item:"casket",weight:8,min:1,max:1}],
     uniques:[{item:"gull_cloak",chance:1/25},{item:"pet_gull",chance:1/200}] },
-  { id:"cove",    name:"Smuggler's Cove",  type:"plunder", gold:[10,18],  lvl:15, tier:1, mins:60,  food:10, xp:800,   rolls:4,
+  { id:"cove",    name:"Smuggler's Cove",  type:"plunder", gold:[10,18],  lvl:15, tier:1, mins:60,  food:10, xp:6400,   rolls:4,
     table:[{item:"coins",weight:45,min:80,max:250},{item:"raw_salmon",weight:16,min:3,max:8},{item:"uncut_sapphire",weight:15,min:1,max:1},{item:"iron_bar",weight:10,min:2,max:6},{item:"uncut_emerald",weight:8,min:1,max:1},{item:"silver_locket",weight:6,min:1,max:1}],
     uniques:[{item:"smuggler_coat",chance:1/30}] },
-  { id:"whalers", name:"Whalers' Shoals",  type:"fishing", gold:[14,24],  lvl:25, tier:2, mins:90,  food:12, xp:1500, rolls:5, needs:["nets",1],
+  { id:"whalers", name:"Whalers' Shoals",  type:"fishing", gold:[14,24],  lvl:25, tier:2, mins:90,  food:12, xp:12000, rolls:5, needs:["nets",1],
     table:[{item:"raw_lobster",weight:35,min:4,max:10},{item:"raw_swordfish",weight:25,min:3,max:8},{item:"raw_salmon",weight:20,min:5,max:12},{item:"casket",weight:12,min:1,max:2},{item:"pearl",weight:8,min:1,max:1}],
     uniques:[{item:"leviathan_scale",chance:1/30}] },
-  { id:"emerald", name:"Emerald Isle",     type:"explore", gold:[18,30],  lvl:30, tier:2, mins:120, food:15, xp:2000,  rolls:5,
+  { id:"emerald", name:"Emerald Isle",     type:"explore", gold:[18,30],  lvl:30, tier:2, mins:120, food:15, xp:16000,  rolls:5,
     table:[{item:"sunfruit_seed",weight:30,min:1,max:3},{item:"barley_seed",weight:15,min:3,max:8},{item:"hop_seed",weight:15,min:3,max:8},{item:"maple_seed",weight:15,min:1,max:2},{item:"coins",weight:15,min:100,max:300},{item:"uncut_emerald",weight:10,min:1,max:1}],
     uniques:[{item:"verdant_idol",chance:1/30}] },
-  { id:"citadel", name:"Sunken Citadel",   type:"salvage", gold:[35,55],  lvl:45, tier:3, mins:240, food:25, xp:5000,  rolls:6,
+  { id:"citadel", name:"Sunken Citadel",   type:"salvage", gold:[35,55],  lvl:45, tier:3, mins:240, food:25, xp:40000,  rolls:6,
     table:[{item:"coins",weight:35,min:300,max:900},{item:"raw_swordfish",weight:18,min:5,max:12},{item:"mithril_bar",weight:15,min:2,max:5},{item:"pearl",weight:12,min:1,max:1},{item:"uncut_ruby",weight:10,min:1,max:1},{item:"casket",weight:10,min:1,max:2}],
     uniques:[{item:"tide_harpoon",chance:1/35}] },
-  { id:"vault",   name:"Drowned Vault",    type:"salvage", gold:[50,80],  lvl:50, tier:3, mins:360, food:30, xp:8000, rolls:6, needs:["bell",1],
+  { id:"vault",   name:"Drowned Vault",    type:"salvage", gold:[50,80],  lvl:50, tier:3, mins:360, food:30, xp:64000, rolls:6, needs:["bell",1],
     table:[{item:"coins",weight:30,min:600,max:1500},{item:"mithril_bar",weight:20,min:3,max:8},{item:"uncut_ruby",weight:15,min:1,max:2},{item:"pearl",weight:15,min:1,max:2},{item:"casket",weight:12,min:2,max:3},{item:"gold_signet",weight:8,min:1,max:1}],
     uniques:[{item:"drowned_crown",chance:1/50}] },
-  { id:"storm",   name:"Stormwrack Isles", type:"plunder", gold:[80,130], lvl:60, tier:3, mins:480, food:40, xp:12000, rolls:8,
+  { id:"storm",   name:"Stormwrack Isles", type:"plunder", gold:[80,130], lvl:60, tier:3, mins:480, food:40, xp:96000, rolls:8,
     table:[{item:"coins",weight:35,min:800,max:2000},{item:"uncut_ruby",weight:15,min:1,max:2},{item:"pearl",weight:15,min:1,max:2},{item:"skyfeather",weight:15,min:15,max:30},{item:"mithril_ore",weight:10,min:10,max:20},{item:"gold_signet",weight:10,min:1,max:1}],
     uniques:[{item:"captain_compass",chance:1/40},{item:"pet_parrot",chance:1/300}] },
-  { id:"rift",    name:"Abyssal Rift",     type:"salvage", gold:[150,240], lvl:75, tier:3, mins:600, food:60, xp:20000, rolls:9,
+  { id:"rift",    name:"Abyssal Rift",     type:"salvage", gold:[150,240], lvl:75, tier:3, mins:600, food:60, xp:160000, rolls:9,
     table:[{item:"coins",weight:30,min:1500,max:4000},{item:"runite_bar",weight:20,min:2,max:5},{item:"raw_eel",weight:18,min:5,max:12},{item:"casket",weight:14,min:2,max:4},{item:"uncut_diamond",weight:12,min:1,max:2},{item:"magic_seed",weight:6,min:1,max:1}],
     uniques:[{item:"tidebreaker_charm",chance:1/40}] },
 ];
@@ -850,15 +850,15 @@ const ROUND_MS = 2400, EAT_AT = 0.5, REGEN_MS = 6000;
 
 // Farming: grows in real time (also while away). Fertilising with ashes halves the time left and adds 25% yield.
 const CROPS = [
-  { id:"barley",  name:"Barley",     seed:"barley_seed",   lvl:8,  grow:4,  plantXp:10,  harvestXp:45,  out:"barley",   min:4,  max:8 },
-  { id:"hops",    name:"Hops",       seed:"hop_seed",      lvl:18, grow:8,  plantXp:20,  harvestXp:90,  out:"hops",     min:4,  max:8 },
-  { id:"sunfruit",name:"Sunfruit",   seed:"sunfruit_seed", lvl:35, grow:30, plantXp:150, harvestXp:900, out:"sunfruit", min:4,  max:8 },
-  { id:"potato", name:"Potatoes",   seed:"potato_seed", lvl:1,  grow:2,  plantXp:8,   harvestXp:30,  out:"potato",      min:3,  max:6 },
-  { id:"oak",    name:"Oak tree",   seed:"acorn",       lvl:5,  grow:6,  plantXp:25,  harvestXp:140, out:"oak_logs",    min:10, max:15 },
-  { id:"willow", name:"Willow tree",seed:"willow_seed", lvl:15, grow:12, plantXp:60,  harvestXp:340, out:"willow_logs", min:10, max:15 },
-  { id:"maple",  name:"Maple tree", seed:"maple_seed",  lvl:30, grow:25, plantXp:120, harvestXp:720, out:"maple_logs",  min:10, max:15 },
-  { id:"yew",    name:"Yew tree",   seed:"yew_seed",    lvl:60, grow:45, plantXp:250, harvestXp:1600, out:"yew_logs",   min:10, max:15 },
-  { id:"magic",  name:"Magic tree", seed:"magic_seed",  lvl:75, grow:70, plantXp:450, harvestXp:3000, out:"magic_logs", min:8,  max:12 },
+  { id:"barley",  name:"Barley",     seed:"barley_seed",   lvl:8,  grow:4,  plantXp:40,  harvestXp:180,  out:"barley",   min:4,  max:8 },
+  { id:"hops",    name:"Hops",       seed:"hop_seed",      lvl:18, grow:8,  plantXp:80,  harvestXp:360,  out:"hops",     min:4,  max:8 },
+  { id:"sunfruit",name:"Sunfruit",   seed:"sunfruit_seed", lvl:35, grow:30, plantXp:600, harvestXp:3600, out:"sunfruit", min:4,  max:8 },
+  { id:"potato", name:"Potatoes",   seed:"potato_seed", lvl:1,  grow:2,  plantXp:32,   harvestXp:120,  out:"potato",      min:3,  max:6 },
+  { id:"oak",    name:"Oak tree",   seed:"acorn",       lvl:5,  grow:6,  plantXp:100,  harvestXp:560, out:"oak_logs",    min:10, max:15 },
+  { id:"willow", name:"Willow tree",seed:"willow_seed", lvl:15, grow:12, plantXp:240,  harvestXp:1360, out:"willow_logs", min:10, max:15 },
+  { id:"maple",  name:"Maple tree", seed:"maple_seed",  lvl:30, grow:25, plantXp:480, harvestXp:2880, out:"maple_logs",  min:10, max:15 },
+  { id:"yew",    name:"Yew tree",   seed:"yew_seed",    lvl:60, grow:45, plantXp:1000, harvestXp:6400, out:"yew_logs",   min:10, max:15 },
+  { id:"magic",  name:"Magic tree", seed:"magic_seed",  lvl:75, grow:70, plantXp:1800, harvestXp:12000, out:"magic_logs", min:8,  max:12 },
 ]; // grow is in minutes
 const PATCH_LEVELS = [1, 1, 10, 25];
 const FERTILISE_COST = 10;
@@ -1081,7 +1081,7 @@ function baseMax() {
   if (t === "magic") return spellOf().max + (has("archmage_staff") && lvl("magic") >= 45 ? 2 : 0);
   return 0.5 + (lvl("strength") + 8 + (state.opts.style === "strength" ? 3 : 0)) * ((weapon() ? weapon()[3] : 0) + 64) / 640;
 }
-const playerMax = () => Math.max(1, Math.floor(baseMax() * (worn("fury_ring") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1)));
+const playerMax = () => 1 + Math.max(1, Math.floor(baseMax() * (worn("fury_ring") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1)));
 const foeAcc = m => hitChance((m.att + 9) * 64, (lvl("defence") + 8 + (state.opts.style === "defence" ? 3 : 0)) * (defBonus() + 64)) * (has("warding_charm") ? 0.85 : 1) * (worn("knight_oath") ? 0.9 : 1);
 const bestFood = () => Object.keys(FOOD).find(has);
 const foodCount = () => Object.keys(FOOD).reduce((s, f) => s + qty(f), 0);
@@ -1101,7 +1101,7 @@ function fightRound(m, sum) {
   // pay for the attack
   const t = ctype(), px = 1 + 0.02 * petCount();
   if (t === "ranged") { const ar = arrow()[0]; if (!(has("drakebone_bow") && bow()[0] === "drakebone_bow" && Math.random() < 0.5) && Math.random() < 0.5) { add(ar, -1); sum.items[ar] = (sum.items[ar] || 0) - 1; } }
-  if (t === "magic") { const sp = spellOf(); for (const [r, q] of Object.entries(spellCost(sp))) { add(r, -q); sum.items[r] = (sum.items[r] || 0) - q; } gainXp("magic", sp.xp * px, sum); }
+  if (t === "magic") { const sp = spellOf(); for (const [r, q] of Object.entries(spellCost(sp))) { add(r, -q); sum.items[r] = (sum.items[r] || 0) - q; } gainXp("magic", sp.xp * 1.5 * px, sum); }
   // you attack
   let landed = 0;
   if (Math.random() < playerAcc(m)) {
@@ -1110,7 +1110,7 @@ function fightRound(m, sum) {
     if (dmg > 0) {
       state.fight.mhp -= dmg;
       const skill = t === "ranged" ? "ranged" : t === "magic" ? "magic" : state.opts.style;
-      gainXp(skill, dmg * (t === "magic" ? 2 : 4) * px, sum); gainXp("hitpoints", dmg * 4 / 3 * px, sum);
+      gainXp(skill, dmg * (t === "magic" ? 6 : 12) * px, sum); gainXp("hitpoints", dmg * 4 * px, sum);
     }
   }
   fx({ t:"swing", dmg: landed, ctype: t, spell: t === "magic" ? spellOf().id : null, mon: m.id });
@@ -1981,7 +1981,7 @@ function combatPanel() {
     const meta = locked ? `<span class="lock">Needs combat level ${m.lvl}</span>`
       : `${m.boss ? `<span class="chip" style="padding:0 7px;margin-right:4px;border-color:#ff7a1a;color:#ff7a1a">Boss</span>` : ""}${m.weak ? `<span class="chip" style="padding:0 7px;margin-right:4px">Weak to ${CTYPES[m.weak].toLowerCase()}</span>` : ""}<span class="ok">${Math.round(playerAcc(m) * 100)}% to hit</span> · it hits ${Math.round(foeAcc(m) * 100)}% up to ${m.max} · ${m.hp} hp · kills <span class="num">${fmt(state.kills[m.id] || 0)}</span>${notable ? `<br><span style="color:var(--rare)">Uniques: ${esc(notable)}</span>` : ""}`;
     return `<button class="act" id="act-combat-${m.id}" data-skill="combat" data-id="${m.id}" aria-pressed="${active}" ${locked || state.hp <= 0 ? "disabled" : ""}>
-      <span class="nm">${esc(m.name)}</span><span class="meta">${meta}</span><span class="side"><b>${m.hp * 4}</b>xp/kill</span></button>`;
+      <span class="nm">${esc(m.name)}</span><span class="meta">${meta}</span><span class="side"><b>${m.hp * 16}</b>xp/kill</span></button>`;
   }).join("") + `</div>`;
   const tot = MONSTERS.reduce((n, m) => n + m.uniques.length, 0), gotN = MONSTERS.reduce((n, m) => n + m.uniques.filter(u => got(u.item)).length, 0);
   h += `<h3>Collection log <span>${gotN}/${tot}</span></h3><div class="clog">` + MONSTERS.map(m =>
@@ -2988,7 +2988,7 @@ function start(data) {
   render(); renderNow();
   lastFrame = performance.now(); requestAnimationFrame(frame);
 }
-window.__thornwick = { get state() { return state; }, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
