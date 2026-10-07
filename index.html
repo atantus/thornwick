@@ -1402,9 +1402,11 @@ function unload(boatId) {
 }
 
 /* ================= BANK ================= */
+// all: true sells the whole stack, "keep1" sells everything except one
 function sell(item, all) {
   const it = ITEMS[item]; if (!it || !it.sell || !has(item)) return;
-  const n = all ? qty(item) : 1;
+  const n = all === "keep1" ? qty(item) - 1 : all ? qty(item) : 1;
+  if (n <= 0) return;
   add(item, -n); add("coins", n * it.sell);
   if (all) toast(`Sold ${fmt(n)} ${it.name.toLowerCase()} for ${fmt(n * it.sell)} coins`);
 }
@@ -2088,7 +2090,7 @@ function renderSheet() {
   if (k === "geode") b += `<button class="btn solid" id="openg1" data-geode="1">Open</button><button class="btn" id="opengall" data-geode="all">Open all</button>`;
   if (k === "casket") b += `<button class="btn solid" id="openc1" data-casket="1">Open</button><button class="btn" id="opencall" data-casket="all">Open all</button>`;
   if (k === "bird_nest") b += `<button class="btn solid" id="open1" data-open="1">Open</button><button class="btn" id="openall" data-open="all">Open all</button>`;
-  if (it.sell) b += `<button class="btn" id="sell1-${k}" data-sell="${k}">Sell 1 · ${it.sell}c</button><button class="btn" id="sellall-${k}" data-sellall="${k}">Sell all · <span class="num" data-sellv="${k}"></span>c</button>`;
+  if (it.sell) b += `<button class="btn" id="sell1-${k}" data-sell="${k}">Sell 1 · ${it.sell}c</button><button class="btn" id="sellkeep-${k}" data-sellkeep="${k}">Sell all but 1 · <span class="num" data-sellk="${k}"></span>c</button><button class="btn" id="sellall-${k}" data-sellall="${k}">Sell all · <span class="num" data-sellv="${k}"></span>c</button>`;
   el.innerHTML = `<div class="in" role="dialog" aria-label="${esc(it.name)}">${icon(k)}<span class="nm ${it.rare ? "rare" : ""}">${esc(it.name)}</span><button class="x" id="sheetClose" data-pick="" aria-label="Close">×</button>
     <span class="meta"><span class="num" data-q="${k}"></span> in bank${it.sell ? ` · worth ${it.sell}c each` : ""} · ${itemCat(k)}</span>
     <span class="desc">${esc(it.desc)}</span>${b ? `<div class="btns">${b}</div>` : `<span class="meta" style="grid-column:1/-1">Kept in your bank. Its bonus works while you own it.</span>`}</div>`;
@@ -3184,6 +3186,7 @@ function render() {
 /* Cheap in-place refresh, safe to run every frame */
 function update() {
   document.querySelectorAll("[data-qs]").forEach(el => { const q = qty(el.dataset.qs), v = shortQty(q); if (el.textContent !== v) { el.textContent = v; el.className = "qn " + (q >= 1e7 ? "m" : q >= 1e5 ? "k" : ""); } });
+  document.querySelectorAll("[data-sellk]").forEach(el => { const k = el.dataset.sellk, n = Math.max(0, qty(k) - 1); el.textContent = fmt(n * (ITEMS[k].sell || 0)); el.closest("button").disabled = n === 0; });
   document.querySelectorAll("[data-sellv]").forEach(el => { el.textContent = fmt(qty(el.dataset.sellv) * (ITEMS[el.dataset.sellv].sell || 0)); });
   { const d = document.querySelector(".dock"); if (d) document.documentElement.style.setProperty("--dock-h", d.offsetHeight + "px"); }
   document.querySelectorAll("[data-q]").forEach(el => { const v = fmt(qty(el.dataset.q)); if (el.textContent !== v) el.textContent = v; });
@@ -3288,6 +3291,7 @@ document.addEventListener("click", e => {
   if (d.geode) { openGeodes(d.geode === "all"); return after(); }
   if (d.sell) { sell(d.sell, false); return after(); }
   if (d.sellall) { sell(d.sellall, true); return after(); }
+  if (d.sellkeep) { sell(d.sellkeep, "keep1"); return after(); }
   if (d.buy) { buy(+d.buy); return after(); }
   if (d.eyrie) { buyEyrie(+d.eyrie); return after(); }
   if (d.plant) { plant(+d.plant, d.crop); return after(); }
