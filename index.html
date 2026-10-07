@@ -1279,7 +1279,16 @@ function advanceCore(ms, sum) {
     const t = actionTime(state.active.skill, a);
     if (state.progress + ms < t) { state.progress += ms; break; }
     ms -= t - state.progress; state.progress = 0;
+    // while you're watching, remember what each action produced so the scene can show it
+    const sk = state.active.skill, live = ms < 5000 && SCENE_SKILLS.includes(sk);
+    const snap = live ? Object.assign({}, sum.items) : null, xp0 = state.xp[sk], fails0 = sum.fails || 0;
     if (!complete(sum)) { state.active = null; break; }
+    if (live) {
+      const gains = Object.entries(sum.items).map(([k, v]) => [k, v - (snap[k] || 0)]).filter(([, d]) => d > 0);
+      const fail = (sum.fails || 0) > fails0;
+      skq.push({ skill: sk, gains, xp: Math.round(state.xp[sk] - xp0), fail, label: fail ? ({ thieving: "Stunned!", agility: "Slipped!", cooking: "Burnt!" }[sk] || "Missed") : null });
+      if (skq.length > 6) skq.shift();
+    }
   }
   return sum;
 }
@@ -1532,16 +1541,16 @@ function signature() {
 const SKILL_GROUPS = [
   ["Gathering", ["woodcutting","fishing","mining","farming"]],
   ["Production", ["firemaking","cooking","smithing","fletching","enchanting","brewing"]],
-  ["Utility", ["agility","thieving"]],
+  ["Utility", ["agility","thieving","seafaring"]],
 ];
-const SECTIONS = [["skills","Skills","✦"],["combat","Combat","⚔"],["seafaring","Voyages","⚓"],["bank","Bank","◫"],["more","More","≡"]];
-const NAV_ICON = { skills:"skills", combat:"attack", seafaring:"seafaring", bank:"bank", more:"more" };
-const sectionOf = t => ["combat","seafaring","bank","more"].includes(t) ? t : "skills";
+const SECTIONS = [["skills","Skills","✦"],["combat","Combat","⚔"],["clog","Log","▤"],["bank","Bank","◫"],["more","More","≡"]];
+const NAV_ICON = { skills:"skills", combat:"attack", clog:"more", bank:"bank", more:"cog" };
+const sectionOf = t => ["combat","clog","bank","more"].includes(t) ? t : "skills";
 function badges() {
   const now = Date.now();
   return {
-    skills: state.patches.filter(p => p && now >= p.readyAt).length + state.barrels.filter(p => p && now >= p.readyAt).length,
-    seafaring: Object.values(state.boats).filter(t => t && now >= t.readyAt).length,
+    skills: state.patches.filter(p => p && now >= p.readyAt).length + state.barrels.filter(p => p && now >= p.readyAt).length + Object.values(state.boats).filter(t => t && now >= t.readyAt).length,
+    clog: 0,
     bank: qty("bird_nest") + qty("casket") + qty("geode"),
     combat: 0, more: claimable(),
   };
@@ -1555,6 +1564,8 @@ function skillStatus(k) {
   const now = Date.now();
   if (state.active && state.active.skill === k) return ["go", "Training: " + findAction(k, state.active.id).name];
   if (k === "farming") { const r = state.patches.filter(p => p && now >= p.readyAt).length, g = state.patches.filter(p => p && now < p.readyAt).length; return r ? ["ok", `${r} ready to harvest`] : g ? ["", `${g} growing`] : ["", "Patches empty"]; }
+  if (k === "seafaring") { const b = Object.values(state.boats), back = b.filter(t => t && now >= t.readyAt).length, sea = b.filter(t => t && now < t.readyAt).length;
+    return back ? ["ok", `${back} back in port${sea ? ` · ${sea} at sea` : ""}`] : sea ? ["", `${sea} at sea`] : b.length ? ["", "Boats docked"] : ["", "No boats yet"]; }
   if (k === "brewing") { const r = state.barrels.filter(p => p && now >= p.readyAt).length, g = state.barrels.filter(p => p && now < p.readyAt).length; return r ? ["ok", `${r} ready to collect`] : g ? ["", `${g} fermenting`] : ["", "Barrels empty"]; }
   return ["", ""];
 }
@@ -1862,16 +1873,16 @@ function clogPanel() {
 
 function morePanel() {
   let h = `<div class="pagehead"><h2>More</h2><span>Total level ${totalLevel()}</span></div>
-    <div class="seg" role="group" aria-label="More" style="grid-template-columns:repeat(4,1fr)">${[["quests","Quests"],["clog","Collection log"],["activity","Activity"],["help","Help & save"]].map(([k, n]) => `<button id="msub-${k}" data-moresub="${k}" aria-pressed="${moreSub === k}">${n}</button>`).join("")}</div>`;
+    <div class="seg" role="group" aria-label="More" style="grid-template-columns:repeat(3,1fr)">${[["quests","Quests"],["activity","Activity"],["help","Help & save"]].map(([k, n]) => `<button id="msub-${k}" data-moresub="${k}" aria-pressed="${moreSub === k}">${n}</button>`).join("")}</div>`;
   if (moreSub === "quests") return h + questsPanel();
-  if (moreSub === "clog") return h + clogPanel();
+  if (moreSub === "clog") moreSub = "quests";
   if (moreSub === "activity") return h + (state.feed.length ? `<ul class="feed">` + state.feed.map(f => `<li class="${f.k}">${f.t}</li>`).join("") + `</ul>` : `<div class="empty">Level-ups, rare drops and voyages will be listed here.</div>`);
   h += `<h3>How to play</h3><ol class="guide">
     <li><b>Pick one action</b> on any skill page. It repeats on its own, even while you're away (up to 12 hours).</li>
     <li><b>Timers run alongside it.</b> Farming patches, brewing barrels and voyages finish in real time; the badges on the menu tell you when.</li>
     <li><b>Skills feed each other.</b> Logs fuel Firemaking and Cooking, ore becomes gear in Smithing, food keeps you alive in Combat and pays for voyages.</li>
     <li><b>Follow the quest log.</b> Quests in More › Quests give you goals from your first log to level 99, with rewards to claim.</li>
-    <li><b>Chase rare drops.</b> Monsters and islands have uniques you can't make, tracked in their collection logs.</li>
+    <li><b>Chase rare drops.</b> Monsters and islands have uniques you can't make, tracked in the Log on the bottom bar.</li>
     <li><b>Spend currencies</b>: coins in the Bank shop, Skyfeathers at The Eyrie (Agility), doubloons at the Black Flag Trader (Voyages).</li>
   </ol>`;
   h += `<h3>Save</h3><div class="save"><p class="note">Progress saves in this browser automatically. Copy the code to keep a backup or move to another device.</p>
@@ -1986,7 +1997,7 @@ function combatPanel() {
   const tot = MONSTERS.reduce((n, m) => n + m.uniques.length, 0), gotN = MONSTERS.reduce((n, m) => n + m.uniques.filter(u => got(u.item)).length, 0);
   h += `<h3>Collection log <span>${gotN}/${tot}</span></h3><div class="clog">` + MONSTERS.map(m =>
     `<div class="row"><b>${esc(m.name)}</b><span>${m.uniques.map(u => `<span class="${got(u.item) ? "got" : ""}">${esc(ITEMS[u.item].name)} 1/${fmt(Math.round(1 / u.chance))}</span>`).join(" · ")}</span></div>`).join("") + `</div>
-    <p class="note">Uniques never come from Smithing. Each pet gives +2% combat xp${petCount() ? ` (you have ${petCount()})` : ""}. <button class="linkbtn" id="toClog1" data-tab="more" data-moresub="clog" data-clog="monsters">Open the full collection log</button></p>`;
+    <p class="note">Uniques never come from Smithing. Each pet gives +2% combat xp${petCount() ? ` (you have ${petCount()})` : ""}. <button class="linkbtn" id="toClog1" data-tab="clog" data-clog="monsters">Open the full collection log</button></p>`;
   if (state.hp <= 0) h += `<p class="note">You're knocked out. Hitpoints come back 1 every ${REGEN_MS / 1000}s. You can fight again once you have at least 1.</p>`;
   return h;
 }
@@ -2063,7 +2074,7 @@ function seafaringPanel() {
   const tot = VOYAGES.reduce((n, v) => n + v.uniques.length, 0), gotN = VOYAGES.reduce((n, v) => n + v.uniques.filter(u => got(u.item)).length, 0);
   h += `<h3>Island log <span>${gotN}/${tot}</span></h3><div class="clog">` + VOYAGES.map(v =>
     `<div class="row"><b>${esc(v.name)}</b><span>${VOYAGE_TYPES[v.type]} · ${fmt(state.islands[v.id] || 0)} trips · ${v.gold[0]}–${v.gold[1]} doubloons · ${v.uniques.map(u => `<span class="${got(u.item) ? "got" : ""}">${esc(ITEMS[u.item].name)} 1/${Math.round(1 / u.chance)}</span>`).join(" · ")}</span></div>`).join("") + `</div>
-    <p class="note">Island uniques only come from voyages. Each Seafaring level makes voyages 0.5% shorter, and every 20 levels adds a loot roll. <button class="linkbtn" id="toClog2" data-tab="more" data-moresub="clog" data-clog="voyages">Open the full collection log</button></p>`;
+    <p class="note">Island uniques only come from voyages. Each Seafaring level makes voyages 0.5% shorter, and every 20 levels adds a loot roll. <button class="linkbtn" id="toClog2" data-tab="clog" data-clog="voyages">Open the full collection log</button></p>`;
   return h;
 }
 
@@ -2355,6 +2366,19 @@ const ICONS = {
     "............",
     "............",
     "............"],
+  cog: [
+    "....KKKK....",
+    "..K.KkkK.K..",
+    ".KKKkkkkKKK.",
+    "..KkkKKkkK..",
+    "KKkkK..KkkKK",
+    "KkkK....KkkK",
+    "KkkK....KkkK",
+    "KKkkK..KkkKK",
+    "..KkkKKkkK..",
+    ".KKKkkkkKKK.",
+    "..K.KkkK.K..",
+    "....KKKK...."],
   bank: [
     "............",
     "..DDDDDDDD..",
@@ -2797,6 +2821,341 @@ function drawScene(now) {
   for (const a of scene.anims) if (a.k === "splat" && a.who === "p" && now >= a.start) splat(ctx, pX, ground - ps.h / 2, a.v, a.kind, prog(a));
 }
 
+/* ================= SKILLING SCENES ================= */
+// Every action skill gets a little animated scene in the same chunky outlined style as combat.
+const SCENE_SKILLS = ["woodcutting","firemaking","fishing","cooking","mining","smithing","fletching","enchanting","agility","thieving"];
+const OUTLINE = "#0b0b0d";
+// outline a grid once, cache by key
+const _og = {};
+function outlined(key, grid) {
+  if (_og[key]) return _og[key];
+  const w = Math.max(...grid.map(r => r.length)), h = grid.length;
+  const at = (x, y) => y >= 0 && y < h && x >= 0 && x < w && (grid[y][x] || ".") !== ".";
+  const out = [];
+  for (let y = -1; y <= h; y++) { let row = ""; for (let x = -1; x <= w; x++) row += at(x, y) ? grid[y][x] : (at(x - 1, y) || at(x + 1, y) || at(x, y - 1) || at(x, y + 1)) ? "~" : "."; out.push(row); }
+  return (_og[key] = out);
+}
+// draw a grid centred on cx with its bottom at by
+function drawGrid(ctx, key, grid, pal, cx, by, s, flip, alpha) {
+  const g = outlined(key, grid), h = g.length, w = g[0].length;
+  ctx.globalAlpha = alpha == null ? 1 : alpha;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const c = g[y][x]; if (c === ".") continue;
+    ctx.fillStyle = c === "~" ? OUTLINE : pal[c]; if (!ctx.fillStyle) continue;
+    const xx = flip ? w - 1 - x : x;
+    ctx.fillRect(Math.round(cx - w * s / 2 + xx * s), Math.round(by - (h - y) * s), Math.ceil(s), Math.ceil(s));
+  }
+  ctx.globalAlpha = 1;
+  return { w: w * s, h: h * s };
+}
+// draw an item or skill icon straight onto a canvas (same art as the bank)
+function drawIcon(ctx, key, cx, cy, size) {
+  let g = ICONS[key], pal = ICON_PAL;
+  if (!g && ITEM_ICON[key]) { const [t, cols] = ITEM_ICON[key]; g = ITEM_TPL[t]; pal = Object.assign({}, ICON_PAL, { 1: cols[0], 2: cols[1], 3: cols[2], 4: cols[3] }); }
+  if (!g) return;
+  const rows = Array.from({ length: 12 }, (_, y) => ((g[y] || "") + "............").slice(0, 12));
+  drawGrid(ctx, "icon:" + key, rows, pal, cx, cy + size / 2, size / 14);
+}
+
+const WORKER = { grid: [
+  "..cccc....",
+  ".cCCCCc...",
+  ".cssesc...",
+  "..ssss....",
+  ".tttttt...",
+  "sttTTtts..",
+  ".pp..pp...",
+  ".kk..kk..."], pal: { c:"#3fae4a", C:"#2a7a32", s:SKIN, e:"#1a1a1a", t:"#a0682a", T:"#6a4220", p:"#3a3a44", k:"#3a2614" } };
+// tools: two poses, raised and striking
+const TOOLS = {
+  axe:     [["...SSS.","..SSSS.","...bSS.","..b....",".b.....","b......"], ["......","......","bbbbbS.","....SSS","....SS."]],
+  pickaxe: [["..SSSS.",".S.b..S","...b...","..b....",".b.....","b......"], [".......","......S","bbbbbbS","......S",".....S."]],
+  hammer:  [["..SSS..","..SSS..","...b...","..b....",".b.....","b......"], [".......",".......","bbbbSS.","....SS.","....SS."]],
+  knife:   [["....S","...S.","..S..",".b...","b...."], [".....","....S","bbbS.","....."]],
+};
+const TOOL_PAL = { S:"#d4d8de", b:"#8a5a2a" };
+const TREE_GRID = [
+  "....LLLL....",
+  "..LLLLLLLL..",
+  ".LLLlLLLLLL.",
+  "LLLLLLLLlLLL",
+  "LLlLLLLLLLLL",
+  "LLLLLLLlLLLL",
+  ".LLLLLLLLLL.",
+  "..LLLLLLLL..",
+  ".....TT.....",
+  ".....TT.....",
+  ".....TT.....",
+  "....TTTT...."];
+const TREE_COL = { tree:"#4fae4a", oak:"#3a8a3a", willow:"#a8c84a", maple:"#e0602a", yew:"#2f6a3a", magic:"#4a8ae0", elder:"#9a4ae0" };
+const ROCK_GRID = [
+  "...KKKKK....",
+  "..KKkKKKKK..",
+  ".KKKOKKkKKK.",
+  "KKOKKKKOKKKK",
+  "KKKKkKKKKOKK",
+  "KKKOKKKKKKKK",
+  ".KKKKKOKKKK.",
+  "..KKKKKKKK.."];
+const ANVIL_GRID = ["SSSSSSSSSS..","KKKKKKKKKKKK","..KKKKKKKK..","....KKKK....","....KKKK....","...KKKKKK...","..kkkkkkkk.."];
+const FURNACE_GRID = ["..BBBBBB..",".BBBBBBBB.","BBbbbbbbBB","BBbOOOObBB","BBbOYYObBB","BBbOOOObBB","BBbbbbbbBB","BBBBBBBBBB"];
+const STOVE_GRID = ["...KKKKKK...","..KkkkkkkK..","..KkkkkkkK..","...KKKKKK...","BBBBBBBBBBBB","BbbbbbbbbbbB","BbOOYYOObbbB","BbbbbbbbbbbB","BBBBBBBBBBBB"];
+const ALTAR_GRID = ["..SSSSSS..","..KKKKKK..","...KKKK...","...KkKK...","...KKKK...","..KKKKKK..",".SSSSSSSS."];
+const LOGS_GRID = ["............","..bbbbbbbb..",".bBBBBBBBBb.","..bbbbbbbb.."];
+const NPC_PAL = {
+  man:      { c:"#6a4426", C:"#4a2e16", t:"#3a6ad0", T:"#2a4a94" },
+  farmer:   { c:"#e8c84a", C:"#a8862a", t:"#7a8a3a", T:"#4a5a20" },
+  warrior:  { c:"#8a939d", C:"#5a626a", t:"#c0392b", T:"#7a2a1e" },
+  guard:    { c:"#c8ccd2", C:"#8a939d", t:"#5a6a8a", T:"#3a4a6a" },
+  knight:   { c:"#d4d8de", C:"#8a939d", t:"#b8c0c8", T:"#6a727a" },
+  merchant: { c:"#7a4ad0", C:"#4a2a8a", t:"#9a5ae0", T:"#5a2fa0" },
+  noble:    { c:"#f2c230", C:"#a8862a", t:"#b3261e", T:"#7a1a14" },
+};
+const GEM_GLOW = { uncut_sapphire:"#5aa7e8", uncut_emerald:"#5fd06a", uncut_ruby:"#ff4a4a", uncut_diamond:"#e8f4ff" };
+
+let skq = [];
+const sscene = { gains: [], swingAt: 0, shakeAt: 0, failAt: 0, parts: [], lastKey: "", nextAt: 0 };
+
+function skillBackdrop(ctx, W, H, skill, now) {
+  const ground = H - 26;
+  const sky = (a, b) => { const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, a); g.addColorStop(1, b); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); };
+  const tiles = (c1, c2) => { for (let x = 0, i = 0; x < W; x += 16, i++) for (let y = ground, j = 0; y < H; y += 16, j++) { ctx.fillStyle = (i + j) % 2 ? c1 : c2; ctx.fillRect(x, y, 16, 16); } ctx.fillStyle = OUTLINE; ctx.fillRect(0, ground, W, 2); };
+  const moon = () => { ctx.fillStyle = "#e6e9dc"; ctx.globalAlpha = .85; ctx.beginPath(); ctx.arc(W * 0.9, 24, 9, 0, 7); ctx.fill(); ctx.globalAlpha = 1; };
+  const pines = c => { ctx.fillStyle = c; for (let i = 0; i < 9; i++) { const x = (i / 8) * W + (i % 2 ? 14 : -6), h = 46 + (i * 37 % 30); ctx.beginPath(); ctx.moveTo(x - 18, ground); ctx.lineTo(x, ground - h); ctx.lineTo(x + 18, ground); ctx.fill(); } };
+  if (["woodcutting","firemaking","fletching"].includes(skill)) { sky("#0b1410", "#16241d"); moon(); pines("#0f1c16"); tiles("#24402e", "#2c4c36"); }
+  else if (skill === "fishing") {
+    sky("#0b1418", "#14242a"); moon(); pines("#0e1a1c");
+    tiles("#3a4a2e", "#445636");
+    ctx.fillStyle = "#1f4a6a"; ctx.fillRect(W * 0.5, ground - 4, W * 0.5, H - ground + 4);
+    ctx.fillStyle = "#2f6a8a"; for (let i = 0; i < 8; i++) { const x = W * 0.5 + ((i * 47 + now / 30) % (W * 0.5)); ctx.fillRect(x, ground + 6 + (i % 3) * 7, 10, 2); }
+    ctx.fillStyle = OUTLINE; ctx.fillRect(W * 0.5 - 2, ground - 4, 2, H);
+  }
+  else if (skill === "mining") {
+    sky("#16120e", "#221c16");
+    ctx.fillStyle = "#2c241c"; for (let i = 0; i < 10; i++) { const x = i * W / 9; ctx.beginPath(); ctx.moveTo(x - 10, 0); ctx.lineTo(x, 18 + (i * 13 % 20)); ctx.lineTo(x + 10, 0); ctx.fill(); }
+    tiles("#3a3026", "#443a2e");
+  }
+  else if (skill === "smithing") {
+    ctx.fillStyle = "#2a1612"; ctx.fillRect(0, 0, W, H);
+    for (let y = 0, r = 0; y < H - 26; y += 12, r++) for (let x = (r % 2) * -12; x < W; x += 24) { ctx.fillStyle = (x / 24 + r) % 3 ? "#3a1e18" : "#45241c"; ctx.fillRect(x + 1, y + 1, 22, 10); }
+    tiles("#3a3a40", "#444450");
+  }
+  else if (skill === "cooking") {
+    ctx.fillStyle = "#2a1c12"; ctx.fillRect(0, 0, W, H);
+    for (let x = 0; x < W; x += 18) { ctx.fillStyle = (x / 18) % 2 ? "#3a2618" : "#42301e"; ctx.fillRect(x, 0, 17, H - 26); }
+    tiles("#5a3a2a", "#6a4632");
+  }
+  else if (skill === "enchanting") {
+    sky("#120e24", "#1e1636");
+    ctx.fillStyle = "#e6e9dc"; for (let i = 0; i < 26; i++) { ctx.globalAlpha = 0.3 + 0.5 * Math.abs(Math.sin(now / 900 + i)); ctx.fillRect((i * 73) % W, (i * 37) % (H - 40), 2, 2); } ctx.globalAlpha = 1;
+    tiles("#2e2a44", "#36324e");
+  }
+  else if (skill === "agility") {
+    sky("#0e1220", "#1a2034"); moon();
+    // rooftops scroll past while you run
+    const off = (now / 12) % 90;
+    for (let i = -1; i < W / 90 + 2; i++) { const x = i * 90 - off, h = 40 + ((i * 7919) % 3 + 3) % 3 * 12; ctx.fillStyle = "#1a2236"; ctx.fillRect(x, ground - h + 26, 76, h); ctx.fillStyle = "#f2c230"; ctx.globalAlpha = .5; ctx.fillRect(x + 12, ground - h + 40, 6, 6); ctx.fillRect(x + 50, ground - h + 52, 6, 6); ctx.globalAlpha = 1; ctx.fillStyle = "#5a3a2a"; ctx.fillRect(x - 2, ground - h + 22, 80, 6); ctx.fillStyle = OUTLINE; ctx.fillRect(x - 2, ground - h + 20, 80, 2); }
+  }
+  else if (skill === "thieving") {
+    ctx.fillStyle = "#16141e"; ctx.fillRect(0, 0, W, H);
+    for (let i = 0; i < 4; i++) { const x = i * W / 4 + 6; ctx.fillStyle = i % 2 ? "#3a2e2a" : "#33302e"; ctx.fillRect(x, 20, W / 4 - 12, H - 46); ctx.fillStyle = "#f2c230"; ctx.globalAlpha = .55; ctx.fillRect(x + 12, 40, 12, 14); ctx.fillRect(x + W / 4 - 40, 40, 12, 14); ctx.globalAlpha = 1; }
+    tiles("#3a3a44", "#46464f");
+  }
+  return ground;
+}
+
+function drawSkillScene(now) {
+  const cv = $("sscene"); if (!cv) { skq = []; return; }
+  const skill = tab;
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+  if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.imageSmoothingEnabled = false;
+  const still = reduceMotion();
+  const working = state.active && state.active.skill === skill;
+  const a = working ? findAction(skill, state.active.id) : (ACTIONS[skill] || []).filter(x => x.lvl <= lvl(skill)).slice(-1)[0] || (ACTIONS[skill] || [])[0];
+  const key = skill + ":" + (a && a.id);
+  if (sscene.lastKey !== key) { sscene.lastKey = key; sscene.gains = []; sscene.parts = []; }
+  // turn queued results into floating rewards and effects
+  for (const e of skq) if (e.skill === skill) {
+    sscene.swingAt = now; sscene.shakeAt = now;
+    if (e.fail) sscene.failAt = now;
+    let at = Math.max(now, sscene.nextAt), first = true;
+    for (const [item, q] of e.gains.slice(0, 3)) { sscene.gains.push({ item, q, xp: first ? e.xp : 0, start: at, fail: false }); first = false; at += 450; }
+    if (!e.gains.length) { sscene.gains.push({ item: null, q: 0, xp: e.xp, start: at, fail: e.fail, label: e.label }); at += 450; }
+    sscene.nextAt = at;
+    for (let i = 0; i < 6; i++) sscene.parts.push({ x: 0, y: 0, vx: (Math.random() - .3) * 2.4, vy: -Math.random() * 2.6 - 0.6, start: now, life: 500 + Math.random() * 300, kind: skill });
+  }
+  skq = [];
+  sscene.gains = sscene.gains.filter(g => now - g.start < 1400).slice(-5);
+  sscene.parts = sscene.parts.filter(p => now - p.start < p.life);
+
+  const ground = skillBackdrop(ctx, W, H, skill, now);
+  const pX = W * 0.3, oX = W * 0.68, s = 8;
+  const t = working ? Math.max(0, Math.min(1, state.progress / actionTime(skill, a))) : 0;
+  const bob = still ? 0 : Math.sin(now / 420) * 1.2;
+  const swingDown = working && !still && (now - sscene.swingAt < 220 || (["woodcutting","mining","smithing","fletching"].includes(skill) && (now % 900) < 160));
+  const shake = working && !still && now - sscene.shakeAt < 200 ? Math.sin((now - sscene.shakeAt) / 20) * 2 : 0;
+  let objTop = ground - 60, px2 = pX;
+
+  // ---- the thing you're working on ----
+  if (skill === "woodcutting") { const r = drawGrid(ctx, "tree:" + a.id, TREE_GRID, { L: TREE_COL[a.id] || "#4fae4a", l: "#ffffff55", T: "#6a4220" }, oX + shake, ground, 7); objTop = ground - r.h; }
+  else if (skill === "mining") { const ore = { copper:"#e0803a", tin:"#c8ccd2", iron:"#a8603a", coal:"#4a4a50", mithril:"#6a7fd0", cobalt:"#3a8ad0", runite:"#3ad0c8", essence:"#e0d8f0" }[a.id] || "#c8ccd2"; const r = drawGrid(ctx, "rock:" + a.id, ROCK_GRID, { K: a.id === "essence" ? "#b8a8d8" : "#6b6560", k: "#9a948e", O: ore }, oX + shake, ground, 7); objTop = ground - r.h; }
+  else if (skill === "smithing") {
+    if (a.smelt) { const r = drawGrid(ctx, "furnace", FURNACE_GRID, { B: "#5a5e66", b: "#33363c", O: working ? "#ff7a1a" : "#7a3a10", Y: working ? (Math.sin(now / 90) > 0 ? "#ffd04a" : "#ffb52e") : "#9a5a20" }, oX, ground, 7); objTop = ground - r.h; }
+    else { const r = drawGrid(ctx, "anvil", ANVIL_GRID, { S: "#d4d8de", K: "#5a5e66", k: "#33363c" }, oX - 18, ground, 6); objTop = ground - r.h; if (working && a.out) drawIcon(ctx, a.out, oX - 30, objTop - 8, 22); }
+  }
+  else if (skill === "firemaking" || skill === "cooking") {
+    let fx = oX;
+    if (skill === "cooking") { const r = drawGrid(ctx, "stove", STOVE_GRID, { K: "#33363c", k: "#5a5e66", B: "#6a4a3a", b: "#3a2618", O: "#ff7a1a", Y: "#ffd04a" }, oX, ground, 6); objTop = ground - r.h; if (working) drawIcon(ctx, a.out, oX, objTop + 10, 18); fx = oX; }
+    else { const logCol = { logs:"#8a5a2a", oak_logs:"#a0703a", willow_logs:"#7a7a3a", maple_logs:"#9a3e22", yew_logs:"#5a6a2a", magic_logs:"#3a6ab0", elder_logs:"#6a2a5a" }[a.item] || "#8a5a2a"; drawGrid(ctx, "logs:" + a.item, LOGS_GRID, { b: "#3a2614", B: logCol }, oX, ground, 7); objTop = ground - 60; }
+    // chunky flickering flames (bigger the closer you are to the next result)
+    if (working || skill === "firemaking") {
+      const base = skill === "cooking" ? objTop - 2 : ground - 20, n = 5, grow = skill === "cooking" ? 0.4 : 0.6 + t * 0.6;
+      for (let i = 0; i < n; i++) {
+        const h = (10 + ((i * 37 + Math.floor(now / 110) * 13) % 14)) * (working ? grow : 0.35);
+        const x = fx - n * 6 / 2 * 2 + i * 12;
+        if (skill === "cooking") continue;
+        ctx.fillStyle = OUTLINE; ctx.fillRect(x - 1, base - h - 1, 10, h + 2);
+        ctx.fillStyle = "#ff7a1a"; ctx.fillRect(x, base - h, 8, h);
+        ctx.fillStyle = "#ffd04a"; ctx.fillRect(x + 2, base - h * 0.6, 4, h * 0.6);
+      }
+      if (skill === "cooking" && working) for (let i = 0; i < 3; i++) { const yy = objTop - 8 - ((now / 20 + i * 18) % 40); ctx.globalAlpha = 0.5 - ((now / 20 + i * 18) % 40) / 90; ctx.fillStyle = "#e6e9dc"; ctx.fillRect(oX - 10 + i * 9 + Math.sin(now / 300 + i) * 3, yy, 6, 6); ctx.globalAlpha = 1; }
+    }
+  }
+  else if (skill === "enchanting") {
+    drawGrid(ctx, "altar", ALTAR_GRID, { S: "#c8ccd2", K: "#6b7480", k: "#c79bf2" }, oX, ground, 7);
+    const gem = a && Object.keys(a.inputs || {}).find(k => GEM_GLOW[k]);
+    const glow = gem ? GEM_GLOW[gem] : "#c79bf2", gy = ground - 70 + Math.sin(now / 400) * 4;
+    ctx.globalAlpha = 0.25 + (working ? 0.35 * t : 0); ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(oX, gy, 18 + t * 8, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+    if (a && a.out) drawIcon(ctx, a.out, oX, gy, 26);
+    objTop = gy - 20;
+  }
+  else if (skill === "thieving") {
+    const pal = Object.assign({}, WORKER.pal, NPC_PAL[a.id] || NPC_PAL.man);
+    const alert = now - sscene.failAt < 900;
+    const r = drawGrid(ctx, "npc:" + a.id, WORKER.grid, pal, oX + (alert ? -6 : 0), ground + bob * 0.6, s, true); objTop = ground - r.h;
+    if (alert) { ctx.font = "800 18px Karla, sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 4; ctx.strokeStyle = OUTLINE; ctx.strokeText("!", oX, objTop - 6); ctx.fillStyle = "#ff3b30"; ctx.fillText("!", oX, objTop - 6); }
+  }
+  else if (skill === "fletching") { if (a) drawIcon(ctx, a.out, oX, ground - 30, 40); objTop = ground - 54; }
+
+  // ---- you ----
+  let pdx = 0, pdy = 0;
+  if (skill === "agility" && working && !still) { const ph = (now % 1100) / 1100; pdy = -Math.max(0, Math.sin(ph * Math.PI * 2)) * 26; px2 = pX + 20; }
+  if (skill === "thieving" && working) {
+    if (state.progress < 0) pdx = -10;
+    else pdx = t * (oX - pX - 46) + (now - sscene.swingAt < 200 ? 6 : 0);
+  }
+  const pr = drawGrid(ctx, "worker", WORKER.grid, WORKER.pal, px2 + pdx, ground + bob + pdy, s);
+  const hx = px2 + pdx + 4.5 * s, hy = ground + bob + pdy - 2.8 * s;
+  const tool = { woodcutting: "axe", mining: "pickaxe", smithing: "hammer", fletching: "knife" }[skill];
+  if (tool) { const pose = TOOLS[tool][swingDown ? 1 : 0]; drawGrid(ctx, "tool:" + tool + (swingDown ? 1 : 0), pose, TOOL_PAL, hx + 10, hy + 6, 5); }
+  if (skill === "fishing") {
+    // rod and line out to a bobbing float
+    const tipX = hx + 40, tipY = hy - 40, bx = oX + 10, byy = ground + 10 + (working ? Math.sin(now / 260) * 3 : 0);
+    ctx.strokeStyle = OUTLINE; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(tipX, tipY); ctx.stroke();
+    ctx.strokeStyle = "#a0682a"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(tipX, tipY); ctx.stroke();
+    ctx.strokeStyle = "#e6e9dc"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(tipX, tipY); ctx.lineTo(bx, byy); ctx.stroke();
+    ctx.fillStyle = OUTLINE; ctx.fillRect(bx - 4, byy - 4, 8, 8); ctx.fillStyle = "#ff3b30"; ctx.fillRect(bx - 3, byy - 3, 6, 3); ctx.fillStyle = "#ffffff"; ctx.fillRect(bx - 3, byy, 6, 3);
+    if (working) { ctx.strokeStyle = "#7fb8d8"; ctx.globalAlpha = 0.6; const rr = (now / 30) % 18; ctx.beginPath(); ctx.ellipse(bx, byy + 5, 6 + rr, 2 + rr / 4, 0, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; }
+    objTop = ground - 10;
+  }
+  if (skill === "enchanting" && working) { ctx.strokeStyle = "#c79bf2"; ctx.globalAlpha = 0.5 + 0.5 * Math.sin(now / 150); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(hx, hy - 8); ctx.lineTo(oX - 16, ground - 70); ctx.stroke(); ctx.globalAlpha = 1; }
+  if (skill === "thieving" && working && state.progress < 0) {
+    // stunned: stars circle your head
+    for (let i = 0; i < 3; i++) { const ang = now / 200 + i * 2.1; ctx.fillStyle = "#f7d35a"; ctx.fillRect(px2 + pdx + Math.cos(ang) * 16 - 3, ground - pr.h - 10 + Math.sin(ang) * 4 - 3, 6, 6); }
+  }
+
+  // ---- particles: chips, sparks, shavings, sparkles ----
+  for (const p of sscene.parts) {
+    const q = (now - p.start) / p.life, x = (skill === "agility" || skill === "thieving" ? px2 : oX) + p.x + p.vx * (now - p.start) / 16, y = (skill === "fishing" ? ground : objTop + 20) + p.y + p.vy * (now - p.start) / 16 + 0.5 * ((now - p.start) / 16) ** 2 * 0.08;
+    ctx.globalAlpha = 1 - q;
+    ctx.fillStyle = { woodcutting:"#c8a46a", mining:"#ffd04a", smithing:"#ff9a2a", fletching:"#d9b37a", firemaking:"#ffb52e", cooking:"#e6e9dc", enchanting:"#c79bf2", fishing:"#7fb8d8", agility:"#e6e9dc", thieving:"#f7d35a" }[p.kind];
+    ctx.fillRect(x, y, 4, 4);
+  }
+  ctx.globalAlpha = 1;
+
+  // ---- floating rewards: item icon, amount and xp ----
+  for (const g of sscene.gains) {
+    if (now < g.start) continue;
+    const q = (now - g.start) / 1400, x = pX + 30, y = ground - pr.h - 6 - q * 34;
+    ctx.globalAlpha = q > 0.75 ? (1 - q) / 0.25 : 1;
+    let tx = x;
+    if (g.item) { drawIcon(ctx, g.item, x - 10, y - 6, 22); tx = x + 6; }
+    const txt = g.item ? `${g.q > 1 ? "+" + g.q : ""}${g.xp ? `  +${fmt(g.xp)} xp` : ""}` : g.label || (g.xp ? `+${fmt(g.xp)} xp` : "");
+    ctx.font = "800 13px Karla, sans-serif"; ctx.textAlign = "left"; ctx.lineWidth = 3; ctx.strokeStyle = OUTLINE;
+    ctx.strokeText(txt, tx, y); ctx.fillStyle = g.fail ? "#b8c0c8" : "#7dff6a"; ctx.fillText(txt, tx, y);
+    ctx.globalAlpha = 1;
+  }
+
+  // ---- labels ----
+  ctx.font = "800 12px Karla, sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 3; ctx.strokeStyle = OUTLINE;
+  const label = working ? a.name : "Pick an action below";
+  ctx.strokeText(label, W / 2, 16); ctx.fillStyle = working ? "#ffffff" : "#93a597"; ctx.fillText(label, W / 2, 16);
+  if (working) { const bw = 90; ctx.fillStyle = OUTLINE; ctx.fillRect(W / 2 - bw / 2 - 1, 22, bw + 2, 6); ctx.fillStyle = "#3a2a14"; ctx.fillRect(W / 2 - bw / 2, 23, bw, 4); ctx.fillStyle = "#f0a33a"; ctx.fillRect(W / 2 - bw / 2, 23, bw * t, 4); }
+}
+
+/* ---------- voyages scene: your boats sailing between the harbour and the islands ---------- */
+const BOAT_SPRITES = {
+  rowboat: { s: 4, grid: ["............","b..........b","BBBBBBBBBBBB",".BBBBBBBBBB.","..bbbbbbbb.."] },
+  cutter:  { s: 3, grid: [".....f......",".....mW.....",".....mWW....",".....mWWW...",".....mWWWW..",".....mWWWWW.",".....m......","BBBBBBBBBBBBB",".BBBByBBBBBB.","..bbbbbbbbb.."] },
+  galleon: { s: 3, grid: ["....f......f....","...WmW....WmW...","..WWmWW..WWmWW..","..WWmWW..WWmWW..","...WmW....WmW...","....m......m....","BBBBBBBBBBBBBBBB","BBByBBByBBByBBBB",".BBBBBBBBBBBBBB.","..bbbbbbbbbbbb.."] },
+};
+const BOAT_PAL = { B:"#8a5a2a", b:"#4a2e16", W:"#f2efe6", m:"#6a4220", y:"#f7d35a", f:"#e8322a" };
+function drawVoyageScene(now) {
+  const cv = $("vscene"); if (!cv) return;
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+  if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.imageSmoothingEnabled = false;
+  const still = reduceMotion();
+  // sky and sea
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#0b1424"); g.addColorStop(0.24, "#12203a"); g.addColorStop(0.25, "#1a3a5a"); g.addColorStop(1, "#0f2640");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#e6e9dc"; ctx.globalAlpha = .85; ctx.beginPath(); ctx.arc(W * 0.5, 22, 9, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+  const seaTop = Math.round(H * 0.24);
+  ctx.fillStyle = "#2f5a80"; for (let i = 0; i < 22; i++) { const x = ((i * 61 + (still ? 0 : now / 40)) % (W + 20)) - 10, y = seaTop + 8 + (i * 29 % (H - seaTop - 12)); ctx.fillRect(x, y, 12, 2); }
+  // harbour (left) and island (right)
+  const dockX = W * 0.13, isleX = W * 0.87;
+  ctx.fillStyle = OUTLINE; ctx.fillRect(0, seaTop - 2, dockX + 6, H); ctx.fillStyle = "#6a4426"; ctx.fillRect(0, seaTop, dockX + 4, H);
+  for (let y = seaTop + 6; y < H; y += 14) { ctx.fillStyle = "#4a2e16"; ctx.fillRect(0, y, dockX + 4, 2); }
+  ctx.fillStyle = OUTLINE; ctx.beginPath(); ctx.ellipse(isleX + 14, seaTop + 8, W * 0.17 + 2, 26, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = "#e3c58e"; ctx.beginPath(); ctx.ellipse(isleX + 14, seaTop + 8, W * 0.17, 24, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = "#3fae4a"; ctx.beginPath(); ctx.ellipse(isleX + 20, seaTop + 4, W * 0.11, 18, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = "#6a4220"; ctx.fillRect(isleX - 2, seaTop - 34, 4, 26); ctx.fillStyle = "#2f8a3a"; ctx.fillRect(isleX - 14, seaTop - 38, 28, 6); ctx.fillRect(isleX - 8, seaTop - 44, 16, 6);
+  // boats, one lane each
+  const owned = BOATS.filter(b => b.id in state.boats);
+  ctx.textAlign = "center";
+  if (!owned.length) {
+    ctx.font = "700 13px Karla, sans-serif"; ctx.lineWidth = 3; ctx.strokeStyle = OUTLINE; ctx.strokeText("Build a boat below to start sailing", W / 2, seaTop + 40); ctx.fillStyle = "#e6e9dc"; ctx.fillText("Build a boat below to start sailing", W / 2, seaTop + 40);
+    return;
+  }
+  const lane = (H - seaTop - 8) / owned.length;
+  owned.forEach((b, i) => {
+    const trip = state.boats[b.id], sp = BOAT_SPRITES[b.id];
+    const y = seaTop + lane * (i + 1) - 4 + (still ? 0 : Math.sin(now / 500 + i) * 2);
+    let x = dockX + 28, flip = false, label = `${b.name} · docked`, back = false;
+    if (trip) {
+      const v = VOYAGES.find(q => q.id === trip.dest), p = Math.min(1, (now - trip.startAt) / Math.max(1, trip.readyAt - trip.startAt));
+      // ignore real-time drift: the scene uses wall-clock time, the game uses Date.now()
+      const pp = Math.min(1, (Date.now() - trip.startAt) / Math.max(1, trip.readyAt - trip.startAt));
+      if (pp >= 1) { back = true; label = `${b.name} · back from ${v.name}!`; }
+      else {
+        const span = isleX - dockX - 60;
+        if (pp < 0.5) { x = dockX + 28 + (pp / 0.5) * span; } else { x = dockX + 28 + (1 - (pp - 0.5) / 0.5) * span; flip = true; }
+        label = `${v.name} · ${dur(trip.readyAt - Date.now())}`;
+        // wake behind the boat
+        ctx.fillStyle = "#cfe6f5"; ctx.globalAlpha = 0.5; for (let k = 1; k < 4; k++) ctx.fillRect(x + (flip ? 1 : -1) * (22 + k * 8), y - 2 + (k % 2) * 2, 6, 2); ctx.globalAlpha = 1;
+      }
+    }
+    const r = drawGrid(ctx, "boat:" + b.id, sp.grid, BOAT_PAL, x, y, sp.s, flip);
+    if (back) { const bounce = still ? 0 : Math.abs(Math.sin(now / 250)) * 5; drawIcon(ctx, "casket", x + r.w / 2 + 10, y - r.h / 2 - bounce, 22); }
+    // label sits beside the boat, on whichever side has room
+    ctx.font = "800 11px Karla, sans-serif"; ctx.lineWidth = 3; ctx.strokeStyle = OUTLINE;
+    const right = x < W * 0.55, extra = back ? 30 : 8, lx = right ? x + r.w / 2 + extra : x - r.w / 2 - 8, ly = y - r.h / 2 + 4;
+    ctx.textAlign = right ? "left" : "right";
+    ctx.strokeText(label, lx, ly); ctx.fillStyle = back ? "#7dff6a" : "#ffffff"; ctx.fillText(label, lx, ly);
+  });
+}
+
 let lastSig = "";
 function render() {
   renderTabs(); renderBuffs(); renderSheet();
@@ -2804,11 +3163,12 @@ function render() {
   if (tab === "skills") h = overviewPanel();
   else if (tab === "bank") h = bankPanel();
   else if (tab === "more") h = morePanel();
+  else if (tab === "clog") h = `<div class="pagehead"><h2>Collection log</h2><span>${clogCounts()[0]} / ${clogCounts()[1]}</span></div>` + clogPanel();
   else if (tab === "combat") h = combatPanel();
-  else if (tab === "seafaring") h = skillHead("seafaring") + seafaringPanel();
+  else if (tab === "seafaring") h = backBtn() + skillHead("seafaring") + `<canvas id="vscene" class="scene" style="height:230px" role="img" aria-label="Your boats at sea"></canvas>` + seafaringPanel();
   else if (tab === "farming") h = backBtn() + skillHead("farming") + farmingPanel();
   else if (tab === "brewing") h = backBtn() + skillHead("brewing") + brewingPanel();
-  else h = backBtn() + skillHead(tab) + actionList(tab) + (tab === "agility" ? eyriePanel() : "");
+  else h = backBtn() + skillHead(tab) + (SCENE_SKILLS.includes(tab) ? `<canvas id="sscene" class="scene" role="img" aria-label="${SKILLS[tab].name} scene"></canvas>` : "") + actionList(tab) + (tab === "agility" ? eyriePanel() : "");
   const focusId = document.activeElement && document.activeElement.id;
   const openDetails = [...document.querySelectorAll("#panel details.more[open]")].length > 0;
   const openCats = [...document.querySelectorAll("#panel details.cl-cat")].map(d => [d.id, d.open]);
@@ -2900,7 +3260,7 @@ document.addEventListener("click", e => { if (e.target.closest("#lvlpop")) { hid
 document.addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t || t.disabled) return;
   const d = t.dataset;
-  if (d.clog !== undefined) { clogPath = d.clog ? d.clog.split("/") : []; moreSub = "clog"; if (!d.tab) { render(); window.scrollTo(0, 0); return; } }
+  if (d.clog !== undefined) { clogPath = d.clog ? d.clog.split("/") : []; if (!d.tab) { tab = "clog"; render(); window.scrollTo(0, 0); return; } }
   if (d.moresub) { moreSub = d.moresub; if (d.moresub === "clog" && d.clog === undefined) clogPath = []; if (!d.tab) { render(); return; } }
   if (d.tab) { const changed = tab !== d.tab; tab = d.tab; saveDraft = null; render(); if (changed) window.scrollTo(0, 0); return; }
   if (d.bankeq) { const id = eq(d.bankeq); if (id) { bankSel = id; } else { bankFilter = bankFilter === "slot:" + d.bankeq ? "All" : "slot:" + d.bankeq; bankSel = null; } render(); return; }
@@ -2970,8 +3330,8 @@ function frame(now) {
   if (sum.actions || sum.notes.length) report(sum, dt > 60000);
   if (now - lastQuestCheck > 1000) { lastQuestCheck = now; checkQuests(); }
   if (now - lastSigCheck > 250 || sum.notes.length) { lastSigCheck = now; if (signature() !== lastSig) render(); }
-  if (dt > 5000) fxq = [];
-  update(); renderNow(); drawScene(now);
+  if (dt > 5000) { fxq = []; skq = []; }
+  update(); renderNow(); drawScene(now); drawSkillScene(now); drawVoyageScene(now);
   if (Date.now() - lastSave > 5000) { save(); lastSave = Date.now(); }
   requestAnimationFrame(frame);
 }
@@ -2988,7 +3348,7 @@ function start(data) {
   render(); renderNow();
   lastFrame = performance.now(); requestAnimationFrame(frame);
 }
-window.__thornwick = { get state() { return state; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
