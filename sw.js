@@ -1,5 +1,5 @@
 // Thornwick offline cache. Bump VERSION whenever you upload a new index.html so players get the update.
-const VERSION = "thornwick-v5";
+const VERSION = "thornwick-v6";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -11,6 +11,7 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
+  if (new URL(req.url).hostname.endsWith(".supabase.co")) return;   // cloud saves always go straight to the network
   // the game page: try the network first so updates arrive, fall back to the saved copy offline
   if (req.mode === "navigate") {
     e.respondWith(fetch(req).then(res => { const copy = res.clone(); caches.open(VERSION).then(c => c.put("./index.html", copy)); return res; })

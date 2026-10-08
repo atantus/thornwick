@@ -292,6 +292,16 @@ h3 span{text-transform:none;letter-spacing:0;color:var(--ember);font-family:var(
 .feed li b{color:var(--fg);font-weight:600}
 .feed li.r b{color:var(--rare)}
 .feed li.l b{color:var(--ember)}
+.cin{width:100%;min-height:44px;font:inherit;font-size:1rem;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:4px 0 8px}
+.cin:focus{outline:2px solid var(--ember);outline-offset:1px}
+.save.cloud{margin-bottom:8px}
+#cloudPrompt{position:fixed;inset:0;z-index:20;background:rgba(5,10,8,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+#cloudPrompt[hidden]{display:none}
+#cloudPrompt .in{max-width:420px;width:100%;background:var(--panel-2);border:1px solid var(--ember-dim);border-radius:14px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+#cloudPrompt h3{margin:0 0 6px}
+.cp-opt{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
+.cp-opt b{display:block}
+.cp-opt span{font-size:.8rem;color:var(--muted)}
 .save textarea{width:100%;min-height:64px;font-family:var(--f-num);font-size:.72rem;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;resize:vertical}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .note{font-size:.78rem;color:var(--muted)}
@@ -361,6 +371,7 @@ h3 span{text-transform:none;letter-spacing:0;color:var(--ember);font-family:var(
 <div class="sheet" id="sheet" hidden></div>
 <div class="lvlpop" id="lvlpop" hidden></div>
 <div id="toastHost"></div>
+<div id="cloudPrompt" hidden></div>
 
 <script>
 (() => {
@@ -911,6 +922,8 @@ const SEED_TABLE = [
 
 const MAX_OFFLINE_MS = 12 * 3600 * 1000;
 const SAVE_KEY = "thornwick-idle-v1";
+// Cloud saves: paste your Supabase project URL and its publishable (anon) key here. Leave blank to turn cloud saves off.
+const CLOUD = { url: "", key: "" };
 
 /* ================= XP CURVE (RuneScape formula) ================= */
 const XP_TABLE = [0, 0];
@@ -1537,7 +1550,7 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
@@ -1887,7 +1900,8 @@ function morePanel() {
     <li><b>Chase rare drops.</b> Monsters and islands have uniques you can't make, tracked in the Log on the bottom bar.</li>
     <li><b>Spend currencies</b>: coins in the Bank shop, Skyfeathers at The Eyrie (Agility), doubloons at the Black Flag Trader (Voyages).</li>
   </ol>`;
-  h += `<h3>Save</h3><div class="save"><p class="note">Progress saves in this browser automatically. Copy the code to keep a backup or move to another device.</p>
+  h += cloudPanel();
+  h += `<h3>Save code</h3><div class="save"><p class="note">Progress also saves on this device automatically. Copy the code to keep a backup or move it by hand.</p>
     <textarea id="saveCode" spellcheck="false" aria-label="Save code"></textarea>
     <div class="row"><button class="btn" id="copySave">Copy save code</button><button class="btn" id="loadSave">Load pasted code</button><button class="btn danger" id="reset">Reset progress</button><span class="note" id="saveMsg"></span></div></div>`;
   return h;
@@ -3179,12 +3193,14 @@ function render() {
   for (const [id, o] of openCats) { const d = $(id); if (d) d.open = o; }
   if (focusId && $(focusId)) $(focusId).focus({ preventScroll: true });
   if (tab === "more" && $("saveCode")) { const ta = $("saveCode"); ta.value = saveDraft !== null ? saveDraft : btoa(unescape(encodeURIComponent(JSON.stringify(state)))); }
+  if (tab === "more") cloudFill();
   lastSig = signature();
   update();
 }
 
 /* Cheap in-place refresh, safe to run every frame */
 function update() {
+  { const ca = $("cloudAgo"); if (ca) ca.textContent = ago(cm.at); }
   document.querySelectorAll("[data-qs]").forEach(el => { const q = qty(el.dataset.qs), v = shortQty(q); if (el.textContent !== v) { el.textContent = v; el.className = "qn " + (q >= 1e7 ? "m" : q >= 1e5 ? "k" : ""); } });
   document.querySelectorAll("[data-sellk]").forEach(el => { const k = el.dataset.sellk, n = Math.max(0, qty(k) - 1); el.textContent = fmt(n * (ITEMS[k].sell || 0)); el.closest("button").disabled = n === 0; });
   document.querySelectorAll("[data-sellv]").forEach(el => { el.textContent = fmt(qty(el.dataset.sellv) * (ITEMS[el.dataset.sellv].sell || 0)); });
@@ -3262,6 +3278,7 @@ function after() { if (signature() !== lastSig) render(); else update(); renderN
 document.addEventListener("click", e => { if (e.target.closest("#lvlpop")) { hideLevel(); return; } });
 document.addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t || t.disabled) return;
+  if (t.id && cloudClick(t.id)) return;
   const d = t.dataset;
   if (d.clog !== undefined) { clogPath = d.clog ? d.clog.split("/") : []; if (!d.tab) { tab = "clog"; render(); window.scrollTo(0, 0); return; } }
   if (d.moresub) { moreSub = d.moresub; if (d.moresub === "clog" && d.clog === undefined) clogPath = []; if (!d.tab) { render(); return; } }
@@ -3324,7 +3341,218 @@ document.addEventListener("click", e => {
   }
 });
 document.addEventListener("change", e => { if (e.target.id === "autoChop") { state.opts.autoChop = e.target.checked; save(); } });
-document.addEventListener("input", e => { if (e.target.id === "saveCode") saveDraft = e.target.value; });
+document.addEventListener("input", e => { if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "cloudEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode") cloud.codeDraft = e.target.value; });
+document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "cloudEmail") sendCode(); if (e.target.id === "cloudCode") verifyCode(); });
+
+/* ================= CLOUD SAVE (Supabase) =================
+   Sign in with an emailed code; the save lives in the `saves` table (one row per player).
+   Every write gets a new random `rev`. An update only succeeds if the row still has the rev this
+   device last saw, so two devices can never silently overwrite each other. */
+const CLOUD_META_KEY = "thornwick-cloud";
+const cloudOn = !!(CLOUD.url && CLOUD.key);
+let started = false;   // offline progress has been applied and the game loop is running
+let cm = {};              // { s: session, rev, synced, dev, email }
+try { cm = JSON.parse(localStorage.getItem(CLOUD_META_KEY)) || {}; } catch (e) {}
+if (!cm.dev) cm.dev = Math.random().toString(36).slice(2, 10);
+const cloud = { step: cm.s ? "in" : "out", email: cm.email || "", msg: "", busy: false, ready: false, prompt: null, emailDraft: null, codeDraft: "" };
+function saveMeta() { try { localStorage.setItem(CLOUD_META_KEY, JSON.stringify(cm)); } catch (e) {} }
+const newRev = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+function cloudSay(m) { cloud.msg = m; const el = $("cloudMsg"); if (el) el.textContent = m; }
+function ago(t) {
+  if (!t) return "never";
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  if (s < 45) return "just now";
+  if (s < 3600) return Math.round(s / 60) + " min ago";
+  if (s < 86400) return Math.round(s / 3600) + " h ago";
+  return Math.round(s / 86400) + " days ago";
+}
+
+async function api(path, opt = {}, auth = true) {
+  const headers = { apikey: CLOUD.key, "Content-Type": "application/json", ...(opt.headers || {}) };
+  if (auth) { const t = await accessToken(); if (!t) throw { status: 401, msg: "Signed out" }; headers.Authorization = "Bearer " + t; }
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), opt.timeout || 8000);
+  let res;
+  try { res = await fetch(CLOUD.url.replace(/\/$/, "") + path, { method: opt.method || "GET", headers, body: opt.body ? JSON.stringify(opt.body) : undefined, keepalive: !!opt.keepalive, signal: opt.keepalive ? undefined : ctl.signal }); }
+  catch (e) { throw { status: 0, msg: "Can't reach the cloud right now" }; }
+  finally { clearTimeout(timer); }
+  const txt = await res.text(); let j = null; try { j = txt ? JSON.parse(txt) : null; } catch (e) {}
+  if (!res.ok) throw { status: res.status, msg: (j && (j.msg || j.message || j.error_description || j.error)) || "Cloud error " + res.status, code: j && j.code };
+  return j;
+}
+function setSession(j) {
+  cm.s = { at: j.access_token, rt: j.refresh_token, exp: j.expires_at ? j.expires_at * 1000 : Date.now() + (j.expires_in || 3600) * 1000, uid: j.user ? j.user.id : (cm.s && cm.s.uid) };
+  if (j.user && j.user.email) cm.email = cloud.email = j.user.email;
+  saveMeta();
+}
+let refreshing = null;
+async function accessToken() {
+  if (!cm.s) return null;
+  if (cm.s.exp - 60000 > Date.now()) return cm.s.at;
+  if (!refreshing) refreshing = api("/auth/v1/token?grant_type=refresh_token", { method: "POST", body: { refresh_token: cm.s.rt } }, false)
+    .then(j => { setSession(j); return j.access_token; })
+    .catch(e => { if (e.status >= 400 && e.status < 500) { signOutLocal("Your sign-in expired. Sign in again to keep syncing."); } return null; })
+    .finally(() => { refreshing = null; });
+  return refreshing;
+}
+function signOutLocal(msg) {
+  cm.s = null; cm.rev = null; cm.synced = null; saveMeta();
+  cloud.step = "out"; cloud.codeDraft = ""; cloud.msg = msg || ""; render();
+}
+
+async function sendCode() {
+  const email = (cloud.emailDraft !== null ? cloud.emailDraft : cloud.email).trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return cloudSay("Enter your email address first.");
+  cloud.busy = true; cloudSay("Sending…");
+  try {
+    await api("/auth/v1/otp", { method: "POST", body: { email, create_user: true } }, false);
+    cloud.email = email; cloud.step = "code"; cloud.codeDraft = ""; cloud.msg = `Code sent to ${email}. It can take a minute; check spam too.`; render();
+  } catch (e) { cloudSay(e.status === 429 ? "Too many emails in a short time. Wait a few minutes and try again." : e.msg); }
+  cloud.busy = false;
+}
+async function verifyCode() {
+  const token = cloud.codeDraft.replace(/\D/g, "");
+  if (token.length < 6) return cloudSay("Enter the code from the email.");
+  cloud.busy = true; cloudSay("Checking…");
+  try {
+    const j = await api("/auth/v1/verify", { method: "POST", body: { type: "email", email: cloud.email, token } }, false);
+    if (cm.s && cm.s.uid !== (j.user && j.user.id)) { cm.rev = null; cm.synced = null; }
+    setSession(j); cloud.step = "in"; cloud.msg = ""; render();
+    await cloudCheck(false, true);
+  } catch (e) { cloudSay(e.status === 403 || e.status === 400 ? "That code didn't work. It may have expired; send a new one." : e.msg); }
+  cloud.busy = false;
+}
+async function signOut() {
+  try { await api("/auth/v1/logout", { method: "POST" }); } catch (e) {}
+  signOutLocal("Signed out. Your progress is still saved on this device.");
+}
+// a sign-in link (instead of the code) lands here with the session in the address bar
+async function cloudFromLink() {
+  if (!cloudOn || !/access_token=/.test(location.hash)) return;
+  const p = new URLSearchParams(location.hash.slice(1));
+  history.replaceState(null, "", location.pathname + location.search);
+  try {
+    const j = { access_token: p.get("access_token"), refresh_token: p.get("refresh_token"), expires_at: +p.get("expires_at") || 0, expires_in: +p.get("expires_in") || 3600 };
+    cm.s = { at: j.access_token, rt: j.refresh_token, exp: Date.now() + 3000000 };
+    j.user = await api("/auth/v1/user");
+    setSession(j); cloud.step = "in";
+  } catch (e) { cm.s = null; saveMeta(); }
+}
+
+const xpSum = () => Object.values(state.xp).reduce((a, b) => a + b, 0);
+async function fetchRow(cols) {
+  const rows = await api(`/rest/v1/saves?select=${cols}&user_id=eq.${cm.s.uid}`);
+  return rows && rows[0] || null;
+}
+// Decide between this device's save and the cloud's. atStart: before offline progress is applied.
+async function cloudCheck(atStart, fromSignIn) {
+  if (!cloudOn || !cm.s) return;
+  let row;
+  try {
+    const head = await fetchRow("rev,device");
+    if (head && head.rev === cm.rev) { cloud.ready = true; return push(); }
+    row = head && await fetchRow("rev,device,data,total_level,updated_at");
+  } catch (e) { cloud.ready = true; if (e.status !== 401) cloudSay(e.msg + ". Playing on this device's save."); return; }
+  cloud.ready = true;
+  if (!row) { cm.rev = null; return push(); }                                      // first upload
+  if (row.device === cm.dev) { cm.rev = row.rev; return push(); }                  // an older upload from here
+  const untouched = cm.synced && state.last <= cm.synced + 2000;
+  if (untouched || xpSum() < 2000) return adopt(row, atStart);                    // nothing new here: take the cloud
+  return askWhich(row, atStart, fromSignIn);
+}
+function adopt(row, atStart) {
+  if (!loadObj(row.data)) return cloudSay("The cloud save couldn't be read. Keeping this device's save.");
+  cm.rev = row.rev; cm.synced = state.last; saveMeta();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
+  if (started) {
+    const away = Date.now() - (state.last || Date.now());
+    if (away > 2000) report(advance(away), away > 60000);
+    fxq = []; state.last = Date.now(); saveDraft = null; render(); renderNow(); save();
+  }
+  toast("Loaded your cloud save");
+}
+let promptDone = null;
+function askWhich(row, atStart) {
+  cloud.prompt = row;
+  const box = $("cloudPrompt");
+  box.innerHTML = `<div class="in" role="dialog" aria-modal="true" aria-labelledby="cpT">
+    <h3 id="cpT">Which save do you want?</h3>
+    <p class="note">Your cloud save was changed on another device since this one last synced. Pick one to keep; the other is replaced.</p>
+    <div class="cp-opt"><div><b>Cloud save</b><span>Total level ${row.total_level || "?"} · played ${ago(row.data && row.data.last)}</span></div><button class="btn solid" id="cpCloud">Use cloud</button></div>
+    <div class="cp-opt"><div><b>This device</b><span>Total level ${totalLevel()} · played ${ago(state.last)}</span></div><button class="btn" id="cpLocal">Keep this</button></div>
+  </div>`;
+  box.hidden = false; $("cpCloud").focus();
+  return new Promise(r => { promptDone = choice => { box.hidden = true; box.innerHTML = ""; cloud.prompt = null; if (choice === "cloud") adopt(row, atStart); else { cm.rev = row.rev; push(); } r(); }; });
+}
+
+let pushing = false;
+async function push(keepalive) {
+  if (!cloudOn || !cm.s || !started || !cloud.ready || cloud.prompt || pushing) return;
+  save();
+  const rev = newRev(), last = state.last;
+  const body = { data: state, rev, device: cm.dev, total_level: totalLevel(), updated_at: new Date().toISOString() };
+  if (keepalive) {                                   // page is closing: fire and assume it lands
+    const t = cm.s.exp - 60000 > Date.now() ? cm.s.at : null; if (!t || !cm.rev) return;
+    const json = JSON.stringify(body); if (json.length > 60000) return;
+    fetch(`${CLOUD.url.replace(/\/$/, "")}/rest/v1/saves?user_id=eq.${cm.s.uid}&rev=eq.${cm.rev}`, { method: "PATCH", keepalive: true, headers: { apikey: CLOUD.key, Authorization: "Bearer " + t, "Content-Type": "application/json", Prefer: "return=minimal" }, body: json }).catch(() => {});
+    cm.rev = rev; cm.synced = last; cm.at = Date.now(); saveMeta(); return;
+  }
+  pushing = true;
+  try {
+    if (!cm.rev) await api("/rest/v1/saves", { method: "POST", headers: { Prefer: "return=minimal" }, body: { user_id: cm.s.uid, ...body } });
+    else {
+      const out = await api(`/rest/v1/saves?user_id=eq.${cm.s.uid}&rev=eq.${cm.rev}&select=rev`, { method: "PATCH", headers: { Prefer: "return=representation" }, body });
+      if (!out || !out.length) { pushing = false; cloud.ready = true; return cloudCheck(false); }   // someone else wrote first
+    }
+    cm.rev = rev; cm.synced = last; cm.at = Date.now(); saveMeta();
+    if (cloud.msg) cloudSay("");
+  } catch (e) {
+    pushing = false;
+    if (e.status === 409) return cloudCheck(false);
+    if (e.status !== 401) cloudSay(e.msg + ". Will try again in a minute.");
+    return;
+  }
+  pushing = false;
+}
+// coming back to the game: has another device saved in the meantime?
+async function cloudResume() {
+  if (!cloudOn || !cm.s || !cloud.ready || cloud.prompt) return;
+  try { const head = await fetchRow("rev,device"); if (head && head.rev !== cm.rev) return cloudCheck(false); } catch (e) {}
+}
+
+function cloudPanel() {
+  let h = `<h3>Cloud save</h3><div class="save cloud">`;
+  if (!cloudOn) return h + `<p class="note">Cloud saves aren't switched on in this copy of the game yet.</p></div>`;
+  if (cloud.step === "in") {
+    h += `<p class="note">Signed in as <b>${esc(cloud.email || "you")}</b>. Your progress uploads every minute and when you close the game, so you can carry on from any device.</p>
+      <p class="note">Last synced: <b id="cloudAgo">${ago(cm.at)}</b></p>
+      <div class="row"><button class="btn" id="cloudSync">Sync now</button><button class="btn" id="cloudOut">Sign out</button></div>`;
+  } else if (cloud.step === "code") {
+    h += `<p class="note">Enter the code we emailed to <b>${esc(cloud.email)}</b>.</p>
+      <input class="cin" id="cloudCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Code" aria-label="Code from the email">
+      <div class="row"><button class="btn solid" id="cloudVerify">Sign in</button><button class="btn" id="cloudResend">Send a new code</button><button class="btn" id="cloudBack">Use another email</button></div>`;
+  } else {
+    h += `<p class="note">Sign in with your email to keep your save online and play on more than one device. We'll email you a code; there's no password.</p>
+      <input class="cin" id="cloudEmail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" aria-label="Email address">
+      <div class="row"><button class="btn solid" id="cloudSend">Email me a code</button></div>`;
+  }
+  return h + `<p class="note" id="cloudMsg" role="status">${esc(cloud.msg)}</p></div>`;
+}
+function cloudFill() {
+  const e = $("cloudEmail"); if (e) e.value = cloud.emailDraft !== null ? cloud.emailDraft : cloud.email;
+  const c = $("cloudCode"); if (c) c.value = cloud.codeDraft;
+}
+function cloudClick(id) {
+  if (cloud.busy && id !== "cloudBack") return true;
+  if (id === "cloudSend" || id === "cloudResend") { sendCode(); return true; }
+  if (id === "cloudVerify") { verifyCode(); return true; }
+  if (id === "cloudBack") { cloud.step = "out"; cloud.emailDraft = null; cloud.msg = ""; render(); return true; }
+  if (id === "cloudSync") { cloudSay("Syncing…"); (cm.rev ? cloudCheck(false) : push()).then(() => { if (cloud.msg === "Syncing…") cloudSay("Synced"); }); return true; }
+  if (id === "cloudOut") { signOut(); return true; }
+  if (id === "cpCloud" && promptDone) { promptDone("cloud"); return true; }
+  if (id === "cpLocal" && promptDone) { promptDone("local"); return true; }
+  return false;
+}
+setInterval(() => { if (!document.hidden) push(); }, 60000);
 
 /* ================= LOOP ================= */
 let lastFrame = 0, lastSave = Date.now(), lastSigCheck = 0, lastQuestCheck = 0;
@@ -3339,20 +3567,32 @@ function frame(now) {
   if (Date.now() - lastSave > 5000) { save(); lastSave = Date.now(); }
   requestAnimationFrame(frame);
 }
-document.addEventListener("visibilitychange", () => { if (document.hidden) save(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden) { save(); push(true); } else cloudResume(); });
 window.addEventListener("pagehide", save);
 
 function start(data) {
   if (data && data.state) loadObj(data.state);
   else { try { const raw = localStorage.getItem(SAVE_KEY); if (raw) loadObj(JSON.parse(raw)); } catch (e) {} }
+  if (cloudOn) {   // check the cloud before applying offline progress (gives up after a few seconds)
+    render(); renderNow();
+    const wait = cloudFromLink().then(() => cloudCheck(true));
+    let done = false; const go = () => { if (!done) { done = true; cloud.ready = true; begin(); } };
+    wait.then(go, go); setTimeout(() => { if (!cloud.prompt) go(); }, 6000);
+    return;
+  }
+  begin();
+}
+function begin() {
+  started = true;
   const away = Date.now() - (state.last || Date.now());
   if (away > 2000) report(advance(away), away > 60000);
   fxq = [];
   state.last = Date.now();
   render(); renderNow();
   lastFrame = performance.now(); requestAnimationFrame(frame);
+  if (cloudOn) setTimeout(() => push(), 2000);
 }
-window.__thornwick = { get state() { return state; }, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
