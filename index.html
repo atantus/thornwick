@@ -363,7 +363,15 @@ body.noscroll{overflow:hidden}
 .tiers .tn{text-align:center;font-weight:700}
 .tiers .tr{display:flex;align-items:center;gap:2px;white-space:nowrap}
 .tiers .ico{width:18px;height:18px}
-.act.locked .nm{opacity:.6}
+.perklist{display:grid;gap:6px}
+.perk{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.perk .ico{width:28px;height:28px;filter:grayscale(1) brightness(.45)}
+.perk div{display:flex;flex-direction:column}
+.perk span{font-size:.8rem;color:var(--muted)}
+.perk em{font-style:normal;font-size:.75rem;font-weight:700;color:var(--muted)}
+.perk.got{border-color:var(--ember-dim)}
+.perk.got .ico{filter:none}
+.perk.got em{color:var(--moss)}
 .lvtag{font-size:.75rem;color:var(--ember);font-weight:700;margin-left:4px}
 .ranks{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .rank{display:flex;flex-direction:column;align-items:center;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 2px;font-size:.7rem;color:var(--muted)}
@@ -1960,7 +1968,9 @@ function loadObj(o) {
   state.slayer = Object.assign({ task:null, points:0, streak:0, done:0 }, o.slayer);
   state.clues = Object.assign({ held:{}, done:{} }, o.clues);
   state.look = o.look || {};
-  state.ach = o.ach || {}; state.stats = o.stats || {}; state.apSpent = o.apSpent || 0; state.apUp = o.apUp || {};
+  state.ach = o.ach || {}; state.stats = o.stats || {}; state.apSpent = o.apSpent || 0; state.apUp = Object.assign({}, o.apUp);
+  for (const u of AP_UPGRADES) if (u.rank !== undefined && state.apUp[u.id]) { state.apSpent = Math.max(0, state.apSpent - u.costs[0]); delete state.apUp[u.id]; }
+  curRank = achRank();
   state.xp.slayer = state.xp.slayer || 0;
   state.kills = o.kills || {}; state.buffs = o.buffs || {}; state.boats = o.boats || {}; state.islands = o.islands || {}; state.upgrades = o.upgrades || {};
   state.barrels = Array.isArray(o.barrels) ? o.barrels.concat([null,null,null]).slice(0, 3) : [null,null,null]; if (typeof o.hp !== "number") state.hp = lvl("hitpoints");
@@ -2543,6 +2553,9 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 19, date: "8 Oct 2026", title: "Free rank perks", items: [
+    "Rank perks no longer cost points. Each one switches on for good as soon as you reach its achievement rank.",
+    "See them all under Log › Achievements, below the ranks. Any points you'd spent on perks have been refunded." ] },
   { v: 18, date: "8 Oct 2026", title: "Rank perks", items: [
     "Every achievement rank now unlocks a perk to buy in Log › Point shop.",
     "Novice: Forager's knack (double logs, fish and ore). Apprentice: Navigator's chart (shorter voyages). Adept: Hearty rations (food heals more). Expert: Hunter's insight (more Slayer points). Veteran: Brewmaster's barrel (+1 brew).",
@@ -4576,7 +4589,7 @@ ACH_RANKS.forEach((r, i) => { ITEMS[capeId(i)] = { name: `${r.name} cape`, desc:
 const achCapeBonus = () => { for (let i = ACH_RANKS.length - 1; i >= 0; i--) if (worn(capeId(i))) return 1 + (i + 1) * 0.005; return 1; };
 let achChecked = 0;
 function checkAch(force) {
-  if (!force && Date.now() - achChecked < 4000) return; achChecked = Date.now();
+  if (!force && Date.now() - achChecked < 4000) return; achChecked = Date.now(); curRank = achRank();
   const got = [], rank0 = achRank();
   for (const t of ACH_TRACKS) {
     const tiers = tiersOf(t), v = t.stat(); let cur = state.ach[t.id] || 0;
@@ -4592,8 +4605,8 @@ function checkAch(force) {
   if (!got.length) return;
   if (got.length > 3) toast(`${got.length} achievement tiers unlocked! +${fmt(got.reduce((n, g) => n + g.r.coins, 0))} coins. See Log › Achievements`, true);
   else for (const g of got) toast(`Achievement: ${g.t.name} ${ROMAN[g.tier - 1]}! +${g.r.ap} points`, g.tier >= 9);
-  const rank1 = achRank();
-  for (let i = rank0 + 1; i <= rank1; i++) { add(capeId(i), 1); const pk = AP_UPGRADES.find(u => u.rank === i); toast(`New achievement rank: ${ACH_RANKS[i].name}! You earned the ${ACH_RANKS[i].name} cape${pk ? ` and unlocked ${pk.name} in the Point shop` : ""}`, true); log(`Achievement rank <b>${ACH_RANKS[i].name}</b> reached. Reward: <b>${ACH_RANKS[i].name} cape</b>`, "r"); }
+  const rank1 = achRank(); curRank = rank1;
+  for (let i = rank0 + 1; i <= rank1; i++) { add(capeId(i), 1); const pk = AP_UPGRADES.find(u => u.rank === i); toast(`New achievement rank: ${ACH_RANKS[i].name}! You earned the ${ACH_RANKS[i].name} cape${pk ? ` . New perk: ${pk.name} (${pk.desc(1).replace(/\.$/, "")})` : ""}`, true); log(`Achievement rank <b>${ACH_RANKS[i].name}</b> reached. Reward: <b>${ACH_RANKS[i].name} cape</b>`, "r"); }
 }
 
 /* ---- Achievement point shop ----
@@ -4627,9 +4640,13 @@ const AP_ITEMS = [
 ];
 const apEarned = () => achPoints();
 const apBalance = () => Math.max(0, apEarned() - (state.apSpent || 0));
-const apLvl = id => (state.apUp && state.apUp[id]) || 0;
+// rank perks (entries with a rank) are free and permanent once you reach that rank
+let curRank = -1;
+const PERK_RANK = {};
+const apLvl = id => id in PERK_RANK ? (curRank >= PERK_RANK[id] ? 1 : 0) : ((state.apUp && state.apUp[id]) || 0);
+for (const u of AP_UPGRADES) if (u.rank !== undefined) PERK_RANK[u.id] = u.rank;
 function buyApUpgrade(id) {
-  const u = AP_UPGRADES.find(x => x.id === id), l = apLvl(id); if (!u || l >= u.costs.length || (u.rank !== undefined && achRank() < u.rank)) return;
+  const u = AP_UPGRADES.find(x => x.id === id), l = apLvl(id); if (!u || u.rank !== undefined || l >= u.costs.length) return;
   const c = u.costs[l]; if (apBalance() < c) return;
   state.apSpent = (state.apSpent || 0) + c; state.apUp = Object.assign({}, state.apUp, { [id]: l + 1 });
   toast(`${u.name} ${ROMAN[l]}: ${u.desc(l + 1)}`, true); log(`Bought <b>${u.name} ${ROMAN[l]}</b> for ${fmt(c)} achievement points`, "l");
@@ -4644,13 +4661,6 @@ function apShopPanel() {
   checkAch(true);
   const bal = apBalance();
   let h = `<div class="achtop">${icon("skills")}<div><span class="ar">Points to spend</span><b class="num">${fmt(bal)}</b><span>${fmt(apEarned())} earned in total. Spending never lowers your rank.</span></div></div>`;
-  const rk = achRank();
-  h += `<h3>Rank perks</h3><p class="note" style="margin-top:0">Each achievement rank unlocks one perk to buy.</p><div class="actions">` + AP_UPGRADES.filter(u => u.rank !== undefined).map(u => {
-    const owned = apLvl(u.id) > 0, locked = rk < u.rank, c = u.costs[0];
-    return `<button class="act ${locked ? "locked" : ""}" id="apup-${u.id}" data-apup="${u.id}" ${owned || locked || bal < c ? "disabled" : ""}><span class="nm">${icon(capeId(u.rank))}${esc(u.name)}</span>
-      <span class="meta">${locked ? `<span class="lock">Reach ${ACH_RANKS[u.rank].name} rank (${fmt(ACH_RANKS[u.rank].ap)} points earned)</span><br>` : ""}${esc(u.desc(1))}${owned ? ` <span class="ok">Owned</span>` : ""}</span>
-      <span class="side">${owned ? "<b>✓</b>" : `<b>${fmt(c)}</b>points`}</span></button>`;
-  }).join("") + `</div>`;
   h += `<h3>Permanent upgrades</h3><div class="actions">` + AP_UPGRADES.filter(u => u.rank === undefined).map(u => {
     const l = apLvl(u.id), maxed = l >= u.costs.length, c = u.costs[l];
     return `<button class="act" id="apup-${u.id}" data-apup="${u.id}" ${maxed || bal < c ? "disabled" : ""}><span class="nm">${esc(u.name)} <span class="lvtag">${l ? ROMAN[l - 1] : "–"} / ${ROMAN[u.costs.length - 1]}</span></span>
@@ -4686,6 +4696,7 @@ function achPanel() {
     h += `</div>`;
   }
   h += `<h3>Ranks</h3><div class="ranks">${ACH_RANKS.map((r, i) => `<div class="rank ${i <= rk ? "got" : ""}">${icon(capeId(i))}<b>${r.name}</b><span>${fmt(r.ap)} pts</span></div>`).join("")}</div>
+    <h3>Rank perks</h3><p class="note" style="margin-top:0">Each rank gives you its cape and a permanent perk, free, as soon as you reach it.</p><div class="perklist">${AP_UPGRADES.filter(u => u.rank !== undefined).map(u => `<div class="perk ${rk >= u.rank ? "got" : ""}">${icon(capeId(u.rank))}<div><b>${esc(u.name)}</b><span>${esc(ACH_RANKS[u.rank].name)} · ${esc(u.desc(1))}</span></div><em>${rk >= u.rank ? "Active" : "Locked"}</em></div>`).join("")}</div>
     <p class="note">Every tier pays coins and points; tier V, VII and IX add reward caskets, and tier X gives a trophy. These goals may be rebalanced in future updates.</p>`;
   return h;
 }
@@ -4781,7 +4792,7 @@ function cloudThenBegin() {
   Promise.resolve(wait).then(go, go); setTimeout(() => { if (!cloud.prompt) go(); }, 6000);
 }
 function begin() {
-  started = true;
+  started = true; curRank = achRank();
   if (newsUnseen() && totalLevel() > 25) setTimeout(() => toast(`New update (v${UPDATES[0].v}): ${UPDATES[0].title}. See More › What's new`, true), 1500);
   const away = Date.now() - (state.last || Date.now());
   if (away > 2000) report(advance(away), away > 60000);
