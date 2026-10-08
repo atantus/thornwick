@@ -422,6 +422,7 @@ body.noscroll{overflow:hidden}
 .daily .dh .rw{font-weight:700;color:var(--moss);font-size:.76rem}
 .daily .dh .tick{font-size:1.2rem;color:var(--moss);font-weight:800}
 .daily .tbar{margin:10px 0 8px}
+.daily .row{display:flex;gap:8px;flex-wrap:wrap}
 .daily.done .tbar i{background:var(--moss)}
 .dbonus{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;border:1px dashed var(--ember-dim);border-radius:12px;padding:12px;margin-top:10px}
 .dbonus .ico{width:36px;height:36px}
@@ -604,6 +605,11 @@ const SKILLS = {
 
 // sell: coins each (omit = can't sell)
 const ITEMS = {
+  daily_token:   { name: "Daily token",   desc: "Earned from daily and weekly challenges. Spend them in the Daily shop." },
+  streak_saver:  { name: "Streak saver",  desc: "Keeps your daily streak alive if you miss a day. Used automatically. Hold up to 3." },
+  daybreak_hood: { name: "Daybreak hood", desc: "Daily shop. Head, Defence +3. Warm as the first light.", rare: true },
+  sunrise_cape:  { name: "Sunrise cape",  desc: "Daily shop. Cape, Defence +6. Glows orange at the hem.", rare: true },
+  pet_tock:      { name: "Tock",          desc: "Daily shop pet. A clockwork owl who never misses a day. +5% daily and weekly coin rewards.", rare: true },
   laurel_crown:  { name: "Laurel crown",   desc: "Achievement shop. Head, Defence +4. A golden wreath for a true achiever.", rare: true },
   champion_cape: { name: "Champion's cape", desc: "Achievement shop. Cape, Defence +12, +3% xp in every skill while worn.", rare: true },
   clue_reward_easy:   { name: "Reward casket (easy)",   desc: "From an easy clue scroll. Open it.", rare: true },
@@ -1250,7 +1256,7 @@ function rollTable(table) {
 const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 /* ================= STATE ================= */
-const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{}, ach:{}, stats:{}, apSpent:0, apUp:{}, apBonus:0, daily:{} });
+const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{}, ach:{}, stats:{}, apSpent:0, apUp:{}, apBonus:0, daily:{}, weekly:{} });
 let state = fresh();
 let tab = "skills";
 let bankSub = "items", bankFilter = "All", bankSel = null;
@@ -1336,7 +1342,7 @@ Object.assign(GEAR, {
   wayfarer_hat:{ slot:"head", def:2 }, patchwork_cape:{ slot:"cape", def:2 }, trimmed_shield:{ slot:"shield", req:["defence", 5], def:12 },
   ranger_tricorne:{ slot:"head", def:5 }, explorer_cape:{ slot:"cape", def:4 }, treasure_ring:{ slot:"ring" },
   gilded_helm:{ slot:"head", req:["defence", 55], def:25 }, gilded_platebody:{ slot:"body", req:["defence", 55], def:72 }, gilded_platelegs:{ slot:"legs", req:["defence", 55], def:43 }, gilded_kiteshield:{ slot:"shield", req:["defence", 55], def:36 },
-  starlit_cape:{ slot:"cape", def:8 }, laurel_crown:{ slot:"head", def:4 }, champion_cape:{ slot:"cape", def:12 }, wyrm_mask:{ slot:"head", req:["defence", 60], def:30 },
+  starlit_cape:{ slot:"cape", def:8 }, laurel_crown:{ slot:"head", def:4 }, champion_cape:{ slot:"cape", def:12 }, daybreak_hood:{ slot:"head", def:3 }, sunrise_cape:{ slot:"cape", def:6 }, wyrm_mask:{ slot:"head", req:["defence", 60], def:30 },
   dawnforged_helm:{ slot:"head", req:["defence", 70], def:34 }, dawnforged_platebody:{ slot:"body", req:["defence", 70], def:92 }, dawnforged_platelegs:{ slot:"legs", req:["defence", 70], def:55 },
   dawnforged_kiteshield:{ slot:"shield", req:["defence", 70], def:48 }, dawnforged_cape:{ slot:"cape", def:10 }, dawnforged_amulet:{ slot:"amulet", def:8 },
   gull_cloak:{ slot:"cape" }, windrunner_cape:{ slot:"cape" }, mastery_cape:{ slot:"cape", def:5 },
@@ -1534,7 +1540,7 @@ function gainXp(skill, x, sum) {
 }
 
 /* ================= PETS ================= */
-const allPets = () => [...PETS, ...Object.values(SKILL_PETS), "pet_sniffer"];
+const allPets = () => [...PETS, ...Object.values(SKILL_PETS), "pet_sniffer", "pet_tock"];
 function givePet(skill, sum) {
   const pet = SKILL_PETS[skill]; if (!pet || has(pet)) return;
   add(pet, 1); sum.items[pet] = (sum.items[pet] || 0) + 1;
@@ -2023,7 +2029,8 @@ function loadObj(o) {
   state.ach = o.ach || {}; state.stats = o.stats || {}; state.apSpent = o.apSpent || 0; state.apUp = Object.assign({}, o.apUp);
   for (const u of AP_UPGRADES) if (u.rank !== undefined && state.apUp[u.id]) { state.apSpent = Math.max(0, state.apSpent - u.costs[0]); delete state.apUp[u.id]; }
   curRank = achRank();
-  state.apBonus = o.apBonus || 0; state.daily = o.daily || {};
+  state.daily = o.daily || {}; state.weekly = o.weekly || {};
+  if (o.apBonus) { state.bank.daily_token = (state.bank.daily_token || 0) + o.apBonus; } state.apBonus = 0;
   state.xp.slayer = state.xp.slayer || 0;
   state.kills = o.kills || {}; state.buffs = o.buffs || {}; state.boats = o.boats || {}; state.islands = o.islands || {}; state.upgrades = o.upgrades || {};
   state.barrels = Array.isArray(o.barrels) ? o.barrels.concat([null,null,null]).slice(0, 3) : [null,null,null]; if (typeof o.hp !== "number") state.hp = lvl("hitpoints");
@@ -2101,7 +2108,7 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, state.daily && state.daily.day, state.daily && state.daily.list ? state.daily.list.map(c => c.done).join() : "", railKey(), logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, state.daily && state.daily.day, state.daily && state.daily.list ? state.daily.list.map(c => c.done).join() : "", state.weekly && state.weekly.list ? state.weekly.list.map(c => c.done).join() + state.weekly.week : "", tab === "dshop" || tab === "daily" ? qty(TOK) : 0, railKey(), logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
@@ -2111,7 +2118,7 @@ const SKILL_GROUPS = [
 ];
 const SECTIONS = [["skills","Skills","✦"],["combat","Combat","⚔"],["clog","Log","▤"],["bank","Bank","◫"],["more","More","≡"]];
 const NAV_ICON = { skills:"skills", combat:"attack", clog:"more", bank:"bank", more:"cog" };
-const sectionOf = t => ["combat","clog","bank","more","daily"].includes(t) ? t : "skills";
+const sectionOf = t => ["combat","clog","bank","more","daily","dshop"].includes(t) ? t : "skills";
 function badges() {
   const now = Date.now();
   return {
@@ -2125,7 +2132,8 @@ function badges() {
 const MORE_NAMES = { quests: "Quests", clues: "Clues", hiscores: "Hiscores", news: "What's new", activity: "Activity", help: "Help & save" };
 const RAIL = [
   ["nav-skills", "Skills", "skills", "skills", "", "Play"],
-  ["nav-daily", "Daily", "lucky_horseshoe", "daily", "", "Play"],
+  ["nav-daily", "Challenges", "lucky_horseshoe", "daily", "", "Play"],
+  ["nav-dshop", "Daily shop", "daily_token", "dshop", "", "Play"],
   ["nav-combat", "Fight", "attack", "combat", "fight", "Combat"],
   ["csub-gear", "Equipment", "defence", "combat", "gear", "Combat"],
   ["csub-look", "Look", "wayfarer_hat", "combat", "look", "Combat"],
@@ -2140,7 +2148,7 @@ const RAIL = [
   ["msub-activity", "Activity", "captain_compass", "more", "activity", "More"],
   ["msub-help", "Help & save", "cog", "more", "help", "More"],
 ];
-const railKey = () => tab === "daily" ? "daily:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
+const railKey = () => tab === "daily" ? "daily:" : tab === "dshop" ? "dshop:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
 function renderRail() {
   const b = badges(), cur = railKey(); let h = "", g = "";
   const badge = { "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
@@ -2355,11 +2363,12 @@ function clogTree() {
     { id: "petsg", name: "Pets", entries: [
       { id: "pets", name: "Monster pets", sub: "Each gives +2% combat xp", items: PETS.filter(p => MONSTERS.some(m => m.uniques.some(u => u.item === p))).map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }) },
       { id: "pets-voy", name: "Voyage pets", sub: "Each gives +2% combat xp", items: PETS.filter(p => !MONSTERS.some(m => m.uniques.some(u => u.item === p))).map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }) },
-      { id: "pets-other", name: "Treasure pet", sub: "Clue scrolls 20% more often", items: [{ item: "pet_sniffer", unique: true, rate: "1/750 per elite casket" }] },
+      { id: "pets-other", name: "Treasure and shop pets", sub: "Sniffer and Tock", items: [{ item: "pet_sniffer", unique: true, rate: "1/750 per elite casket" }, { item: "pet_tock", unique: true, rate: "400 Daily tokens" }] },
       { id: "pets-skill", name: "Skilling pets", sub: "Each gives +3% xp in its skill", items: Object.entries(SKILL_PETS).map(([sk, p]) => ({ item: p, unique: true, rate: sk === "farming" ? "1/300 per harvest" : sk === "brewing" ? "1/150 per barrel" : sk === "slayer" ? "1/60 per Slayer task" : `${SKILLS[sk].name}, about ${PET_HOURS}h` })) },
     ] },
     { id: "other", name: "Other", entries: [
       { id: "trophies", name: "Achievement trophies", sub: "Tier X of each achievement", items: ACH_TRACKS.map(t => ({ item: trophyId(t), unique: true, rate: Array.isArray(t.tiers) ? `${fmt(t.tiers[9])} ${t.unit}` : `${t.name} X` })) },
+      { id: "dshop", name: "Daily shop", sub: "Daily tokens", items: DSHOP.filter(e => e.once).map(e => ({ item: e.item, rate: `${fmt(e.price)} tokens` })) },
       { id: "apshop", name: "Point shop", sub: "Achievement points", items: AP_ITEMS.filter(e => e.once).map(e => ({ item: e.item, rate: `${fmt(e.price)} points` })) },
       { id: "achcapes", name: "Achievement capes", sub: "One per achievement rank", items: ACH_RANKS.map((r, i) => ({ item: capeId(i), unique: true, rate: `${fmt(r.ap)} points` })) },
       { id: "slayershop", name: "Slayer shop", sub: "Slayer points", items: SLAYER_SHOP.map(e => ({ item: e.item, rate: `${e.price} points` })) },
@@ -2636,6 +2645,12 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 22, date: "8 Oct 2026", title: "Weekly challenges and the Daily shop", items: [
+    "Weekly challenges: three bigger goals each week (new every Monday), each worth 8× the daily coins and 10 tokens. Finish all three for 20 more tokens and an elite casket.",
+    "Challenges now pay Daily tokens instead of achievement points. Any points you'd earned from dailies have been turned into tokens.",
+    "The new Daily shop: Streak savers (protect your streak if you miss a day), reward caskets, Scholar's brews, magic seeds, treasure maps, the Daybreak hood, the Sunrise cape and Tock, a clockwork owl pet.",
+    "Don't like a daily challenge? Reroll it for 2 tokens.",
+    "New achievement: Week in, week out." ] },
   { v: 21, date: "8 Oct 2026", title: "Daily challenges", items: [
     "Three new challenges every day, picked from what you can do: a skilling job, plus things like kills, xp, harvests, voyages, a Slayer task or clue steps. Find them under Daily in the menu.",
     "Each one pays coins and 5 points to spend in the Point shop. Finish all three for 10 more points and a reward casket.",
@@ -3250,6 +3265,8 @@ const IC = {
 };
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
+  daily_token:["coin",["#f0a33a","#8e5a1a","#fff1c8","#000"]], streak_saver:["horseshoe",["#f0a33a","#8e5a1a","#3a4048","#000"]],
+  daybreak_hood:["hood",["#f0a33a","#d2452f","#000","#000"]], sunrise_cape:["cape",["#f0a33a","#d2452f","#000","#000"]], pet_tock:["bird",["#c9a440","#6b4a2a","#5aa7e8","#c8ccd2"]],
   laurel_crown:["crown",["#e8b84a","#8a6a20","#6fbf5a","#6fbf5a"]], champion_cape:["cape",["#7a2a1e","#ffd45a","#000","#000"]],
   clue_easy:["scroll",["#efe6cc", "#8a7044", "#8a7044", "#5aa7e8"]], clue_medium:["scroll",["#efe6cc", "#8a7044", "#8a7044", "#6fbf5a"]], clue_hard:["scroll",["#efe6cc", "#8a7044", "#8a7044", "#d2452f"]], clue_elite:["scroll",["#f7f0d0", "#7a4ad0", "#7a4ad0", "#c79bf2"]], clue_reward_easy:["chest",["#b07a3e", "#4a2e16", "#000", "#5aa7e8"]], clue_reward_medium:["chest",["#b07a3e", "#4a2e16", "#000", "#6fbf5a"]], clue_reward_hard:["chest",["#b07a3e", "#4a2e16", "#000", "#d2452f"]], clue_reward_elite:["chest",["#3a2a5a", "#1e0f3a", "#000", "#ffd45a"]], wayfarer_hat:["hat",["#8a5a2a", "#4a2e16", "#d2452f", "#000"]], patchwork_cape:["cape",["#6fbf5a", "#8e2a1f", "#000", "#000"]], lucky_horseshoe:["horseshoe",["#c8ccd2", "#6a727a", "#3a4048", "#000"]], trimmed_shield:["kite",["#8a8f96", "#4e5359", "#e8b84a", "#000"]], ranger_tricorne:["tricorne",["#2f6a24", "#1a3a14", "#e8b84a", "#000"]], explorer_cape:["cape",["#2f5ea8", "#e8b84a", "#000", "#000"]], pathfinder_compass:["compass",["#e8b84a", "#8a6a20", "#000", "#000"]], treasure_ring:["ring",["#e8b84a", "#8a6a20", "#d2452f", "#d2452f"]], gilded_helm:["helm",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], gilded_platebody:["body",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], gilded_platelegs:["legs",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], gilded_kiteshield:["kite",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], starlit_cape:["cape",["#1e2a5a", "#ffd45a", "#000", "#000"]], wyrm_mask:["wyrm",["#3f8a5a", "#1f4f30", "#e8dcc0", "#f7d35a"]], gilded_scimitar:["sword",["#ffd45a", "#a07a1a", "#000", "#7a2a1e"]], ancient_tome:["tome",["#7a2a1e", "#3a1410", "#ffd45a", "#c79bf2"]], pet_sniffer:["hound",["#b07a3e", "#5a3a1c", "#000", "#f2a0b0"]], dawnforged_helm:["helm",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_platebody:["body",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_platelegs:["legs",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_kiteshield:["kite",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_cape:["cape",["#f7f2e0", "#ffd45a", "#000", "#000"]], dawnforged_amulet:["amulet",["#ffd45a", "#000", "#ffffff", "#f7f2e0"]], dawnforged_blade:["sword",["#fff6d8", "#c9a440", "#000", "#ffd45a"]],
   pet_twiglet:["sapling",["#a0703a", "#5a3a1c", "#6fbf5a", "#3f7a3a"]], pet_cinder:["ember",["#f7d35a", "#8e2a1f", "#d2452f", "#f0a33a"]], pet_burrow:["mole",["#5a4a52", "#2e242a", "#e3b98f", "#f2a0b0"]], pet_puffin:["bird",["#2a2a30", "#111114", "#f0a33a", "#f0a33a"]], pet_crumb:["mouse",["#b8b0a8", "#7a706a", "#f2a0b0", "#f2a0b0"]], pet_pebble:["crab",["#8a8f96", "#4e5359", "#b8c0c8", "#000"]], pet_clinker:["lizard",["#d2452f", "#7a2418", "#000", "#f7d35a"]], pet_quill:["bird",["#9a6a3a", "#5a3a1c", "#f7d35a", "#e8b84a"]], pet_glimmer:["moth",["#c79bf2", "#6b4fa0", "#6b4fa0", "#f2efe6"]], pet_hops:["frog",["#5aa846", "#2f6a24", "#d8e8a0", "#000"]], pet_scamper:["squirrel",["#c0703a", "#7a4a1e", "#d88a4a", "#f2efe6"]], pet_fidget:["ferret",["#d8c8a8", "#7a6a50", "#4a3a2e", "#000"]], pet_grimling:["imp",["#b03a5a", "#5a1a2e", "#e8dcc0", "#000"]], slayer_helm:["helm",["#3a3e44", "#1a1c20", "#d2452f", "#000"]], hunter_satchel:["satchel",["#8a5a2a", "#4a2e16", "#c8ccd2", "#e8b84a"]], bone_charm:["amulet",["#e8dcc0", "#000", "#f2efe6", "#c2a36b"]], echo_charm:["amulet",["#9aa3ad", "#000", "#c79bf2", "#5a3a8a"]], mire_greaves:["legs",["#5a7a2a", "#2f4a14", "#a0c060", "#000"]], gargant_maul:["maul",["#8a8f96", "#5a3a1c", "#c8ccd2", "#3a3e44"]], voidlash:["whip",["#7a4ad0", "#3a1e6a", "#000", "#7dff6a"]], bat_wing:["wing",["#5a3a8a", "#2e1e4a", "#000", "#000"]], bog_moss:["pile",["#5a7a2a", "#2f4a14", "#a0c060", "#000"]], gargant_shard:["gem",["#8a8f96", "#4e5359", "#c8ccd2", "#ff7a1a"]], void_essence:["orb",["#3a1e6a", "#1e0f3a", "#7dff6a", "#000"]],
@@ -4015,7 +4032,8 @@ function render() {
   if (tab === "skills") h = overviewPanel();
   else if (tab === "bank") h = bankPanel();
   else if (tab === "more") h = morePanel();
-  else if (tab === "daily") h = `<div class="pagehead"><h2>Daily challenges</h2><span>${3 - dailyLeft()} / 3 done</span></div>` + dailyPanel();
+  else if (tab === "daily") h = `<div class="pagehead"><h2>Challenges</h2><span>${3 - dailyLeft()} / 3 today</span></div>` + dailyPanel();
+  else if (tab === "dshop") h = `<div class="pagehead"><h2>Daily shop</h2><span>${fmt(qty(TOK))} tokens</span></div>` + dshopPanel();
   else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "ach" ? "Achievements" : logSub === "shop" ? "Point shop" : "Collection log"}</h2><span>${logSub === "ach" ? fmt(achPoints()) + " points" : logSub === "shop" ? fmt(apBalance()) + " to spend" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
 ` + (logSub === "ach" ? achPanel() : logSub === "shop" ? apShopPanel() : clogPanel());
   else if (tab === "combat") h = combatPanel();
@@ -4039,7 +4057,7 @@ function render() {
 
 /* Cheap in-place refresh, safe to run every frame */
 function update() {
-  if (tab === "daily" && state.daily.list) document.querySelectorAll(".daily").forEach((el, i) => { const c = state.daily.list[i]; if (!c) return; const prog = Math.min(c.n, dailyProgress(c)); const sp = el.querySelector(".dh div span"); if (sp && !c.done) sp.textContent = `${fmt(prog)} / ${fmt(c.n)}`; const bar = el.querySelector(".tbar i"); if (bar) bar.style.width = (c.done ? 100 : prog / c.n * 100) + "%"; });
+  if (tab === "daily" && state.daily.list) document.querySelectorAll(".daily[data-ch]").forEach(el => { const k = el.dataset.ch, c = (k[0] === "w" ? state.weekly : state.daily).list[+k.slice(1)]; if (!c) return; const prog = Math.min(c.n, dailyProgress(c)); const sp = el.querySelector(".pg"); if (sp && !c.done) sp.textContent = `${fmt(prog)} / ${fmt(c.n)}`; const bar = el.querySelector(".tbar i"); if (bar) bar.style.width = (c.done ? 100 : prog / c.n * 100) + "%"; });
   for (const t of CLUE_TIERS) { const c = state.clues.held[t];
     document.querySelectorAll(`[data-clueprog="${t}"]`).forEach(el => el.style.width = c ? (100 * c.cur.have / c.cur.n) + "%" : "0");
     document.querySelectorAll(`[data-cluehave="${t}"]`).forEach(el => el.textContent = c ? `${fmt(c.cur.have)} / ${fmt(c.cur.n)}` : ""); }
@@ -4196,7 +4214,10 @@ document.addEventListener("click", e => {
   if (d.tboat) { traderBoat = d.tboat; return after(); }
   if (d.slayer) { if (d.slayer === "fight") { fightTask(); render(); window.scrollTo(0, 0); return after(); } newTask(d.slayer === "skip"); return after(); }
   if (d.sbuy !== undefined) { buySlayer(+d.sbuy); return after(); }
-  if (d.dailygo !== undefined) { dailyGo(+d.dailygo); render(); window.scrollTo(0, 0); return after(); }
+  if (d.dailygo !== undefined) { dailyGo(+d.dailygo, false); render(); window.scrollTo(0, 0); return after(); }
+  if (d.weeklygo !== undefined) { dailyGo(+d.weeklygo, true); render(); window.scrollTo(0, 0); return after(); }
+  if (d.reroll !== undefined) { rerollDaily(+d.reroll); render(); return after(); }
+  if (d.dshop !== undefined) { buyDshop(+d.dshop); return after(); }
   if (d.logsub) { logSub = d.logsub; render(); return; }
   if (d.apup) { buyApUpgrade(d.apup); return after(); }
   if (d.apitem !== undefined) { buyApItem(+d.apitem); return after(); }
@@ -4646,6 +4667,7 @@ const ACH_TRACKS = [
   { id: "pockets", group: "Adventure", name: "Pickpocket", unit: "successful pickpockets", stat: () => state.stats.thieving || 0, tiers: [25, 100, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000] },
   { id: "laps",    group: "Adventure", name: "Free runner", unit: "agility laps", stat: () => state.stats.agility || 0, tiers: [10, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000] },
   { id: "voyages", group: "Adventure", name: "Seafarer", unit: "voyages", stat: () => sumOf(state.islands), tiers: [1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000] },
+  { id: "weeklies", group: "Adventure", name: "Week in, week out", unit: "weeks of weekly challenges", stat: () => (state.weekly && state.weekly.sets) || 0, tiers: [1, 4, 8, 13, 26, 39, 52, 78, 104, 156] },
   { id: "dailies", group: "Adventure", name: "Daily devotee", unit: "days of daily challenges", stat: () => (state.daily && state.daily.sets) || 0, tiers: [1, 7, 30, 60, 100, 180, 365, 500, 730, 1000] },
   { id: "clues",   group: "Treasure", name: "Treasure hunter", unit: "clues completed", stat: () => sumOf(state.clues.done), tiers: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500] },
   { id: "clog",    group: "Treasure", name: "Collector", unit: "collection log slots", stat: () => clogCounts()[0], tiers: () => { const t = clogCounts()[1]; return [0.02, 0.05, 0.1, 0.2, 0.3, 0.45, 0.6, 0.75, 0.9, 1].map((f, i) => Math.max(i + 1, Math.round(t * f))); } },
@@ -4742,7 +4764,7 @@ const AP_ITEMS = [
   { item: "champion_cape", price: 2500, once: true },
 ];
 const apEarned = () => achPoints();
-const apBalance = () => Math.max(0, apEarned() + (state.apBonus || 0) - (state.apSpent || 0));
+const apBalance = () => Math.max(0, apEarned() - (state.apSpent || 0));
 // rank perks (entries with a rank) are free and permanent once you reach that rank
 let curRank = -1;
 const PERK_RANK = {};
@@ -4805,95 +4827,166 @@ function achPanel() {
 }
 
 
-/* ================= DAILY CHALLENGES =================
-   Three goals each day (local time), picked from what you can do. Same three all day, new ones at midnight.
-   Finishing one pays coins and spendable points; finishing all three pays a casket and grows your streak. */
-const DAILY_PTS = 5, DAILY_SET_PTS = 10;
+/* ================= DAILY & WEEKLY CHALLENGES =================
+   3 daily challenges (reset at local midnight) and 3 weekly ones (reset Monday). They pay Daily tokens,
+   spent in the Daily shop. Same set all day/week: seeded from the date and the player. */
+const TOK = "daily_token";
+const DAILY_TOK = 3, DAILY_SET_TOK = 5, WEEKLY_TOK = 10, WEEKLY_SET_TOK = 20;
 const todayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const dayBefore = k => { const d = new Date(k + "T12:00:00"); d.setDate(d.getDate() - 1); return todayKey(d); };
+const daysBetween = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 86400000);
+const weekKey = (d = new Date()) => { const m = new Date(d); m.setDate(m.getDate() - ((m.getDay() + 6) % 7)); return todayKey(m); };
 function seeded(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; }
   return () => { h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; }; }
-// counters that some challenges measure from the moment they were set
 const DAILY_STATS = {
   xp: () => totalXp(),
   tasks: () => state.slayer.done,
   voyages: () => sumOf(state.islands),
   harvests: () => state.stats.harvests || 0,
   clueSteps: () => state.stats.clueSteps || 0,
+  clues: () => sumOf(state.clues.done),
+  dailySets: () => (state.daily && state.daily.sets) || 0,
 };
-function makeDaily(day) {
-  const rnd = seeded(day + "|" + (cm.s ? cm.s.uid : "local")), pick = a => a[Math.floor(rnd() * a.length)];
-  const list = [];
-  // 1: a gathering, pickpocketing or agility job sized to about 20 minutes
+// weekly = true makes everything about 6× bigger
+function makeChallenges(seedKey, weekly) {
+  const rnd = seeded(seedKey + "|" + (cm.s ? cm.s.uid : "local")), pick = a => a[Math.floor(rnd() * a.length)];
+  const mins = weekly ? 120 : 20, list = [];
   const opts = [];
   for (const sk of CLUE_SKILLS) { const ok = ACTIONS[sk].filter(a => reqMet(sk, a)); if (ok.length) opts.push([sk, ok.slice(-3)]); }
-  { const [sk, acts] = pick(opts), a = pick(acts), n = Math.max(10, Math.round(20 * 60000 / actionTime(sk, a) / 5) * 5);
+  { const [sk, acts] = pick(opts), a = pick(acts), n = Math.max(10, Math.round(mins * 60000 / actionTime(sk, a) / 5) * 5);
     list.push({ type: "act", key: sk + ":" + a.id, n }); }
-  // 2 and 3 from a pool of things you're able to do
   const pool = [];
   const mons = MONSTERS.filter(m => reqMet("combat", m) && !m.boss);
-  if (mons.length) pool.push(() => { const m = pick(mons.slice(-4)); return { type: "act", key: "combat:" + m.id, n: Math.max(5, Math.round(1500 / (m.hp + 10) / 5) * 5) }; });
-  pool.push(() => ({ type: "stat", stat: "xp", n: Math.max(5000, Math.round(totalXp() * 0.02 / 1000) * 1000) }));
-  if (lvl("farming") >= 1) pool.push(() => ({ type: "stat", stat: "harvests", n: 3 }));
-  if (Object.keys(state.boats).length) pool.push(() => ({ type: "stat", stat: "voyages", n: 2 }));
-  if (combatLevel() >= 10) pool.push(() => ({ type: "stat", stat: "tasks", n: 1 }));
-  if (Object.keys(state.clues.held).length) pool.push(() => ({ type: "stat", stat: "clueSteps", n: 2 }));
+  if (mons.length) pool.push(() => { const m = pick(mons.slice(-4)); return { type: "act", key: "combat:" + m.id, n: Math.max(5, Math.round(1500 / (m.hp + 10) * (weekly ? 6 : 1) / 5) * 5) }; });
+  pool.push(() => ({ type: "stat", stat: "xp", n: Math.max(weekly ? 30000 : 5000, Math.round(totalXp() * (weekly ? 0.1 : 0.02) / 1000) * 1000) }));
+  if (lvl("farming") >= 1) pool.push(() => ({ type: "stat", stat: "harvests", n: weekly ? 15 : 3 }));
+  if (Object.keys(state.boats).length) pool.push(() => ({ type: "stat", stat: "voyages", n: weekly ? 10 : 2 }));
+  if (combatLevel() >= 10) pool.push(() => ({ type: "stat", stat: "tasks", n: weekly ? 5 : 1 }));
+  if (weekly) { pool.push(() => ({ type: "stat", stat: "dailySets", n: 5 })); pool.push(() => ({ type: "stat", stat: "clues", n: 3 })); }
+  else if (Object.keys(state.clues.held).length) pool.push(() => ({ type: "stat", stat: "clueSteps", n: 2 }));
   while (list.length < 3 && pool.length) { const i = Math.floor(rnd() * pool.length); list.push(pool.splice(i, 1)[0]()); }
   for (const c of list) { c.have = 0; c.done = false; if (c.type === "stat") c.base = DAILY_STATS[c.stat](); }
   return list;
 }
+const makeDaily = day => makeChallenges(day, false);
 function dailyText(c) {
   if (c.type === "act") { const [sk, id] = c.key.split(":"), a = findAction(sk, id); return a ? clueVerb(sk, a).replace("{n}", fmt(c.n)) : "Unknown task"; }
-  return { xp: `Gain ${fmt(c.n)} xp in any skills`, harvests: `Harvest ${c.n} farming patches`, voyages: `Complete ${c.n} voyages`, tasks: `Finish ${c.n} Slayer task`, clueSteps: `Complete ${c.n} clue scroll steps` }[c.stat];
+  return { xp: `Gain ${fmt(c.n)} xp in any skills`, harvests: `Harvest ${c.n} farming patches`, voyages: `Complete ${c.n} voyages`, tasks: `Finish ${c.n} Slayer task${c.n > 1 ? "s" : ""}`, clueSteps: `Complete ${c.n} clue scroll steps`, clues: `Complete ${c.n} clue scrolls`, dailySets: `Finish all daily challenges on ${c.n} days this week` }[c.stat];
 }
 const dailyProgress = c => c.type === "stat" ? Math.max(0, DAILY_STATS[c.stat]() - c.base) : c.have;
 const dailyCoins = () => 2000 + totalLevel() * 40;
 function ensureDaily() {
-  const day = todayKey(), d = state.daily;
-  if (d.day !== day) { d.day = day; d.list = makeDaily(day); d.setDone = false; }
+  const day = todayKey(), d = state.daily, w = state.weekly, wk = weekKey();
+  if (d.day !== day) { d.day = day; d.list = makeChallenges(day, false); d.setDone = false; d.rerolled = 0; }
+  if (w.week !== wk) { w.week = wk; w.list = makeChallenges("week " + wk, true); w.setDone = false; }
 }
-// an action or kill happened: count it towards matching challenges
-function dailyTick(key) { const d = state.daily; if (!d.list) return; for (const c of d.list) if (c.type === "act" && !c.done && c.key === key) c.have++; }
+function dailyTick(key) { for (const box of [state.daily, state.weekly]) if (box && box.list) for (const c of box.list) if (c.type === "act" && !c.done && c.key === key) c.have++; }
+// streak: missed days are covered by Streak savers if you have enough
+function streakAfterMiss(d) {
+  if (!d.last) return 0;
+  const missed = daysBetween(d.last, d.day) - 1;
+  if (missed <= 0) return d.streak || 0;
+  if (missed <= qty("streak_saver")) return d.streak || 0;
+  return 0;
+}
+function payChallenge(c, weekly) {
+  const coins = Math.round(dailyCoins() * (weekly ? 8 : 1) * (has("pet_tock") ? 1.05 : 1)), tok = weekly ? WEEKLY_TOK : DAILY_TOK;
+  add("coins", coins); state.stats.achCoins = (state.stats.achCoins || 0) + coins; add(TOK, tok);
+  toast(`${weekly ? "Weekly" : "Daily"} challenge done: ${dailyText(c)}! +${fmt(coins)} coins, +${tok} tokens`, true); log(`${weekly ? "Weekly" : "Daily"} challenge done: <b>${esc(dailyText(c))}</b>`, "l");
+}
 function checkDaily() {
   ensureDaily();
-  const d = state.daily; let newly = 0;
-  for (const c of d.list) if (!c.done && dailyProgress(c) >= c.n) {
-    c.done = true; newly++;
-    const coins = dailyCoins(); add("coins", coins); state.stats.achCoins = (state.stats.achCoins || 0) + coins; state.apBonus = (state.apBonus || 0) + DAILY_PTS;
-    toast(`Daily challenge done: ${dailyText(c)}! +${fmt(coins)} coins, +${DAILY_PTS} points`, true); log(`Daily challenge done: <b>${esc(dailyText(c))}</b>`, "l");
-  }
+  const d = state.daily, w = state.weekly;
+  let newly = 0;
+  for (const c of d.list) if (!c.done && dailyProgress(c) >= c.n) { c.done = true; newly++; payChallenge(c, false); }
   if (newly && !d.setDone && d.list.every(c => c.done)) {
-    d.setDone = true; d.streak = d.last === dayBefore(d.day) ? (d.streak || 0) + 1 : 1; d.last = d.day; d.sets = (d.sets || 0) + 1; d.best = Math.max(d.best || 0, d.streak);
+    const missed = d.last ? daysBetween(d.last, d.day) - 1 : -1;
+    if (missed === 0) d.streak = (d.streak || 0) + 1;
+    else if (missed > 0 && missed <= qty("streak_saver")) { add("streak_saver", -missed); d.streak = (d.streak || 0) + 1; toast(`Used ${missed} streak saver${missed > 1 ? "s" : ""} to keep your streak`, true); }
+    else d.streak = 1;
+    d.setDone = true;
+    d.last = d.day; d.sets = (d.sets || 0) + 1; d.best = Math.max(d.best || 0, d.streak);
     const box = d.streak % 30 === 0 ? "clue_reward_elite" : d.streak % 7 === 0 ? "clue_reward_hard" : "clue_reward_medium";
-    add(box, 1); state.apBonus = (state.apBonus || 0) + DAILY_SET_PTS;
-    toast(`All 3 daily challenges done! Streak ${d.streak}. +${DAILY_SET_PTS} points and a ${ITEMS[box].name.toLowerCase()}`, true);
+    add(box, 1); add(TOK, DAILY_SET_TOK);
+    toast(`All 3 daily challenges done! Streak ${d.streak}. +${DAILY_SET_TOK} tokens and a ${ITEMS[box].name.toLowerCase()}`, true);
     log(`All daily challenges done. Streak <b>${d.streak}</b>. Reward: <b>${ITEMS[box].name}</b>`, "r");
+  }
+  let wNew = 0;
+  for (const c of w.list) if (!c.done && dailyProgress(c) >= c.n) { c.done = true; wNew++; payChallenge(c, true); }
+  if (wNew && !w.setDone && w.list.every(c => c.done)) {
+    w.setDone = true; w.sets = (w.sets || 0) + 1; add("clue_reward_elite", 1); add(TOK, WEEKLY_SET_TOK);
+    toast(`All weekly challenges done! +${WEEKLY_SET_TOK} tokens and an elite reward casket`, true); log(`All weekly challenges done. Reward: <b>Reward casket (elite)</b>`, "r");
   }
 }
 const dailyLeft = () => { const d = state.daily; return d && d.list ? d.list.filter(c => !c.done).length : 3; };
-function dailyGo(i) {
-  const c = state.daily.list[i]; if (!c || c.type !== "act") return;
+function dailyGo(i, weekly) {
+  const c = (weekly ? state.weekly : state.daily).list[i]; if (!c || c.type !== "act") return;
   const [sk, id] = c.key.split(":"), a = findAction(sk, id); if (!a || !reqMet(sk, a)) return;
   state.active = { skill: sk, id }; state.progress = 0;
   if (sk === "combat") { state.fight = null; tab = "combat"; combatSub = "fight"; } else tab = sk;
 }
-function dailyPanel() {
-  ensureDaily();
-  const d = state.daily, now = new Date(), mid = new Date(now); mid.setHours(24, 0, 0, 0);
-  const streakNow = d.last === d.day || d.last === dayBefore(d.day) ? (d.streak || 0) : 0;
-  let h = `<div class="achtop">${icon("lucky_horseshoe")}<div><span class="ar">Streak</span><b class="num">${streakNow} day${streakNow === 1 ? "" : "s"}</b><span>New challenges in ${dur(mid - now)} · best streak ${d.best || 0} · ${fmt(d.sets || 0)} days completed</span></div></div>`;
-  h += `<div class="dailies">` + d.list.map((c, i) => {
+const REROLL_COST = 2;
+function rerollDaily(i) {
+  const d = state.daily, c = d.list[i]; if (!c || c.done || qty(TOK) < REROLL_COST) return;
+  add(TOK, -REROLL_COST); d.rerolled = (d.rerolled || 0) + 1;
+  const fresh = makeChallenges(d.day + "#r" + d.rerolled + ":" + i, false).find(x => !d.list.some(y => (y.key || y.stat) === (x.key || x.stat))) || makeChallenges(d.day + "#r" + d.rerolled, false)[0];
+  d.list[i] = fresh; toast("Challenge rerolled");
+}
+function challengeCards(list, weekly) {
+  return list.map((c, i) => {
     const prog = Math.min(c.n, dailyProgress(c)), pct = c.done ? 100 : c.n ? prog / c.n * 100 : 0;
     const [sk, id] = c.type === "act" ? c.key.split(":") : [], a = c.type === "act" ? findAction(sk, id) : null;
     const active = a && state.active && state.active.skill === sk && state.active.id === id;
-    const ic = c.type === "act" ? (sk === "combat" ? "attack" : sk) : { xp: "skills", harvests: "farming", voyages: "seafaring", tasks: "slayer", clueSteps: "clue_easy" }[c.stat];
-    return `<div class="daily ${c.done ? "done" : ""}"><div class="dh">${icon(ic)}<div><b>${esc(dailyText(c))}</b><span>${c.done ? "Complete!" : `${fmt(prog)} / ${fmt(c.n)}`}</span><span class="rw">${c.done ? "Reward collected" : `Reward: ${fmt(dailyCoins())} coins · ${DAILY_PTS} points`}</span></div>${c.done ? '<span class="tick">✓</span>' : ""}</div>
+    const ic = c.type === "act" ? (sk === "combat" ? "attack" : sk) : { xp: "skills", harvests: "farming", voyages: "seafaring", tasks: "slayer", clueSteps: "clue_easy", clues: "clue_hard", dailySets: "lucky_horseshoe" }[c.stat];
+    const pre = weekly ? "w" : "d";
+    return `<div class="daily ${c.done ? "done" : ""}" data-ch="${pre}${i}"><div class="dh">${icon(ic)}<div><b>${esc(dailyText(c))}</b><span class="pg">${c.done ? "Complete!" : `${fmt(prog)} / ${fmt(c.n)}`}</span><span class="rw">${c.done ? "Reward collected" : `Reward: ${fmt(dailyCoins() * (weekly ? 8 : 1))} coins · ${weekly ? WEEKLY_TOK : DAILY_TOK} tokens`}</span></div>${c.done ? '<span class="tick">✓</span>' : ""}</div>
       <div class="tbar"><i style="width:${pct}%"></i></div>
-      ${!c.done && a && reqMet(sk, a) ? `<button class="btn ${active ? "" : "solid"}" id="dailygo-${i}" data-dailygo="${i}" ${active ? "disabled" : ""}>${active ? "Doing it now" : "Do this now"}</button>` : ""}</div>`;
+      <div class="row">${!c.done && a && reqMet(sk, a) ? `<button class="btn ${active ? "" : "solid"}" id="${pre}go-${i}" data-${weekly ? "weeklygo" : "dailygo"}="${i}" ${active ? "disabled" : ""}>${active ? "Doing it now" : "Do this now"}</button>` : ""}
+      ${!c.done && !weekly ? `<button class="btn" id="reroll-${i}" data-reroll="${i}" ${qty(TOK) < REROLL_COST ? "disabled" : ""}>Reroll · ${REROLL_COST} tokens</button>` : ""}</div></div>`;
+  }).join("");
+}
+function dailyPanel() {
+  ensureDaily();
+  const d = state.daily, w = state.weekly, now = new Date(), mid = new Date(now); mid.setHours(24, 0, 0, 0);
+  const nextMon = new Date(w.week + "T00:00:00"); nextMon.setDate(nextMon.getDate() + 7);
+  const streakNow = d.last === d.day ? (d.streak || 0) : streakAfterMiss(d);
+  let h = `<div class="achtop">${icon(TOK)}<div><span class="ar">Daily tokens</span><b class="num">${fmt(qty(TOK))}</b><span>Streak ${streakNow} day${streakNow === 1 ? "" : "s"} · best ${d.best || 0}${qty("streak_saver") ? ` · ${qty("streak_saver")} streak saver${qty("streak_saver") > 1 ? "s" : ""}` : ""} · <button class="linkbtn" id="toDshop" data-nav="dshop:">Daily shop</button></span></div></div>`;
+  h += `<h3>Today <span>new in ${dur(mid - now)}</span></h3><div class="dailies">${challengeCards(d.list, false)}</div>`;
+  const nextStreak = (d.last === dayBefore(d.day) ? (d.streak || 0) : streakAfterMiss(d)) + 1, box = nextStreak % 30 === 0 ? "clue_reward_elite" : nextStreak % 7 === 0 ? "clue_reward_hard" : "clue_reward_medium";
+  h += `<div class="dbonus ${d.setDone ? "done" : ""}">${icon(d.setDone ? "clue_reward_medium" : box)}<div><b>${d.setDone ? "All done for today!" : "Finish all three today"}</b><span>${d.setDone ? "Come back tomorrow to keep your streak going." : `+${DAILY_SET_TOK} tokens and a ${esc(ITEMS[box].name.toLowerCase())}. Every 7th day in a row: a hard casket; every 30th: an elite casket.`}</span></div></div>`;
+  h += `<h3>This week <span>new in ${dur(nextMon - now)}</span></h3><div class="dailies">${challengeCards(w.list, true)}</div>
+    <div class="dbonus ${w.setDone ? "done" : ""}">${icon("clue_reward_elite")}<div><b>${w.setDone ? "Weekly challenges complete!" : "Finish all three this week"}</b><span>${w.setDone ? "New weekly challenges on Monday." : `+${WEEKLY_SET_TOK} tokens and an elite reward casket.`}</span></div></div>
+    <p class="note">Progress counts while you're away too. Spend tokens in the Daily shop.</p>`;
+  return h;
+}
+// ---- Daily shop ----
+const DSHOP = [
+  { item: "streak_saver", price: 12, max: 3, note: "Used automatically if you miss a day." },
+  { item: "clue_reward_medium", price: 8 },
+  { item: "clue_reward_hard", price: 20 },
+  { item: "clue_reward_elite", price: 50 },
+  { item: "brew_scholar", price: 6, qty: 3 },
+  { item: "magic_seed", price: 10, qty: 2 },
+  { item: "treasure_map", price: 8 },
+  { item: "daybreak_hood", price: 120, once: true },
+  { item: "sunrise_cape", price: 200, once: true },
+  { item: "pet_tock", price: 400, once: true },
+];
+function buyDshop(i) {
+  const e = DSHOP[i]; if (!e || qty(TOK) < e.price) return;
+  if (e.once && (has(e.item) || state.clog[e.item] > 0)) return;
+  if (e.max && qty(e.item) >= e.max) return;
+  add(TOK, -e.price); add(e.item, e.qty || 1);
+  if (e.item === "pet_tock" && !state.opts.follow) state.opts.follow = "pet_tock";
+  toast(`Bought ${e.qty > 1 ? e.qty + " " : ""}${ITEMS[e.item].name.toLowerCase()}`);
+}
+function dshopPanel() {
+  const t = qty(TOK);
+  let h = `<div class="achtop">${icon(TOK)}<div><span class="ar">Daily tokens</span><b class="num">${fmt(t)}</b><span>Earn tokens from daily and weekly challenges. <button class="linkbtn" id="toDaily" data-nav="daily:">See challenges</button></span></div></div><div class="actions" style="margin-top:12px">`;
+  h += DSHOP.map((e, i) => {
+    const owned = e.once && (has(e.item) || state.clog[e.item] > 0), full = e.max && qty(e.item) >= e.max;
+    return `<button class="act" id="dshop-${e.item}" data-dshop="${i}" ${owned || full || t < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${e.qty > 1 ? e.qty + "× " : ""}${esc(ITEMS[e.item].name)}</span><span class="meta">${owned ? `<span class="ok">Owned</span> · ` : full ? `<span class="ok">Holding ${e.max}</span> · ` : e.max ? `Holding ${qty(e.item)}/${e.max} · ` : ""}${esc(e.note || ITEMS[e.item].desc)}</span><span class="side"><b>${fmt(e.price)}</b>tokens</span></button>`;
   }).join("") + `</div>`;
-  const nextStreak = (d.last === dayBefore(d.day) ? (d.streak || 0) : 0) + 1, box = nextStreak % 30 === 0 ? "clue_reward_elite" : nextStreak % 7 === 0 ? "clue_reward_hard" : "clue_reward_medium";
-  h += `<div class="dbonus ${d.setDone ? "done" : ""}">${icon(d.setDone ? "clue_reward_medium" : box)}<div><b>${d.setDone ? "All done for today!" : "Finish all three"}</b><span>${d.setDone ? "Come back tomorrow to keep your streak going." : `+${DAILY_SET_PTS} points and a ${esc(ITEMS[box].name.toLowerCase())}. Every 7th day in a row: a hard casket; every 30th: an elite casket.`}</span></div></div>
-    <p class="note">Points from daily challenges go straight to your Point shop balance. Progress counts while you're away too.</p>`;
   return h;
 }
 
@@ -4998,7 +5091,7 @@ function begin() {
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
 }
-window.__thornwick = { get state() { return state; }, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
