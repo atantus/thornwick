@@ -649,9 +649,9 @@ const ITEMS = {
   arena_helm:    { name: "Gladiator's helm", desc: "Glory shop. Head, Defence +5. Dented, proudly.", rare: true },
   arena_cape:    { name: "Champion's mantle", desc: "Glory shop. Cape, Defence +8. Crimson and gold, for the crowd's favourite.", rare: true },
   pet_brawler:   { name: "Brawler", desc: "Arena pet. A scarred pit hound with a soft heart. +10% glory from ranked fights.", rare: true },
-  roof_hood:     { name: "Runner's hood", desc: "Rooftop run: reach 300 m. Head, Defence +2. Dark as a moonless night.", rare: true },
-  roof_cape:     { name: "Skyrunner cape", desc: "Rooftop run: reach 750 m. Cape, Defence +5. Snaps in the wind as you leap.", rare: true },
-  pet_scamp:     { name: "Scamp", desc: "Rooftop run: reach 1,500 m. A rooftop cat who never misses a jump. +10% rooftop run xp.", rare: true },
+  roof_hood:     { name: "Runner's hood", desc: "Rooftop run: reach 200 m. Head, Defence +2. Dark as a moonless night.", rare: true },
+  roof_cape:     { name: "Skyrunner cape", desc: "Rooftop run: reach 500 m. Cape, Defence +5. Snaps in the wind as you leap.", rare: true },
+  pet_scamp:     { name: "Scamp", desc: "Rooftop run: reach 1,000 m. A rooftop cat who never misses a jump. +10% rooftop run xp.", rare: true },
   moonlit_hood:  { name: "Moonlit hood",  desc: "Daily special only. Head, Defence +4. Silver thread that catches the moon.", rare: true },
   dusk_cape:     { name: "Duskwoven cape", desc: "Daily special only. Cape, Defence +7. The colour of the sky just after sunset.", rare: true },
   pet_lumen:   { name: "Lumen",       desc: "Daily special pet. A lantern moth that glows near a bargain. Daily specials cost 10% less.", rare: true },
@@ -2695,6 +2695,13 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 26, date: "8 Oct 2026", title: "A tougher Rooftop run", items: [
+    "Rooftop run is now about timing: runs of narrow chimney stacks where jumping too early, too late, too high or too low drops you.",
+    "Washing lines strung above chimneys: slip between the two with a quick tap. Hold too long and you'll get tangled.",
+    "A quick tap is now always a short hop; holding past a moment jumps higher and further.",
+    "Skyfeathers are rarer and sit where you have to take a risk to grab them.",
+    "Runs pay twice the xp per metre. Unlocks are now at 200 m (Runner's hood), 500 m (Skyrunner cape) and 1,000 m (Scamp). Anything you've already unlocked stays yours.",
+    "New course, new records: your best distance starts fresh (your old best is still shown)." ] },
   { v: 25, date: "8 Oct 2026", title: "Minigames tab", items: [
     "The Arena and Rooftop run now live together under Minigames in the side menu, with your daily limits, glory, best distance and next unlock at a glance." ] },
   { v: 24, date: "8 Oct 2026", title: "The Arena and Rooftop run", items: [
@@ -4746,7 +4753,7 @@ const ACH_TRACKS = [
   { id: "laps",    group: "Adventure", name: "Free runner", unit: "agility laps", stat: () => state.stats.agility || 0, tiers: [10, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000] },
   { id: "voyages", group: "Adventure", name: "Seafarer", unit: "voyages", stat: () => sumOf(state.islands), tiers: [1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000] },
   { id: "arena", group: "Combat", name: "Gladiator", unit: "arena wins", stat: () => (state.arena && state.arena.wins) || 0, tiers: [1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000] },
-  { id: "roofbest", group: "Adventure", name: "Roof runner", unit: "metres in one rooftop run", stat: () => (state.roof && state.roof.best) || 0, tiers: [100, 250, 500, 750, 1000, 1500, 2000, 2500, 3000, 4000] },
+  { id: "roofbest", group: "Adventure", name: "Roof runner", unit: "metres in one rooftop run", stat: () => (state.roof && state.roof.best) || 0, tiers: [50, 100, 200, 300, 400, 500, 750, 1000, 1500, 2500] },
   { id: "bossweeks", group: "Combat", name: "Boss of the week", unit: "weekly bosses beaten", stat: () => (state.weekly && state.weekly.bossWins) || 0, tiers: [1, 3, 6, 10, 20, 30, 52, 78, 104, 156] },
   { id: "weeklies", group: "Adventure", name: "Week in, week out", unit: "weeks of weekly challenges", stat: () => (state.weekly && state.weekly.sets) || 0, tiers: [1, 4, 8, 13, 26, 39, 52, 78, 104, 156] },
   { id: "dailies", group: "Adventure", name: "Daily devotee", unit: "days of daily challenges", stat: () => (state.daily && state.daily.sets) || 0, tiers: [1, 7, 30, 60, 100, 180, 365, 500, 730, 1000] },
@@ -5160,7 +5167,7 @@ function miniPanel() {
   <div class="mglist">
   ${card("go-arena", "arena:", "arena_helm", "Arena", "Turn-based duels against ghosts of real players. Attack beats Special, Block beats Attack, Special beats Block. Read the tells to win.",
     [al ? `${al} / ${ARENA_DAILY} ranked fights left` : "Practice only until midnight", `${fmt(qty(GLORY))} glory`, `${fmt(A.wins)} wins`].concat(A.streak > 1 ? [`${A.streak}-win streak`] : []), arena.fight && !arena.fight.over ? "Back to your fight" : "Enter the Arena")}
-  ${card("go-roof", "roof:", "agility", "Rooftop run", `Leap across Thornwick's rooftops at night. Tap to jump, hold to jump higher${roofDouble() ? ", tap again to double jump" : ""}. Earn Agility xp and skyfeathers.`,
+  ${card("go-roof", "roof:", "agility", "Rooftop run", `Leap across Thornwick's rooftops at night: hop between narrow chimney stacks and slip under washing lines. A quick tap is a short hop, hold to jump further${roofDouble() ? ", tap again to double jump" : ""}. Earn Agility xp and rare skyfeathers.`,
     [rl ? `${rl} / ${ROOF_DAILY} rewarded runs left` : "Practice only until midnight", `Best ${fmt(S.best)} m`].concat(ROOF_UNLOCKS.filter(u => !ownedEver(u.item)).slice(0, 1).map(u => `Next unlock at ${fmt(u.m)} m`)), roof.run && roof.run.paused && !roof.run.dead ? "Resume your run" : "Start running")}
   </div>`;
 }
@@ -5398,56 +5405,87 @@ function drawArena(now) {
 /* ================= ROOFTOP RUN =================
    One-button runner. Distances in metres; y is height above the starting roof. */
 const ROOF_DAILY = 10, ROOF_G = 28, ROOF_JUMP = 9.5;
-const ROOF_UNLOCKS = [{ m: 300, item: "roof_hood" }, { m: 750, item: "roof_cape" }, { m: 1500, item: "pet_scamp" }];
+const ROOF_UNLOCKS = [{ m: 200, item: "roof_hood" }, { m: 500, item: "roof_cape" }, { m: 1000, item: "pet_scamp" }];
 const roof = { run: null, last: null, lastT: 0 };
 function roofState() {
   const R = state.roof || (state.roof = {});
   for (const k of ["runs", "best", "total", "dist"]) R[k] = R[k] || 0;
   if (R.day !== todayKey()) { R.day = todayKey(); R.runs = 0; }
+  if (!R.v2) { R.v2 = true; if (R.best) R.oldBest = R.best; R.best = 0; }
   return R;
 }
 const roofCourse = () => [...COURSES].reverse().find(c => lvl("agility") >= c.lvl) || COURSES[0];
-const roofXpPerM = () => roofCourse().xp / 40 * (has("pet_scamp") ? 1.1 : 1);
+const roofXpPerM = () => roofCourse().xp / 20 * (has("pet_scamp") ? 1.1 : 1);
 const roofDouble = () => lvl("agility") >= 40;
+const roofSpeed = x => Math.min(12, 7 + x / 150);
 function roofNew() {
-  const R = { x: 0, y: 0, vy: 0, v: 7, ground: true, air: 0, jumps: 0, hold: false, holdT: 0, segs: [{ x0: -12, x1: 26, h: 0, chim: [] }], feathers: [], got: 0, dead: false, paused: false, seed: Math.random() };
+  const R = { x: 0, y: 0, vy: 0, v: 7, ground: true, air: 0, jumps: 0, hold: false, holdT: 0, run: 0, segs: [{ x0: -12, x1: 22, h: 0, chim: [], beams: [], kind: "roof" }], feathers: [], got: 0, dead: false, paused: false };
   roofGen(R); return R;
 }
+// The course mixes three things: rooftops (sometimes with a chimney, or a chimney under a washing line you
+// have to slip between with a short tap), and runs of narrow chimney stacks where both the moment you jump
+// and how long you hold decide whether you land.
 function roofGen(R) {
   let last = R.segs[R.segs.length - 1];
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   while (last.x1 < R.x + 45) {
-    const v = Math.min(14, 7 + last.x1 / 120) + 0.5;
-    const dh = Math.max(-1.6, Math.min(1.1, -1.6 + Math.random() * 2.7));
-    const h = Math.max(-1.5, Math.min(3, last.h + dh));
-    let maxGap = Math.max(2, Math.min(v * 0.58, 7.5)); if (h - last.h > 0.5) maxGap *= 0.72;
-    const gap = 1.5 + Math.random() * (maxGap - 1.5), len = Math.max(5, v * 0.8) + Math.random() * (6 + Math.min(14, last.x1 / 100));
-    const s = { x0: last.x1 + gap, h, chim: [] }; s.x1 = s.x0 + len;
-    // chimneys leave room to land before them and to take off again after them
-    const cLo = s.x0 + 2 + v * 0.8, cHi = s.x1 - (v * 0.95 + 1.2);
-    if (cHi > cLo && Math.random() < 0.55) s.chim.push(cLo + Math.random() * (cHi - cLo));
-    if (Math.random() < 0.5) R.feathers.push({ x: last.x1 + gap / 2, y: Math.max(last.h, h) + 1.3 });
-    else if (s.chim.length && Math.random() < 0.6) R.feathers.push({ x: s.chim[0] + 0.35, y: h + 2.1 });
+    const d = last.x1, k = Math.min(1, d / 900), v = roofSpeed(d) + 0.3;
+    let s;
+    if (R.run > 0) {
+      R.run--;
+      const h = clamp(last.h - 0.7 + Math.random() * 1.3, -1.5, 3);
+      let g = v * (0.3 + Math.random() * 0.25); if (h - last.h > 0.3) g = Math.min(g, v * 0.42);
+      const w = Math.max(2, 3.4 - 1.4 * k + Math.random() * 0.8);
+      s = { x0: d + g, x1: d + g + w, h, chim: [], beams: [], kind: "stack" };
+      if (Math.random() < 0.12) R.feathers.push({ x: d + g / 2, y: Math.max(last.h, h) + 2.25 });
+    } else if (last.kind === "roof" && d > 40 && Math.random() < 0.3 + 0.35 * k) {
+      R.run = 2 + Math.floor(Math.random() * (2 + 3 * k)); continue;
+    } else {
+      const h = clamp(last.h - 1.4 + Math.random() * 2.4, -1.5, 3);
+      let maxGap = Math.max(2, Math.min(v * 0.58, 7)); if (h - last.h > 0.5) maxGap *= 0.72;
+      const gap = 1.5 + Math.random() * (maxGap - 1.5), len = Math.max(5, v * 0.75) + Math.random() * (4 + 6 * (1 - k));
+      const chim = Math.random() < 0.6;
+      s = { x0: d + gap, h, chim: [], beams: [], kind: "roof" }; s.x1 = s.x0 + (chim ? Math.max(len, 4 + 1.6 * v) : len);
+      // chimneys leave room to land before them and to take off again after them
+      const cLo = s.x0 + 1.5 + v * 0.45, cHi = s.x1 - (v * 0.85 + 1);
+      if (chim && cHi > cLo) {
+        const c = cLo + Math.random() * (cHi - cLo); s.chim.push(c);
+        // a washing line above it: only a quick tap fits between the two
+        if (d > 60 && Math.random() < 0.3 + 0.4 * k) s.beams.push({ a: c - 1.6, b: c + 2.3, y: s.h + 3.4 });
+      }
+      if (Math.random() < 0.1) R.feathers.push({ x: d + gap / 2, y: Math.max(last.h, h) + 2.3 });
+    }
     R.segs.push(s); last = s;
   }
   while (R.segs.length > 2 && R.segs[0].x1 < R.x - 20) R.segs.shift();
   R.feathers = R.feathers.filter(f => !f.got && f.x > R.x - 20);
 }
 function roofStep(R, dt) {
-  R.v = Math.min(14, 7 + R.x / 120);
+  R.v = roofSpeed(R.x);
   R.x += R.v * dt;
-  const holding = R.hold && R.vy > 0 && R.holdT < 0.25; if (holding) R.holdT += dt;
-  const py = R.y; R.vy -= ROOF_G * (holding ? 0.5 : 1) * dt; R.y += R.vy * dt;
+  // a quick tap is a short hop; holding past 0.1 s lifts you higher (up to 0.35 s)
+  if (R.hold && R.vy > 0) R.holdT += dt;
+  const holding = R.hold && R.vy > 0 && R.holdT > 0.1 && R.holdT < 0.35;
+  const py = R.y; R.vy -= ROOF_G * (holding ? 0.45 : 1) * dt; R.y += R.vy * dt;
   roofGen(R);
   const under = R.segs.find(s => R.x + 0.25 > s.x0 && R.x - 0.25 < s.x1);
   const was = R.ground; R.ground = false;
-  if (under && R.vy <= 0 && R.y <= under.h && py >= under.h - 0.25) { R.y = under.h; R.vy = 0; R.ground = true; R.jumps = 0; R.air = 0; }
+  if (under && R.vy <= 0 && R.y <= under.h && py >= under.h - 0.25) { R.y = under.h; R.vy = 0; R.ground = true; R.jumps = 0; R.air = 0; R.landH = under.h; }
   if (!R.ground) R.air += dt;
   if (was && !R.ground && R.jumps === 0) R.air = 0.0001;
   const front = R.segs.find(s => R.x + 0.25 > s.x0 && R.x + 0.25 < s.x1);
-  if (front && R.y < front.h - 0.25) return roofDie(R, "You ran into a wall.");
-  for (const s of R.segs) for (const c of s.chim) if (R.x + 0.25 > c && R.x - 0.25 < c + 0.7 && R.y < s.h + 0.85) return roofDie(R, "You clipped a chimney.");
+  if (front && R.y < front.h - 0.25) return roofDie(R, front.kind === "stack" ? "You hit the side of a chimney stack." : "You ran into a wall.");
+  for (const s of R.segs) {
+    for (const c of s.chim) if (R.x + 0.25 > c && R.x - 0.25 < c + 0.7 && R.y < s.h + 0.85) return roofDie(R, "You clipped a chimney.");
+    for (const b of s.beams) if (R.x + 0.25 > b.a && R.x - 0.25 < b.b && R.y + 1.6 > b.y) return roofDie(R, "You got tangled in a washing line.");
+  }
   if (R.y < -7) return roofDie(R, "You fell between the roofs.");
   for (const f of R.feathers) if (!f.got && Math.abs(f.x - R.x) < 0.6 && R.y < f.y + 0.4 && R.y + 1.7 > f.y) { f.got = true; R.got++; }
+}
+function roofJump(R) {
+  if (R.ground || (R.jumps === 0 && R.air < 0.09)) { R.vy = ROOF_JUMP; R.ground = false; R.jumps = 1; R.hold = true; R.holdT = 0; R.air = 0.1; return true; }
+  if (roofDouble() && R.jumps < 2) { R.vy = ROOF_JUMP * 0.85; R.jumps = 2; R.hold = true; R.holdT = 0; return true; }
+  return false;
 }
 function roofPress() {
   if (tab !== "roof") return false;
@@ -5455,12 +5493,11 @@ function roofPress() {
   if (!R || (R.dead && performance.now() - R.deadAt > 700)) { roof.run = roofNew(); roof.lastT = 0; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return true; }
   if (R.dead) return true;
   if (R.paused) { R.paused = false; roof.lastT = 0; return true; }
-  if (R.ground || (R.jumps === 0 && R.air < 0.09)) { R.vy = ROOF_JUMP; R.ground = false; R.jumps = 1; R.hold = true; R.holdT = 0; R.air = 0.1; }
-  else if (roofDouble() && R.jumps < 2) { R.vy = ROOF_JUMP * 0.85; R.jumps = 2; R.hold = true; R.holdT = 0; }
+  roofJump(R);
   return true;
 }
 const roofRelease = () => { if (roof.run) roof.run.hold = false; };
-function roofDie(R, why) { R.dead = true; R.deadAt = performance.now(); R.why = why; roofEnd(R); }
+function roofDie(R, why) { R.dead = true; R.why = why; if (R.sim) return; R.deadAt = performance.now(); roofEnd(R); }
 function roofEnd(R) {
   const S = roofState(), dist = Math.floor(Math.max(0, R.x)), ranked = S.runs < ROOF_DAILY;
   S.total++; S.dist += dist; if (ranked) S.runs++;
@@ -5478,13 +5515,13 @@ function roofEnd(R) {
 function roofPanel() {
   const S = roofState(), left = Math.max(0, ROOF_DAILY - S.runs), L = roof.last;
   let h = `<canvas id="roofCv" class="roofcv" aria-label="Rooftop run. Tap, click or press space to jump; hold for a higher jump."></canvas>
-    <p class="note" style="margin-top:8px">Tap the scene or press space to jump; hold for a higher jump. ${roofDouble() ? "Tap again in the air to double jump." : "Agility 40 unlocks a double jump."} Grab skyfeathers on the way.</p>`;
+    <p class="note" style="margin-top:8px">Tap the scene or press space to jump. A quick tap is a short hop; hold to jump higher and further. Time your take-off for the chimney stacks, and use a quick tap to slip between a chimney and a washing line. ${roofDouble() ? "Tap again in the air to double jump." : "Agility 40 unlocks a double jump."}</p>`;
   if (L) h += `<div class="arena-res ${L.newBest ? "win" : ""}"><b class="big">${fmt(L.dist)} m${L.newBest ? " · new best!" : ""}</b><span>${esc(L.why || "")} ${L.ranked ? `+${fmt(L.xp)} Agility xp${L.fea ? ` · +${L.fea} skyfeathers` : ""}` : "Practice run: no rewards until midnight."}</span>${L.unlocked.length ? `<span class="ok">Unlocked: ${L.unlocked.map(u => esc(ITEMS[u].name)).join(", ")}</span>` : ""}</div>`;
   h += `<div class="achtop" style="margin-top:12px">${icon("agility")}<div><span class="ar">Best run</span><b class="num">${fmt(S.best)} m</b><span>${left ? `${left} rewarded run${left === 1 ? "" : "s"} left today` : "Practice only until midnight"} · ${roofXpPerM().toFixed(1)} xp per metre (${esc(roofCourse().name)} pace)${has("pet_scamp") ? " · Scamp +10%" : ""}</span></div></div>`;
   h += `<h3>Distance unlocks</h3><div class="actions">` + ROOF_UNLOCKS.map(u => {
     const own = ownedEver(u.item), p = Math.min(1, S.best / u.m);
     return `<div class="act ${own ? "" : "locked"}"><span class="nm">${icon(u.item)}${esc(ITEMS[u.item].name)}</span><span class="meta">${own ? `<span class="ok">Unlocked</span> · ` : ""}${esc(ITEMS[u.item].desc.replace(/^Rooftop run: reach [\d,]+ m\. /, ""))}<span class="tbar" style="display:block;margin-top:6px"><i style="width:${p * 100}%"></i></span></span><span class="side"><b>${fmt(u.m)}</b>m</span></div>`;
-  }).join("") + `</div><p class="note">Speed builds the further you go. Xp follows the best course you can run, and ${ROOF_DAILY} runs a day pay out.</p>`;
+  }).join("") + `</div><p class="note">Speed builds the further you go. Xp follows the best course you can run, and ${ROOF_DAILY} runs a day pay out.${S.oldBest ? ` Your best on the old, easier course was ${fmt(S.oldBest)} m.` : ""}</p>`;
   return h;
 }
 function drawRoof(now) {
@@ -5499,9 +5536,11 @@ function drawRoof(now) {
   if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
   const ctx = cv.getContext && cv.getContext("2d"); if (!ctx) return;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.imageSmoothingEnabled = false;
-  const G = R || { x: 0, y: 0, segs: [{ x0: -12, x1: 26, h: 0, chim: [] }], feathers: [], got: 0, v: 7, ground: true };
+  const G = R || { x: 0, y: 0, segs: [{ x0: -12, x1: 26, h: 0, chim: [], beams: [], kind: "roof" }], feathers: [], got: 0, v: 7, ground: true };
   const ppm = H / 9;
-  G.camY = G.camY == null ? G.y : G.camY + (Math.max(-1.5, G.y) - G.camY) * 0.08;
+  // follow the height you last landed at (plus a little of a fall), so the next landing stays in view
+  const camT = G.y < (G.landH || 0) - 1 ? G.y + 1 : (G.landH || 0);
+  G.camY = G.camY == null ? camT : G.camY + (camT - G.camY) * 0.06;
   const camX = G.x - (W * 0.28) / ppm, sx = x => (x - camX) * ppm, sy = y => H * 0.7 - (y - G.camY) * ppm;
   // sky, moon, stars, far skyline
   const sk = ctx.createLinearGradient(0, 0, 0, H); sk.addColorStop(0, "#0c1228"); sk.addColorStop(1, "#28304e"); ctx.fillStyle = sk; ctx.fillRect(0, 0, W, H);
@@ -5512,12 +5551,34 @@ function drawRoof(now) {
   // roofs
   for (const s of G.segs) {
     const x0 = sx(s.x0), x1 = sx(s.x1), top = sy(s.h); if (x1 < -10 || x0 > W + 10) continue;
+    if (s.kind === "stack") {
+      // a tall chimney stack: brick column with a stone cap
+      ctx.fillStyle = "#0b0b0d"; ctx.fillRect(x0 - 2, top - 2, x1 - x0 + 4, H - top + 2);
+      ctx.fillStyle = "#7a3e2e"; ctx.fillRect(x0, top + 5, x1 - x0, H - top);
+      for (let yy = top + 10, r = 0; yy < H; yy += 7, r++) { ctx.fillStyle = "#5a2a1e"; ctx.fillRect(x0, yy, x1 - x0, 1); for (let xx = x0 + (r % 2 ? 5 : 11); xx < x1; xx += 12) ctx.fillRect(xx, yy - 6, 1, 6); }
+      ctx.fillStyle = "#8a8f96"; ctx.fillRect(x0 - 3, top, x1 - x0 + 6, 6); ctx.fillStyle = "#5a5f66"; ctx.fillRect(x0 - 3, top + 4, x1 - x0 + 6, 2);
+      ctx.fillStyle = "#0b0b0d"; ctx.fillRect(x0 - 4, top - 1, 1, 7); ctx.fillRect(x1 + 3, top - 1, 1, 7);
+      continue;
+    }
     ctx.fillStyle = "#0b0b0d"; ctx.fillRect(x0 - 2, top - 2, x1 - x0 + 4, H - top + 2);
     ctx.fillStyle = "#3a2c44"; ctx.fillRect(x0, top + 6, x1 - x0, H - top);
     ctx.fillStyle = "#4a3a56"; for (let yy = top + 14; yy < H; yy += 12) for (let xx = x0 + ((yy / 12) % 2 ? 0 : 8); xx < x1 - 4; xx += 16) ctx.fillRect(xx, yy, 12, 2);
     const wr = seeded("win" + s.x0.toFixed(2)); for (let xx = x0 + 10; xx < x1 - 16; xx += 26) for (let yy = top + 24; yy < H - 8; yy += 30) if (wr() < 0.45) { ctx.fillStyle = "#0b0b0d"; ctx.fillRect(xx - 1, yy - 1, 12, 14); ctx.fillStyle = wr() < 0.7 ? "#f7d35a" : "#5a4a2a"; ctx.fillRect(xx, yy, 10, 12); }
     ctx.fillStyle = "#a0402c"; ctx.fillRect(x0, top, x1 - x0, 7); ctx.fillStyle = "#7a2c1e"; for (let xx = x0 + 4; xx < x1; xx += 10) ctx.fillRect(xx, top + 2, 2, 5);
     for (const c of s.chim) { const cx = sx(c), ct = sy(s.h + 0.9), cw = 0.7 * ppm; ctx.fillStyle = "#0b0b0d"; ctx.fillRect(cx - 2, ct - 4, cw + 4, top - ct + 4); ctx.fillStyle = "#8a4a3a"; ctx.fillRect(cx, ct, cw, top - ct); ctx.fillStyle = "#5a2a1a"; ctx.fillRect(cx - 1, ct - 2, cw + 2, 5); ctx.fillStyle = "#6a3a2a"; for (let yy = ct + 6; yy < top; yy += 7) ctx.fillRect(cx + 2, yy, cw - 4, 1); }
+  }
+  // washing lines: rope from posts above, laundry hanging down to the line's danger height
+  for (const s of G.segs) for (const b of (s.beams || [])) {
+    const a = sx(b.a), z = sx(b.b), yb = sy(b.y), yr = sy(b.y + 0.75); if (z < -10 || a > W + 10) continue;
+    ctx.strokeStyle = "#0b0b0d"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(a, yr); ctx.lineTo(a - 0.6 * ppm, 0); ctx.moveTo(z, yr); ctx.lineTo(z + 0.6 * ppm, 0); ctx.moveTo(a, yr); ctx.quadraticCurveTo((a + z) / 2, yr + 6, z, yr); ctx.stroke();
+    ctx.strokeStyle = "#c8b48a"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a, yr); ctx.lineTo(a - 0.6 * ppm, 0); ctx.moveTo(z, yr); ctx.lineTo(z + 0.6 * ppm, 0); ctx.moveTo(a, yr); ctx.quadraticCurveTo((a + z) / 2, yr + 6, z, yr); ctx.stroke();
+    const cols = ["#e6e9dc", "#d2452f", "#5aa7e8", "#f0a33a", "#8a4fd8"], wr = seeded("wash" + b.a.toFixed(2));
+    for (let xx = a + 4; xx < z - 10; xx += 0.75 * ppm) {
+      const w = 0.5 * ppm, sag = Math.sin((xx - a) / (z - a) * Math.PI) * 5, sway = reduceMotion() ? 0 : Math.sin(now / 300 + xx) * 1.5;
+      ctx.fillStyle = "#0b0b0d"; ctx.fillRect(xx - 1 + sway, yr + sag - 1, w + 2, yb - yr - sag + 2);
+      ctx.fillStyle = cols[Math.floor(wr() * cols.length)]; ctx.fillRect(xx + sway, yr + sag, w, yb - yr - sag);
+      ctx.fillStyle = "rgba(0,0,0,.18)"; ctx.fillRect(xx + sway, yb - 4, w, 4);
+    }
   }
   // feathers
   for (const f of G.feathers) if (!f.got) { const fx = sx(f.x); if (fx > -20 && fx < W + 20) drawIcon(ctx, "skyfeather", fx, sy(f.y) + Math.sin(now / 200 + f.x) * 3, Math.round(ppm * 0.9)); }
@@ -5643,7 +5704,7 @@ function begin() {
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
 }
-window.__thornwick = { get state() { return state; }, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, roofGen, roofJump, roofSpeed, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
