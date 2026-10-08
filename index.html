@@ -2497,14 +2497,14 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 15, date: "8 Oct 2026", title: "Tidier What's new", items: [ "What's new now just lists the updates." ] },
   { v: 14, date: "8 Oct 2026", title: "Character customisation", items: [
     "Make your adventurer your own: Combat › Look. Pick skin tone, five hairstyles, hair colour, and colours for your top, trousers and boots.",
     "Your gear now shows on your character: helmets, hats, hoods, capes, body armour, legs, shields and weapons, in their own colours.",
     "Cosmetics: show any item you own in a slot (like the Gilded set or a Wayfarer's hat) whatever you're actually wearing. Stats still come from your real gear.",
     "Your character appears in the battle scene and every skilling scene." ] },
   { v: 13, date: "8 Oct 2026", title: "What's new", items: [
-    "This page! Every update is listed here, newest first.",
-    "Ideas for what could come next are at the bottom. Tell Claude which ones you want." ] },
+    "This page! Every update is listed here, newest first." ] },
   { v: 12, date: "8 Oct 2026", title: "Clue nests, bottles and geodes", items: [
     "Woodcutting, Fishing and Mining now find their own clues: a clue nest, a clue bottle or a clue geode.",
     "The higher your level in that skill, the better the clue: mostly easy at level 1 (elite 1 in 5,000), up to 15% elite at level 99.",
@@ -2532,17 +2532,6 @@ const UPDATES = [
     "Combat with bosses and combat-only uniques, an equipment screen with 3 loadouts, and animated battle and skilling scenes.",
     "The Eyrie and the Black Flag Trader shops, a collection log, quests, and an installable offline iPhone app." ] },
 ];
-// Ideas Claude suggests for future updates. Move one into UPDATES when it's built.
-const IDEAS = [
-  { t: "Emotes", d: "Unlockable emotes (wave, dance, flex) from quests and clues, played on the Look screen and in scenes." },
-  { t: "Prayer", d: "Monsters drop bones. Bury or offer them to level Prayer and unlock prayers that boost combat." },
-  { t: "Daily challenges", d: "Three small goals each day for bonus rewards, with a streak counter." },
-  { t: "Friends list", d: "Add friends by hiscores name and compare your levels side by side." },
-  { t: "Boss encounters", d: "Multi-phase bosses with special attacks you have to gear for, and a boss kill log." },
-  { t: "Sound effects", d: "Soft chops, splashes and level-up chimes, with a mute toggle." },
-  { t: "Phone notifications", d: "Alerts when crops, brews and voyages finish. Designed and ready whenever you want it." },
-  { t: "Achievement diaries", d: "Region-based task lists (easy to elite) with permanent perks as rewards." },
-];
 const NEWS_KEY = "thornwick-news-seen";
 const newsSeen = () => { try { return +localStorage.getItem(NEWS_KEY) || 0; } catch (e) { return 0; } };
 const newsUnseen = () => UPDATES[0].v > newsSeen();
@@ -2552,7 +2541,6 @@ function newsPanel() {
   if (newsBase === null) newsBase = newsSeen();
   const seen = newsBase; setTimeout(markNewsSeen, 0);
   let h = UPDATES.map((u, i) => `<div class="upd ${u.v > seen && i === 0 ? "new" : ""}"><div class="uh"><b>${esc(u.title)}</b><span>v${u.v} · ${esc(u.date)}${u.v > seen ? ` <em>New</em>` : ""}</span></div><ul>${u.items.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>`).join("");
-  h += `<h3>Ideas for next time</h3><p class="note" style="margin-top:0">Suggestions for future updates. Tell Claude which ones you'd like.</p><div class="ideas">${IDEAS.map(x => `<div class="idea"><b>${esc(x.t)}</b><span>${esc(x.d)}</span></div>`).join("")}</div>`;
   return h;
 }
 function cluesPanel() {
