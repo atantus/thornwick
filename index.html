@@ -1603,7 +1603,28 @@ function clueFromKill(m, sum) {
   else { r("hard", 1 / 90); r("elite", 1 / 350); }
 }
 // clue drops from gathering, pickpocketing and agility (odds depend on time spent)
+// Woodcutting, fishing and mining have their own clue finds: a nest, a bottle or a geode.
+// The tier depends on your level in that skill: mostly easy at level 1 (elite 1 in 5,000), up to 15% elite at 99.
+const SKILL_CLUE = { woodcutting: ["clue nest", "fell from the branches"], fishing: ["clue bottle", "washed up in your net"], mining: ["clue geode", "cracked out of the rock"] };
+const SKILL_CLUE_HOURS = 1.25;   // average hours of training per clue find
+function skillClueOdds(L) {
+  const t = (Math.min(99, Math.max(1, L)) - 1) / 98;
+  const elite = 0.0002 * Math.pow(750, t), hard = 0.03 + 0.37 * t, medium = 0.12 + 0.18 * t;
+  return { easy: 1 - elite - hard - medium, medium, hard, elite };
+}
 function clueFromSkill(skill, a, sum) {
+  if (SKILL_CLUE[skill]) {
+    const secs = actionTime(skill, a) / 1000;
+    if (Math.random() >= secs / (SKILL_CLUE_HOURS * 3600) * clueMult()) return;
+    const odds = skillClueOdds(lvl(skill)); let r = Math.random(), tier = "easy";
+    for (const t of ["elite", "hard", "medium", "easy"]) { if (r < odds[t]) { tier = t; break; } r -= odds[t]; }
+    if (state.clues.held[tier]) return;   // you already carry one of that tier
+    const [thing, how] = SKILL_CLUE[skill];
+    if (sum) sum.notes.push(`A ${thing} ${how}: ${tier === "easy" || tier === "elite" ? "an" : "a"} ${tier} clue!`);
+    log(`A <b>${thing}</b> ${how}!`, "r");
+    giveClue(tier, sum);
+    return;
+  }
   if (!CLUE_SKILLS.includes(skill)) return;
   const secs = actionTime(skill, a) / 1000, p = h => secs / (h * 3600) * clueMult();
   const tier = a.lvl < 25 ? "easy" : a.lvl < 50 ? "medium" : "hard";
@@ -2009,6 +2030,7 @@ function skillHead(skill) {
   else if (skill === "cooking") perks = `<span class="chip on">Firemaking ${lvl("firemaking")}: burn −${(lvl("firemaking") * 0.3).toFixed(1)}%</span><span class="chip on">Better logs burn longer</span><span class="chip on">Fuel: <span class="num" data-fuel></span> logs</span>`;
   else if (skill === "slayer") perks = `<span class="chip on">On task: ${SLAYER_XP} Slayer xp per monster hitpoint</span><span class="chip on">Slayer monsters need a Slayer level</span><span class="chip ${worn("slayer_helm") ? "on" : ""}">Slayer helm${worn("slayer_helm") ? ": +15% on task" : " (Slayer shop)"}</span><span class="chip ${has("echo_charm") ? "on" : ""}">Echo charm${has("echo_charm") ? ": +10% xp" : " (Gloom bats)"}</span><span class="chip ${has("bone_charm") ? "on" : ""}">Bone charm${has("bone_charm") ? ": +5% xp" : " (Slayer shop)"}</span>`;
   else perks = `<span class="chip on">Crops grow while you're away</span><span class="chip on">${FERTILISE_COST} ashes: 2× speed, +25% yield</span>`;
+  if (SKILL_CLUE[skill]) { const o = skillClueOdds(lvl(skill)); perks += `<span class="chip on">${SKILL_CLUE[skill][0][0].toUpperCase() + SKILL_CLUE[skill][0].slice(1)}s at level ${lvl(skill)}: easy ${Math.round(o.easy * 100)}% · medium ${Math.round(o.medium * 100)}% · hard ${Math.round(o.hard * 100)}% · elite ${o.elite >= 0.01 ? (o.elite * 100).toFixed(1) + "%" : oneIn(o.elite)}</span>`; }
   if (SKILL_PETS[skill]) { const pt = SKILL_PETS[skill]; perks += `<span class="chip ${has(pt) ? "on" : ""}">${has(pt) ? `${ITEMS[pt].name}: +3% xp` : "Pet: ???"}</span>`; }
   const eyrieItem = { woodcutting:"bird_whistle", firemaking:"ember_lantern", farming:"gold_trowel", thieving:"thief_satchel", combat:"warding_charm", agility:"windrunner_cape", fishing:"heron_float", cooking:"chef_gauntlets", mining:"prospector_charm" }[skill];
   if (eyrieItem) perks += `<span class="chip ${has(eyrieItem) ? "on" : ""}">${ITEMS[eyrieItem].name}${has(eyrieItem) ? ": " + ITEMS[eyrieItem].desc.replace(/\.$/, "").toLowerCase() : " (The Eyrie)"}</span>`;
@@ -2454,7 +2476,7 @@ function cluesPanel() {
       const a = findAction(c.cur.skill, c.cur.id), active = state.active && state.active.skill === c.cur.skill && state.active.id === c.cur.id;
       h += `<div class="cstep"><span class="sn">Step ${c.step} of ${c.of}</span><b>${esc(stepText(c.cur))}</b><div class="tbar"><i data-clueprog="${tier}"></i></div>
         <div class="row"><span class="num" data-cluehave="${tier}"></span>${a && reqMet(c.cur.skill, a) ? `<button class="btn ${active ? "" : "solid"}" id="cluego-${tier}" data-cluego="${tier}" ${active ? "disabled" : ""}>${active ? "Doing it now" : "Do this now"}</button>` : `<span class="lock">You can't do this yet</span>`}</div></div>`;
-    } else h += `<p class="cnone">${{ easy: "Low-level monsters, and gathering below level 25.", medium: "Monsters level 11–60, and gathering from level 25.", hard: "Monsters level 31 and up, bosses, and gathering from level 50.", elite: "The strongest monsters, the Ashen Colossus, and top-level gathering." }[tier]}</p>`;
+    } else h += `<p class="cnone">${{ easy: "Low-level monsters, low-level pickpocketing and agility, and clue nests, bottles and geodes (mostly at low levels).", medium: "Monsters level 11–60, mid-level pickpocketing and agility, and clue nests, bottles and geodes.", hard: "Monsters level 31 and up, bosses, high-level pickpocketing and agility, and clue nests, bottles and geodes.", elite: "The strongest monsters, the Ashen Colossus, and clue nests, bottles and geodes: 1 in 5,000 at level 1, rising to 15% at level 99." }[tier]}</p>`;
     h += `</div>`;
   }
   h += `</div>`;
@@ -4330,7 +4352,7 @@ function begin() {
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
 }
-window.__thornwick = { get state() { return state; }, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
