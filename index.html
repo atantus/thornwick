@@ -363,6 +363,7 @@ body.noscroll{overflow:hidden}
 .tiers .tn{text-align:center;font-weight:700}
 .tiers .tr{display:flex;align-items:center;gap:2px;white-space:nowrap}
 .tiers .ico{width:18px;height:18px}
+.act.locked .nm{opacity:.6}
 .lvtag{font-size:.75rem;color:var(--ember);font-weight:700;margin-left:4px}
 .ranks{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .rank{display:flex;flex-direction:column;align-items:center;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 2px;font-size:.7rem;color:var(--muted)}
@@ -1406,7 +1407,7 @@ function fightRound(m, sum) {
   fx({ t:"hurt", dmg: taken, mon: m.id });
   // auto-eat
   while (state.hp > 0 && state.hp <= maxHp() * EAT_AT && bestFood()) {
-    const f = bestFood(); add(f, -1); fx({ t:"eat", heal: FOOD[f] + (has("drake_heart") ? 2 : 0) }); state.hp = Math.min(maxHp(), state.hp + FOOD[f] + (has("drake_heart") ? 2 : 0)); sum.items[f] = (sum.items[f] || 0) - 1; sum.ate = (sum.ate || 0) + 1;
+    const f = bestFood(); add(f, -1); const heal = FOOD[f] + (has("drake_heart") ? 2 : 0) + 2 * apLvl("rations"); fx({ t:"eat", heal }); state.hp = Math.min(maxHp(), state.hp + heal); sum.items[f] = (sum.items[f] || 0) - 1; sum.ate = (sum.ate || 0) + 1;
   }
   if (state.hp <= 0) { state.hp = 0; state.fight = null; sum.notes.push(`${m.name} knocked you out. Rest to recover hitpoints`); state.active = null; return true; }
   if (state.hp <= maxHp() * 0.3 && !bestFood()) { state.fight.resting = true; state.fight.mhp = m.hp; sum.rests = (sum.rests || 0) + 1; }
@@ -1414,7 +1415,7 @@ function fightRound(m, sum) {
 }
 const buffOn = id => (state.buffs[id] || 0) > 0;
 const geodeChance = a => a.geode * (has("prospector_charm") ? 2 : 1) * (worn("seam_amulet") ? 1.5 : 1);
-const doubleChance = skill => (worn("plenty_amulet") ? 0.1 : 0) + (skill === "fishing" && has("tide_harpoon") ? 0.1 : 0);
+const doubleChance = skill => (worn("plenty_amulet") ? 0.1 : 0) + (skill === "fishing" && has("tide_harpoon") ? 0.1 : 0) + (["woodcutting", "fishing", "mining"].includes(skill) ? 0.05 * apLvl("forager") : 0);
 const growMult = () => (worn("roots_ring") ? 0.75 : 1) * (1 - 0.1 * apLvl("green"));
 function gather(item, sum, skill) {
   const n = Math.random() < doubleChance(skill) ? 2 : 1;
@@ -1458,6 +1459,7 @@ function xpMult(skill) {
   if (fullDawn()) m *= 1.05;
   m *= achCapeBonus();
   m *= 1 + 0.02 * apLvl("scholar");
+  m *= 1 + 0.05 * apLvl("mythic");
   if (worn("champion_cape")) m *= 1.03;
   if (skill === "slayer") { if (has("echo_charm")) m *= 1.1; if (has("bone_charm")) m *= 1.05; }
   return m;
@@ -1503,14 +1505,14 @@ function complete(sum) {
     if (Math.random() < geodeChance(a)) { add("geode", 1); sum.items.geode = (sum.items.geode || 0) + 1; sum.rare.push("Geode"); }
   } else if (CRAFT_SKILLS.includes(skill)) {
     if (smithBlock(a)) return false;
-    for (const [k, q] of Object.entries(a.inputs)) { add(k, -q); sum.items[k] = (sum.items[k] || 0) - q; }
+    if (!(Math.random() < 0.1 * apLvl("touch"))) for (const [k, q] of Object.entries(a.inputs)) { add(k, -q); sum.items[k] = (sum.items[k] || 0) - q; }
     const n = a.outQty || 1; add(a.out, n); sum.items[a.out] = (sum.items[a.out] || 0) + n;
   } else if (skill === "fishing") {
     gather(a.item, sum, skill);
     if (Math.random() < casketChance(a)) { add("casket", 1); sum.items.casket = (sum.items.casket || 0) + 1; sum.rare.push("Casket"); }
   } else if (skill === "cooking") {
     if (cookBlock(a)) return false;
-    add(a.item, -1); sum.items[a.item] = (sum.items[a.item] || 0) - 1;
+    if (!(Math.random() < 0.1 * apLvl("touch"))) { add(a.item, -1); sum.items[a.item] = (sum.items[a.item] || 0) - 1; }
     { const f = fuelItem(); if (Math.random() < FUEL_BURN[f]) { add(f, -1); sum.items[f] = (sum.items[f] || 0) - 1; } }
     if (Math.random() < burnChance(a)) { add("burnt_food", 1); sum.items.burnt_food = (sum.items.burnt_food || 0) + 1; sum.actions++; sum.fails = (sum.fails || 0) + 1; return true; }
     add(a.out, 1); sum.items[a.out] = (sum.items[a.out] || 0) + 1;
@@ -1556,7 +1558,7 @@ function outOfLogs(sum) {
 
 function advance(ms) {
   const sum = { items:{}, xp:{}, levels:[], rare:[], notes:[], actions:0, saved:0 };
-  ms = Math.min(ms, MAX_OFFLINE_MS + apLvl("idle") * 4 * 3600000);
+  ms = Math.min(ms, MAX_OFFLINE_MS + apLvl("idle") * 4 * 3600000 + apLvl("glass") * 6 * 3600000);
   let guard = 0;
   while (ms > 0 && guard++ < 20) {
     const left = Object.values(state.buffs).filter(v => v > 0);
@@ -1699,12 +1701,12 @@ function openClueCasket(tier, all) {
   const gain = (item, q, src) => { if (src) trackedAdd(src, item, q); else add(item, q); got[item] = (got[item] || 0) + q; };
   for (let k = 0; k < n; k++) {
     add(key, -1);
-    let rolls = randInt(...CLUE_ROLLS[tier]); if (worn("treasure_ring") && Math.random() < 0.25) rolls++;
+    let rolls = randInt(...CLUE_ROLLS[tier]) + apLvl("clover"); if (worn("treasure_ring") && Math.random() < 0.25) rolls++;
     for (let i = 0; i < rolls; i++) {
       if (Math.random() < CLUE_UNIQUE[tier]) { const u = CLUE_UNIQUES[tier]; gain(u[Math.floor(Math.random() * u.length)], 1, "clue-" + tier); }
       else { const r = rollTable(CLUE_COMMON[tier]); gain(r.item, r.qty); }
     }
-    if (DAWN_CHANCE[tier] && Math.random() < DAWN_CHANCE[tier]) {
+    if (DAWN_CHANCE[tier] && Math.random() < DAWN_CHANCE[tier] * (1 + 0.5 * apLvl("lens"))) {
       const missing = DAWNFORGED.filter(i => !got[i] && !(state.clog[i] > 0)), pool = missing.length ? missing : DAWNFORGED;
       const piece = pool[Math.floor(Math.random() * pool.length)]; gain(piece, 1); dawn.push(piece);
     }
@@ -1760,6 +1762,7 @@ function slayerKill(m, sum) {
   let pts = 12 + Math.floor(lvl("slayer") / 8);
   if (s.streak % 50 === 0) pts *= 15; else if (s.streak % 10 === 0) pts *= 5;
   if (has("hunter_satchel")) pts = Math.round(pts * 1.25);
+  if (apLvl("insight")) pts = Math.round(pts * 1.2);
   s.points += pts;
   sum.notes.push(`Slayer task complete: ${s.task.total} ${m.name.toLowerCase()}. +${pts} Slayer points`);
   log(`Slayer task complete (${s.task.total} ${esc(m.name.toLowerCase())}). <b>+${pts} points</b>, streak ${s.streak}`, "l");
@@ -1820,8 +1823,8 @@ function startBrew(i, id) {
 function collectBrew(i) {
   if (state.barrels[i] && Date.now() >= state.barrels[i].readyAt && Math.random() < PET_PER_BREW) { const sum = { items:{}, rare:[] }; givePet("brewing", sum); if (sum.pets) toast(`${ITEMS.pet_hops.name} hopped out of the barrel and started following you!`, true); }
   const p = state.barrels[i]; if (!p || Date.now() < p.readyAt) return;
-  const b = brewById(p.brew); add(b.out, BREW_YIELD); state.barrels[i] = null;
-  gainXp("brewing", b.xp); toast(`Collected ${BREW_YIELD} ${b.name}`); log(`Brewed <b>${BREW_YIELD} ${b.name}</b>`);
+  const b = brewById(p.brew), n = BREW_YIELD + apLvl("barrel"); add(b.out, n); state.barrels[i] = null;
+  gainXp("brewing", b.xp); toast(`Collected ${n} ${b.name}`); log(`Brewed <b>${n} ${b.name}</b>`);
 }
 function drink(item) {
   const it = ITEMS[item]; if (!it || !it.buff || !has(item)) return;
@@ -1832,7 +1835,7 @@ function drink(item) {
 /* ================= SEAFARING ================= */
 const upLvl = (boatId, up) => (state.upgrades[boatId] || {})[up] || 0;
 const boatOf = id => BOATS.find(x => x.id === id);
-const voyageMs = (v, boatId) => v.mins * 60000 * (1 - Math.min(0.3, lvl("seafaring") * 0.005)) * (has("captain_compass") ? 0.75 : 1) * (1 - 0.08 * upLvl(boatId, "sails")) * (buffOn("sailor") ? 0.85 : 1);
+const voyageMs = (v, boatId) => v.mins * 60000 * (1 - Math.min(0.3, lvl("seafaring") * 0.005)) * (has("captain_compass") ? 0.75 : 1) * (1 - 0.08 * upLvl(boatId, "sails")) * (buffOn("sailor") ? 0.85 : 1) * (1 - 0.1 * apLvl("map"));
 const voyageFood = (v, boatId) => Math.ceil(v.food * (1 - 0.25 * upLvl(boatId, "galley")));
 const voyageRolls = (v, boatId) => v.rolls + Math.floor(lvl("seafaring") / 20) + upLvl(boatId, "hold") + (v.type === "salvage" ? upLvl(boatId, "bell") : 0) + (has("tidebreaker_charm") ? 1 : 0);
 const uniqueMult = (v, boatId) => 1 + 0.25 * (v.type === "explore" ? upLvl(boatId, "spyglass") : v.type === "salvage" ? upLvl(boatId, "bell") : 0);
@@ -2540,6 +2543,10 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 18, date: "8 Oct 2026", title: "Rank perks", items: [
+    "Every achievement rank now unlocks a perk to buy in Log › Point shop.",
+    "Novice: Forager's knack (double logs, fish and ore). Apprentice: Navigator's chart (shorter voyages). Adept: Hearty rations (food heals more). Expert: Hunter's insight (more Slayer points). Veteran: Brewmaster's barrel (+1 brew).",
+    "Elite: Four-leaf clover (+1 casket roll). Master: Master's touch (keep materials). Grandmaster: Endless hourglass (+6h offline). Legend: Dawnseeker's lens (Dawnforged 50% more likely). Mythic: Mythic aura (+5% xp and a violet glow)." ] },
   { v: 17, date: "8 Oct 2026", title: "Achievement point shop", items: [
     "Spend achievement points in Log › Point shop. Spending never lowers your rank.",
     "Permanent upgrades: Swift hands (up to 8% faster actions), Scholar's focus (up to +8% xp), Long rest (offline progress up to 24 hours), Green season (faster crops and brews), Fortune's favour (more uniques), Trailblazer (more clues) and Kindred spirit (more pets).",
@@ -2646,7 +2653,7 @@ function brewingPanel() {
     const b = brewById(p.brew), ready = now >= p.readyAt;
     return `<div class="patch ${ready ? "ready" : ""}"><div class="ph"><b>${esc(b.name)}</b><span data-btime="${i}"></span></div>
       <div class="bar"><i data-bbar="${i}"></i></div>
-      <div class="btns">${ready ? `<button class="btn solid" id="collect-${i}" data-collect="${i}">Collect ${BREW_YIELD}</button>` : ""}</div></div>`;
+      <div class="btns">${ready ? `<button class="btn solid" id="collect-${i}" data-collect="${i}">Collect ${BREW_YIELD + apLvl("barrel")}</button>` : ""}</div></div>`;
   }).join("") + `</div>`;
   h += `<h3>Your brews</h3>`;
   const owned = BREWS.filter(b => has(b.out));
@@ -3468,13 +3475,13 @@ function hpBar(ctx, x, y, w, frac) {
 
 // the full Dawnforged set makes you glow
 function drawAura(ctx, x, ground, h, now, still) {
-  if (!fullDawn()) return;
-  const t = still ? 0 : now / 1000, cy = ground - h / 2;
+  const dawn = fullDawn(), myth = apLvl("mythic") > 0; if (!dawn && !myth) return;
+  const t = still ? 0 : now / 1000, cy = ground - h / 2, rgb = dawn ? "255,226,140" : "176,120,255";
   const g = ctx.createRadialGradient(x, cy, 4, x, cy, h * 0.9);
-  g.addColorStop(0, "rgba(255,226,140,.45)"); g.addColorStop(1, "rgba(255,226,140,0)");
+  g.addColorStop(0, `rgba(${rgb},.45)`); g.addColorStop(1, `rgba(${rgb},0)`);
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, cy, h * 0.9, 0, 7); ctx.fill();
   for (let i = 0; i < 6; i++) { const a = t * 1.3 + i * 1.05, r = h * 0.55 + Math.sin(t * 2 + i) * 4;
-    ctx.fillStyle = i % 2 ? "#fff6c8" : "#ffd45a"; ctx.fillRect(Math.round(x + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r * 0.8), 3, 3); }
+    ctx.fillStyle = dawn ? (i % 2 ? "#fff6c8" : "#ffd45a") : (i % 2 ? "#e8d8ff" : "#b078ff"); ctx.fillRect(Math.round(x + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r * 0.8), 3, 3); }
 }
 // your chosen pet trots along beside you
 function drawFollower(ctx, x, ground, now, still) {
@@ -4586,7 +4593,7 @@ function checkAch(force) {
   if (got.length > 3) toast(`${got.length} achievement tiers unlocked! +${fmt(got.reduce((n, g) => n + g.r.coins, 0))} coins. See Log › Achievements`, true);
   else for (const g of got) toast(`Achievement: ${g.t.name} ${ROMAN[g.tier - 1]}! +${g.r.ap} points`, g.tier >= 9);
   const rank1 = achRank();
-  for (let i = rank0 + 1; i <= rank1; i++) { add(capeId(i), 1); toast(`New achievement rank: ${ACH_RANKS[i].name}! You earned the ${ACH_RANKS[i].name} cape`, true); log(`Achievement rank <b>${ACH_RANKS[i].name}</b> reached. Reward: <b>${ACH_RANKS[i].name} cape</b>`, "r"); }
+  for (let i = rank0 + 1; i <= rank1; i++) { add(capeId(i), 1); const pk = AP_UPGRADES.find(u => u.rank === i); toast(`New achievement rank: ${ACH_RANKS[i].name}! You earned the ${ACH_RANKS[i].name} cape${pk ? ` and unlocked ${pk.name} in the Point shop` : ""}`, true); log(`Achievement rank <b>${ACH_RANKS[i].name}</b> reached. Reward: <b>${ACH_RANKS[i].name} cape</b>`, "r"); }
 }
 
 /* ---- Achievement point shop ----
@@ -4599,6 +4606,17 @@ const AP_UPGRADES = [
   { id: "luck",    name: "Fortune's favour", costs: [500, 1200, 2500], desc: l => `Monster uniques are ${l * 5}% more likely.` },
   { id: "trail",   name: "Trailblazer",     costs: [300, 800], desc: l => `Clue scrolls turn up ${l * 15}% more often.` },
   { id: "kin",     name: "Kindred spirit",  costs: [400, 1000], desc: l => `Pets are ${l * 10}% more likely.` },
+  // rank perks (rank = index into ACH_RANKS needed before you can buy it)
+  { id: "forager", rank: 0, name: "Forager's knack",  costs: [100],  desc: () => "+5% chance of double logs, fish and ore." },
+  { id: "map",     rank: 1, name: "Navigator's chart", costs: [200],  desc: () => "Voyages are 10% shorter." },
+  { id: "rations", rank: 2, name: "Hearty rations",   costs: [300],  desc: () => "Food heals 2 more hitpoints in combat." },
+  { id: "insight", rank: 3, name: "Hunter's insight", costs: [400],  desc: () => "+20% Slayer points from tasks." },
+  { id: "barrel",  rank: 4, name: "Brewmaster's barrel", costs: [500], desc: () => "Every barrel gives 1 extra brew." },
+  { id: "clover",  rank: 5, name: "Four-leaf clover", costs: [700],  desc: () => "+1 roll in every clue reward casket." },
+  { id: "touch",   rank: 6, name: "Master's touch",   costs: [900],  desc: () => "10% chance to keep your materials when smithing, fletching, enchanting or cooking." },
+  { id: "glass",   rank: 7, name: "Endless hourglass", costs: [1200], desc: () => "Offline progress lasts 6 hours longer, on top of Long rest." },
+  { id: "lens",    rank: 8, name: "Dawnseeker's lens", costs: [1500], desc: () => "Dawnforged pieces are 50% more likely." },
+  { id: "mythic",  rank: 9, name: "Mythic aura",      costs: [2000], desc: () => "+5% xp in every skill, and a violet aura around your character." },
 ];
 const AP_ITEMS = [
   { item: "clue_reward_medium", price: 25 },
@@ -4611,7 +4629,7 @@ const apEarned = () => achPoints();
 const apBalance = () => Math.max(0, apEarned() - (state.apSpent || 0));
 const apLvl = id => (state.apUp && state.apUp[id]) || 0;
 function buyApUpgrade(id) {
-  const u = AP_UPGRADES.find(x => x.id === id), l = apLvl(id); if (!u || l >= u.costs.length) return;
+  const u = AP_UPGRADES.find(x => x.id === id), l = apLvl(id); if (!u || l >= u.costs.length || (u.rank !== undefined && achRank() < u.rank)) return;
   const c = u.costs[l]; if (apBalance() < c) return;
   state.apSpent = (state.apSpent || 0) + c; state.apUp = Object.assign({}, state.apUp, { [id]: l + 1 });
   toast(`${u.name} ${ROMAN[l]}: ${u.desc(l + 1)}`, true); log(`Bought <b>${u.name} ${ROMAN[l]}</b> for ${fmt(c)} achievement points`, "l");
@@ -4626,7 +4644,14 @@ function apShopPanel() {
   checkAch(true);
   const bal = apBalance();
   let h = `<div class="achtop">${icon("skills")}<div><span class="ar">Points to spend</span><b class="num">${fmt(bal)}</b><span>${fmt(apEarned())} earned in total. Spending never lowers your rank.</span></div></div>`;
-  h += `<h3>Permanent upgrades</h3><div class="actions">` + AP_UPGRADES.map(u => {
+  const rk = achRank();
+  h += `<h3>Rank perks</h3><p class="note" style="margin-top:0">Each achievement rank unlocks one perk to buy.</p><div class="actions">` + AP_UPGRADES.filter(u => u.rank !== undefined).map(u => {
+    const owned = apLvl(u.id) > 0, locked = rk < u.rank, c = u.costs[0];
+    return `<button class="act ${locked ? "locked" : ""}" id="apup-${u.id}" data-apup="${u.id}" ${owned || locked || bal < c ? "disabled" : ""}><span class="nm">${icon(capeId(u.rank))}${esc(u.name)}</span>
+      <span class="meta">${locked ? `<span class="lock">Reach ${ACH_RANKS[u.rank].name} rank (${fmt(ACH_RANKS[u.rank].ap)} points earned)</span><br>` : ""}${esc(u.desc(1))}${owned ? ` <span class="ok">Owned</span>` : ""}</span>
+      <span class="side">${owned ? "<b>✓</b>" : `<b>${fmt(c)}</b>points`}</span></button>`;
+  }).join("") + `</div>`;
+  h += `<h3>Permanent upgrades</h3><div class="actions">` + AP_UPGRADES.filter(u => u.rank === undefined).map(u => {
     const l = apLvl(u.id), maxed = l >= u.costs.length, c = u.costs[l];
     return `<button class="act" id="apup-${u.id}" data-apup="${u.id}" ${maxed || bal < c ? "disabled" : ""}><span class="nm">${esc(u.name)} <span class="lvtag">${l ? ROMAN[l - 1] : "–"} / ${ROMAN[u.costs.length - 1]}</span></span>
       <span class="meta">${l ? `Now: ${esc(u.desc(l))}` : "Not bought yet."}${maxed ? ` <span class="ok">Maxed</span>` : `<br>Next: ${esc(u.desc(l + 1))}`}</span>
