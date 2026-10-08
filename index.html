@@ -95,6 +95,30 @@ h1 span{color:var(--ember)}
 .ovcard{font:inherit;color:var(--fg);text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:baseline;min-width:0}
 .ovcard:hover{border-color:var(--ember-dim)}
 .bankwrap{display:grid;grid-template-columns:146px minmax(0,1fr);gap:10px;align-items:start}
+.banktools{display:flex;gap:8px;align-items:center;margin:4px 0 10px}
+.bsearch{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 10px;min-height:42px}
+.bsearch .ico{width:18px;height:18px;opacity:.7;flex:none}
+.bsearch input{flex:1;min-width:0;font:inherit;font-size:16px;background:none;border:0;color:var(--fg);outline:none;padding:8px 0}
+.bsearch:focus-within{border-color:var(--ember)}
+.eqtoggle{display:flex;align-items:center;gap:6px;white-space:nowrap;min-height:42px}
+.eqtoggle .ico{width:18px;height:18px}
+.eqtoggle[aria-expanded="true"]{background:var(--ember);color:var(--bg);border-color:var(--ember)}
+section.minieq{position:static;flex-direction:row;flex-wrap:nowrap;align-items:flex-start;gap:10px;margin-bottom:12px;padding:10px}
+section.minieq .mgrid{grid-template-columns:repeat(3,38px);gap:3px;flex:none}
+section.minieq .mslot{width:38px;height:38px}
+section.minieq .mside{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+section.minieq .mload{display:grid;grid-template-columns:1fr;gap:4px}
+section.minieq .mload button{display:flex;align-items:center;gap:6px;justify-content:flex-start;padding:4px 8px;font-size:.78rem;font-weight:600;width:auto;height:auto;min-height:32px}
+section.minieq .mload button .ico{width:18px;height:18px}
+section.minieq .mstat{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;font-size:.8rem;color:var(--muted)} section.minieq .mstat span{color:var(--muted)} section.minieq .mstat b{color:var(--fg)}
+section.minieq .note{font-size:.72rem;line-height:1.35}
+.bcats{position:sticky;top:0;z-index:3;background:var(--bg);padding:6px 0;margin:0 0 6px}
+.bcats button{display:flex;align-items:center;gap:6px}
+.bcats .ico{width:18px;height:18px}
+.bcats .ct{font-size:.7rem;opacity:.75;font-family:var(--f-num)}
+.bgroup h3{margin:16px 0 8px}
+.bglink{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-transform:inherit;letter-spacing:inherit}
+.bgroup h3 span{color:var(--muted)}
 .minieq{position:sticky;top:calc(8px + env(safe-area-inset-top,0px));background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:8px}
 .mload{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .mload button{font:inherit;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 0;cursor:pointer;display:flex;justify-content:center}
@@ -110,6 +134,9 @@ h1 span{color:var(--ember)}
 .mstat span:first-child{color:var(--ember);font-weight:700}
 .bankmain{min-width:0}
 .bankmain .slots{grid-template-columns:repeat(auto-fill,minmax(48px,1fr))}
+#bankItems .slots{grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:4px}
+#bankItems .bslot .ico{width:30px;height:30px}
+.bgroup{scroll-margin-top:60px}
 .bslot .wtag{position:absolute;bottom:2px;right:4px;font-family:var(--f-num);font-size:.6rem;line-height:1;color:var(--ember);text-shadow:1px 1px 0 #000}
 @media (max-width:360px){.bankwrap{grid-template-columns:1fr}.minieq{position:static}}
 .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:5px}
@@ -2332,43 +2359,84 @@ function farmingPanel() {
   }).join("") + `</div><p class="note">Seeds come from bird's nests and the shop in the Bank tab. Tree crops give a big stack of logs to burn.</p>`;
 }
 
+// Bank categories, in the order they're shown. [name, icon]
+const BANK_CATS = [["To open", "casket"], ["Currency", "coins"], ["Logs", "logs"], ["Ores & bars", "iron_ore"], ["Gems & essence", "uncut_ruby"], ["Fish & meat", "raw_trout"], ["Food", "shark"], ["Seeds & crops", "potato_seed"], ["Brews", "brew_scholar"], ["Ammo & runes", "fire_rune"], ["Weapons", "steel_sword"], ["Armour", "iron_platebody"], ["Capes & cosmetics", "explorer_cape"], ["Tools", "iron_pickaxe"], ["Jewellery", "fury_ring"], ["Charms & keepsakes", "lucky_horseshoe"], ["Monster drops", "bat_wing"], ["Pets", "pet_chick"], ["Trophies", "trophy_kills"], ["Other", "more"]];
+const BANK_CAT_NAMES = BANK_CATS.map(c => c[0]);
+const TOOL_IDS = new Set([...AXES, ...PICKAXES].map(x => x[0]));
+const CROP_OUTS = new Set(CROPS.map(c => c.out).concat(["potato"]));
+const itemOrder = {}; Object.keys(ITEMS).forEach((k, i) => itemOrder[k] = i);
 function itemCat(k) {
-  const it = ITEMS[k] || {};
-  if (["coins","skyfeather","doubloon"].includes(k)) return "Currency";
-  if (["bird_nest","casket","geode","treasure_map"].includes(k)) return "To open";
+  const it = ITEMS[k] || {}, g = GEAR[k];
+  if (["coins", "skyfeather", "doubloon", "daily_token", "glory", "streak_saver"].includes(k)) return "Currency";
+  if (["bird_nest", "casket", "geode", "treasure_map"].includes(k) || k.startsWith("clue_reward_")) return "To open";
+  if (k.startsWith("pet_") || PETS.includes(k)) return "Pets";
+  if (k.startsWith("trophy_") || k.endsWith("_trophy")) return "Trophies";
   if (it.buff) return "Brews";
-  if (FOOD[k]) return "Food";
+  if (FOOD[k] || k === "burnt_food") return "Food";
   if (k.endsWith("_rune") || k.endsWith("_arrow")) return "Ammo & runes";
-  const gear = [...WEAPONS, ...ARMOURS, ...AXES, ...PICKAXES, ...BOWS, ...STAFFS].map(x => x[0]);
-  if (gear.includes(k) || (it.rare && !it.sell) || PETS.includes(k)) return "Gear & bonuses";
-  return "Materials";
+  if (k === "logs" || k.endsWith("_logs") || k === "ashes") return "Logs";
+  if (k.endsWith("_ore") || k.endsWith("_bar") || k === "coal") return "Ores & bars";
+  if (k.startsWith("uncut_") || ["rune_essence", "runestone", "pearl"].includes(k)) return "Gems & essence";
+  if (k.startsWith("raw_")) return "Fish & meat";
+  if (k.endsWith("_seed") || k === "acorn" || CROP_OUTS.has(k)) return "Seeds & crops";
+  if (TOOL_IDS.has(k)) return "Tools";
+  if (g) {
+    if (g.slot === "weapon" || g.slot === "ammo") return "Weapons";
+    if (g.slot === "ring" || g.slot === "amulet") return "Jewellery";
+    if (g.slot === "cape") return "Capes & cosmetics";
+    return "Armour";
+  }
+  if (it.rare) return "Charms & keepsakes";
+  if (it.sell !== undefined || /wing|moss|shard|essence|scale|hide/.test(k)) return "Monster drops";
+  return "Other";
 }
 const lootTable = (title, table) => { const t = table.reduce((s, e) => s + e.weight, 0);
   return `<h3>${title}</h3><table class="loot">` + table.map(e => `<tr><td>${ITEMS[e.item].name}${e.max > 1 ? ` ×${e.min}–${e.max}` : ""}</td><td class="num">${(e.weight / t * 100).toFixed(1)}%</td></tr>`).join("") + `</table>`; };
+let bankSearch = "";
+function bankSlot(k) {
+  const it = ITEMS[k] || {}, q = qty(k), qc = q >= 1e7 ? "m" : q >= 1e5 ? "k" : "";
+  return `<button class="bslot ${it.rare ? "rare" : ""}" id="slot-${k}" data-pick="${k}" aria-pressed="${bankSel === k}" aria-label="${esc(it.name || k)}, ${fmt(q)}"><span class="qn ${qc}" data-qs="${k}">${shortQty(q)}</span>${icon(k)}${worn(k) ? `<span class="wtag">W</span>` : ""}</button>`;
+}
+// the item grid: grouped under headings for "All", or one category; search filters by name
+function bankItemsHtml() {
+  const keys = Object.keys(state.bank).filter(k => qty(k) > 0 || k === "coins");
+  const slotFilter = bankFilter.startsWith("slot:") ? bankFilter.slice(5) : null;
+  const q = bankSearch.trim().toLowerCase();
+  let list = keys.filter(k => !q || (ITEMS[k] ? ITEMS[k].name : k).toLowerCase().includes(q));
+  if (slotFilter) list = list.filter(k => GEAR[k] && GEAR[k].slot === slotFilter);
+  else if (bankFilter !== "All") list = list.filter(k => itemCat(k) === bankFilter);
+  list.sort((a, b) => (itemOrder[a] ?? 1e9) - (itemOrder[b] ?? 1e9));
+  if (!list.length) return `<div class="empty">${q ? `Nothing matching "${esc(bankSearch)}"${bankFilter !== "All" ? ` in ${esc(bankFilter)}` : ""}.` : slotFilter ? `You don't have anything else for this slot yet.` : "Nothing here yet."}</div>`;
+  if (slotFilter || bankFilter !== "All") return `<div class="slots">${list.map(bankSlot).join("")}</div>`;
+  return BANK_CAT_NAMES.map(c => { const g = list.filter(k => itemCat(k) === c); if (!g.length) return "";
+    return `<section class="bgroup"><h3><button class="bglink" data-bfilter="${c}">${c}</button><span>${g.length}</span></h3><div class="slots">${g.map(bankSlot).join("")}</div></section>`; }).join("");
+}
 function bankPanel() {
   const keys = Object.keys(state.bank);
   let h = `<div class="pagehead"><h2>Bank</h2><span>${keys.length} items</span></div>
     <div class="seg" role="group" aria-label="Bank view" style="grid-template-columns:repeat(4,1fr)">${[["items","Items"],["gear","Equipment"],["shop","Shop"],["tables","Drop tables"]].map(([k, n]) => `<button id="bsub-${k}" data-bsub="${k}" aria-pressed="${bankSub === k}">${n}</button>`).join("")}</div>`;
   if (bankSub === "gear") return h + gearPanel() + `<p class="note">Changes here are the same as on Combat › Equipment. You can also tap an item in Items and choose <b>Wear</b>.</p>`;
   if (bankSub === "items") {
-    const cats = ["All", ...["To open","Currency","Materials","Food","Brews","Ammo & runes","Gear & bonuses"].filter(c => keys.some(k => itemCat(k) === c))];
     const slotFilter = bankFilter.startsWith("slot:") ? bankFilter.slice(5) : null;
-    if (!slotFilter && !cats.includes(bankFilter)) bankFilter = "All";
-    // worn equipment sits beside the bank, RuneScape style
-    const mcell = sl => { const id = eq(sl);
-      return `<button class="mslot ${id ? "full" : ""} ${slotFilter === sl ? "sel" : ""}" id="beq-${sl}" data-bankeq="${sl}" aria-label="${SLOT_NAMES[sl]}${id ? ": " + esc(ITEMS[id].name) : " (empty)"}">${id ? icon(id) : `<span class="sl">${SLOT_NAMES[sl]}</span>`}</button>`; };
-    const lt = state.opts.ctype || "melee";
-    h += `<div class="bankwrap"><aside class="minieq" aria-label="Worn equipment">
-      <div class="mload">${[["melee","attack"],["ranged","ranged"],["magic","magic"]].map(([k, ic]) => `<button id="bload-${k}" data-ctype="${k}" aria-pressed="${lt === k}" title="${CTYPES[k]} loadout">${icon(ic)}</button>`).join("")}</div>
-      <div class="mgrid"><span></span>${mcell("head")}<span></span>${mcell("cape")}${mcell("amulet")}${mcell("ammo")}${mcell("weapon")}${mcell("body")}${mcell("shield")}<span></span>${mcell("legs")}<span></span><span></span>${mcell("ring")}<span></span></div>
-      <div class="mstat"><span>${CTYPES[lt]}</span><span>Def +${defBonus()}</span><span>Max hit ${playerMax()}</span></div>
-    </aside><div class="bankmain">`;
-    h += `<div class="filters">${slotFilter ? `<button id="bf-slot" data-bfilter="All" aria-pressed="true">${SLOT_NAMES[slotFilter]} gear ×</button>` : ""}${cats.map(c => `<button id="bf-${c.replace(/\W/g, "")}" data-bfilter="${c}" aria-pressed="${bankFilter === c}">${c}</button>`).join("")}</div>`;
-    const shown = keys.filter(k => slotFilter ? (GEAR[k] && GEAR[k].slot === slotFilter) : (bankFilter === "All" || itemCat(k) === bankFilter));
-    h += shown.length ? `<div class="slots">` + shown.map(k => { const it = ITEMS[k] || {}, q = qty(k), qc = q >= 1e7 ? "m" : q >= 1e5 ? "k" : "";
-      return `<button class="bslot ${it.rare ? "rare" : ""}" id="slot-${k}" data-pick="${k}" aria-pressed="${bankSel === k}" aria-label="${esc(it.name || k)}, ${fmt(q)}"><span class="qn ${qc}" data-qs="${k}">${shortQty(q)}</span>${icon(k)}${worn(k) ? `<span class="wtag" title="Worn">W</span>` : ""}</button>`;
-    }).join("") + `</div><p class="note">Tap an item to see what it does, open, wear or sell it. Tap an empty equipment slot to see what fits.</p>${bankSel ? `<div style="height:170px" aria-hidden="true"></div>` : ""}` : slotFilter ? `<div class="empty">You don't own any ${SLOT_NAMES[slotFilter].toLowerCase()} gear yet.</div>` : `<div class="empty">Your bank is empty. Pick a skill and start training, and items will appear here.</div>`;
-    h += `</div></div>`;
+    const present = BANK_CATS.filter(([c]) => keys.some(k => itemCat(k) === c));
+    if (!slotFilter && bankFilter !== "All" && !present.some(([c]) => c === bankFilter)) bankFilter = "All";
+    const showEq = !!state.opts.bankEq, lt = state.opts.ctype || "melee";
+    h += `<div class="banktools">
+      <label class="bsearch"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 10l4.5 4.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><input id="bankSearch" aria-label="Search the bank" type="search" placeholder="Search" value="${esc(bankSearch)}" autocomplete="off" enterkeyhint="search"></label>
+      <button class="btn eqtoggle" id="bankEqToggle" aria-expanded="${showEq}">${icon("defence")}<span>${showEq ? "Hide" : "Show"} gear</span></button>
+    </div>`;
+    if (showEq) {
+      const mcell = sl => { const id = eq(sl);
+        return `<button class="mslot ${id ? "full" : ""} ${slotFilter === sl ? "sel" : ""}" id="beq-${sl}" data-bankeq="${sl}" aria-label="${SLOT_NAMES[sl]}${id ? ": " + esc(ITEMS[id].name) : " (empty)"}">${id ? icon(id) : `<span class="sl">${SLOT_NAMES[sl]}</span>`}</button>`; };
+      h += `<section class="minieq" aria-label="Worn equipment">
+        <div class="mgrid"><span></span>${mcell("head")}<span></span>${mcell("cape")}${mcell("amulet")}${mcell("ammo")}${mcell("weapon")}${mcell("body")}${mcell("shield")}<span></span>${mcell("legs")}<span></span><span></span>${mcell("ring")}<span></span></div>
+        <div class="mside"><div class="mload">${[["melee","attack"],["ranged","ranged"],["magic","magic"]].map(([k, ic]) => `<button id="bload-${k}" data-ctype="${k}" aria-pressed="${lt === k}" title="${CTYPES[k]} loadout">${icon(ic)}<span>${CTYPES[k]}</span></button>`).join("")}</div>
+        <div class="mstat"><span>Defence <b>+${defBonus()}</b></span><span>Max hit <b>${playerMax()}</b></span></div>
+        <p class="note" style="margin:0">Tap a worn item to manage it, or an empty slot to show what fits.</p></div>
+      </section>`;
+    }
+    h += `<div class="filters bcats" role="group" aria-label="Item categories">${slotFilter ? `<button id="bf-slot" data-bfilter="All" aria-pressed="true">${SLOT_NAMES[slotFilter]} gear ×</button>` : ""}<button id="bf-All" data-bfilter="All" aria-pressed="${!slotFilter && bankFilter === "All"}">All <span class="ct">${keys.length}</span></button>${present.map(([c, ic]) => { const n = keys.filter(k => itemCat(k) === c).length; return `<button id="bf-${c.replace(/\W/g, "")}" data-bfilter="${c}" aria-pressed="${!slotFilter && bankFilter === c}">${icon(ic)}${c} <span class="ct">${n}</span></button>`; }).join("")}</div>`;
+    h += `<div id="bankItems">${bankItemsHtml()}</div>${bankSel ? `<div style="height:170px" aria-hidden="true"></div>` : ""}`;
   } else if (bankSub === "shop") {
     h += `<h3>General store <span><span data-q="coins"></span> coins</span></h3><div class="grid">` + SHOP.map((s, i) => {
       if (s.once && has(s.item)) return "";
@@ -2415,7 +2483,7 @@ function clogTree() {
     { id: "petsg", name: "Pets", entries: [
       { id: "pets", name: "Monster pets", sub: "Each gives +2% combat xp", items: PETS.filter(p => MONSTERS.some(m => m.uniques.some(u => u.item === p))).map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }) },
       { id: "pets-voy", name: "Voyage pets", sub: "Each gives +2% combat xp", items: PETS.filter(p => !MONSTERS.some(m => m.uniques.some(u => u.item === p))).map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }) },
-      { id: "pets-other", name: "Treasure, shop and minigame pets", sub: "Sniffer, Tock, Lumen, Brawler and Scamp", items: [{ item: "pet_brawler", unique: true, rate: "600 glory" }, { item: "pet_scamp", unique: true, rate: "1,500 m rooftop run" }, { item: "pet_sniffer", unique: true, rate: "1/750 per elite casket" }, { item: "pet_lumen", unique: true, rate: "Daily special" }, { item: "pet_tock", unique: true, rate: "400 Daily tokens" }] },
+      { id: "pets-other", name: "Treasure, shop and minigame pets", sub: "Sniffer, Tock, Lumen, Brawler and Scamp", items: [{ item: "pet_brawler", unique: true, rate: "600 glory" }, { item: "pet_scamp", unique: true, rate: "1,000 m rooftop run" }, { item: "pet_sniffer", unique: true, rate: "1/750 per elite casket" }, { item: "pet_lumen", unique: true, rate: "Daily special" }, { item: "pet_tock", unique: true, rate: "400 Daily tokens" }] },
       { id: "pets-skill", name: "Skilling pets", sub: "Each gives +3% xp in its skill", items: Object.entries(SKILL_PETS).map(([sk, p]) => ({ item: p, unique: true, rate: sk === "farming" ? "1/300 per harvest" : sk === "brewing" ? "1/150 per barrel" : sk === "slayer" ? "1/60 per Slayer task" : `${SKILLS[sk].name}, about ${PET_HOURS}h` })) },
     ] },
     { id: "other", name: "Other", entries: [
@@ -2699,6 +2767,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 28, date: "8 Oct 2026", title: "A tidier bank", items: [
+    "The bank is sorted into clear categories: Logs, Ores & bars, Gems & essence, Fish & meat, Food, Seeds & crops, Brews, Ammo & runes, Weapons, Armour, Capes & cosmetics, Tools, Jewellery, Charms & keepsakes, Monster drops, Pets and Trophies.",
+    "All shows everything grouped under headings; tap a category (or a heading) to see just that group. The category bar stays at the top as you scroll.",
+    "New search box: type part of a name to find an item.",
+    "Your worn equipment is now hidden by default. Tap Show gear to bring it up above your items, so the bank uses the full width of your phone." ] },
   { v: 27, date: "8 Oct 2026", title: "Rooftop run: high risk, high reward", items: [
     "Unlimited runs: no more daily limit.",
     "Payouts now grow steeply with distance. Under 100 m you bank nothing (and lose any skyfeathers you grabbed). Past that, every metre is worth more than the last: 500 m pays about 4× what idle training would in that time, 1,000 m about 8×. Coins from 250 m, bonus skyfeathers every 100 m.",
@@ -4253,7 +4326,8 @@ document.addEventListener("click", e => {
   if (d.bankeq) { const id = eq(d.bankeq); if (id) { bankSel = id; } else { bankFilter = bankFilter === "slot:" + d.bankeq ? "All" : "slot:" + d.bankeq; bankSel = null; } render(); return; }
   if (d.pick !== undefined) { bankSel = d.pick && bankSel !== d.pick ? d.pick : null; render(); return; }
   if (d.bsub) { bankSub = d.bsub; render(); return; }
-  if (d.bfilter) { bankFilter = d.bfilter; render(); return; }
+  if (d.bfilter) { bankFilter = d.bfilter; render(); const el = $("bankItems"); if (el && t.classList.contains("bglink")) window.scrollTo(0, 0); return; }
+  if (t.id === "bankEqToggle") { state.opts.bankEq = !state.opts.bankEq; if (!state.opts.bankEq && bankFilter.startsWith("slot:")) bankFilter = "All"; return after(); }
   if (d.style) { state.opts.style = d.style; return after(); }
   if (d.claim) { claimQuest(d.claim); return after(); }
   if (d.csub) { combatSub = d.csub; eqSel = null; return after(); }
@@ -4342,7 +4416,7 @@ document.addEventListener("toggle", e => { const el = e.target; if (el.classList
 document.addEventListener("change", e => { if (e.target.id === "autoChop") { state.opts.autoChop = e.target.checked; save(); } if (e.target.id === "hsSkill") { hs.skill = e.target.value; hs.rows = null; hsLoad(true); }
   if (e.target.id === "lookGear") { state.look = Object.assign({}, state.look, { gear: e.target.checked }); after(); }
   if (e.target.dataset && e.target.dataset.lookslot) { const sl = e.target.dataset.lookslot, L = Object.assign({}, state.look); L.show = Object.assign({}, L.show); if (e.target.value) L.show[sl] = e.target.value; else delete L.show[sl]; state.look = L; after(); } });
-document.addEventListener("input", e => { if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
+document.addEventListener("input", e => { if (e.target.id === "bankSearch") { bankSearch = e.target.value; const el = $("bankItems"); if (el) el.innerHTML = bankItemsHtml(); return; } if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
 document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
 
 /* ================= CLOUD SAVE (Supabase) =================
