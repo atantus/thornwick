@@ -412,6 +412,22 @@ body.noscroll{overflow:hidden}
 .rank .ico{width:30px;height:30px;filter:grayscale(1) brightness(.4)}
 .rank.got{border-color:var(--ember-dim)}
 .rank.got .ico{filter:none}
+.dailies{display:grid;gap:10px;margin-top:12px}
+.daily{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.daily.done{border-color:var(--moss)}
+.daily .dh{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.daily .dh .ico{width:30px;height:30px}
+.daily .dh div{display:flex;flex-direction:column}
+.daily .dh span{font-size:.82rem;color:var(--muted)}
+.daily .dh .rw{font-weight:700;color:var(--moss);font-size:.76rem}
+.daily .dh .tick{font-size:1.2rem;color:var(--moss);font-weight:800}
+.daily .tbar{margin:10px 0 8px}
+.daily.done .tbar i{background:var(--moss)}
+.dbonus{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;border:1px dashed var(--ember-dim);border-radius:12px;padding:12px;margin-top:10px}
+.dbonus .ico{width:36px;height:36px}
+.dbonus div{display:flex;flex-direction:column}
+.dbonus span{font-size:.82rem;color:var(--muted)}
+.dbonus.done{border-style:solid;border-color:var(--moss)}
 .lookwrap .scene{height:180px}
 .swatches{display:flex;flex-wrap:wrap;gap:8px}
 .sw{width:40px;height:40px;border-radius:10px;border:2px solid #0b0b0d;cursor:pointer;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
@@ -1234,7 +1250,7 @@ function rollTable(table) {
 const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 /* ================= STATE ================= */
-const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{}, ach:{}, stats:{}, apSpent:0, apUp:{} });
+const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{}, ach:{}, stats:{}, apSpent:0, apUp:{}, apBonus:0, daily:{} });
 let state = fresh();
 let tab = "skills";
 let bankSub = "items", bankFilter = "All", bankSel = null;
@@ -1435,7 +1451,7 @@ function fightRound(m, sum) {
     fx({ t:"kill", mon: m.id });
     state.kills[m.id] = (state.kills[m.id] || 0) + 1; sum.kills = (sum.kills || 0) + 1;
     if (onTask(m)) slayerKill(m, sum);
-    clueTick("combat", m.id, sum); clueFromKill(m, sum);
+    clueTick("combat", m.id, sum); clueFromKill(m, sum); dailyTick("combat:" + m.id);
     const drops = m.always.map(e => ({ item: e.item, qty: randInt(e.min, e.max) }));
     const r = rollTable(m.table); if (r && r.item) { if (r.item === "coins" && worn("bandit_mask")) r.qty = Math.round(r.qty * 1.25); drops.push(r); }
     for (const u of m.uniques) if (Math.random() < u.chance * (worn("wealth_ring") ? 1.1 : 1) * (PETS.includes(u.item) ? 1 + 0.1 * apLvl("kin") : 1 + 0.05 * apLvl("luck"))) { drops.push({ item: u.item, qty: 1 }); sum.uniques = (sum.uniques || []).concat(ITEMS[u.item].name); }
@@ -1579,6 +1595,7 @@ function complete(sum) {
   }
   gainXp(skill, a.xp * (skill === "firemaking" && has("ember_lantern") ? 1.1 : 1), sum); sum.actions++;
   state.stats[skill] = (state.stats[skill] || 0) + 1;
+  dailyTick(skill + ":" + a.id);
   petRoll(skill, a, sum);
   clueTick(skill, a.id, sum); clueFromSkill(skill, a, sum);
   return true;
@@ -1685,14 +1702,14 @@ function clueTick(skill, id, sum) {
     const c = state.clues.held[tier]; if (!c || c.cur.skill !== skill || c.cur.id !== id) continue;
     if (++c.cur.have < c.cur.n) continue;
     if (c.step >= c.of) {
-      delete state.clues.held[tier];
+      delete state.clues.held[tier]; state.stats.clueSteps = (state.stats.clueSteps || 0) + 1;
       state.clues.done[tier] = (state.clues.done[tier] || 0) + 1;
       add("clue_reward_" + tier, 1);
       const msg = `${CLUE_NAMES[tier]} clue complete! You got a reward casket`;
       if (sum) { sum.notes.push(msg); sum.rare.push(ITEMS["clue_reward_" + tier].name); } else toast(msg, true);
       log(`<b>${msg}</b>`, "r");
     } else {
-      c.step++; c.cur = makeStep(tier);
+      c.step++; c.cur = makeStep(tier); state.stats.clueSteps = (state.stats.clueSteps || 0) + 1;
       const msg = `${CLUE_NAMES[tier]} clue, step ${c.step}/${c.of}: ${stepText(c.cur)}`;
       if (sum) sum.notes.push(msg); else toast(msg);
       log(msg);
@@ -1843,6 +1860,7 @@ function fertilise(i) {
 function harvest(i) {
   if (state.patches[i] && Date.now() >= state.patches[i].readyAt && Math.random() < PET_PER_HARVEST) { const sum = { items:{}, rare:[] }; givePet("farming", sum); if (sum.pets) toast(`${ITEMS.pet_burrow.name} popped out of the soil and started following you!`, true); }
   const p = state.patches[i]; if (!p || Date.now() < p.readyAt) return;
+  state.stats.harvests = (state.stats.harvests || 0) + 1;
   const c = cropById(p.crop);
   let n = randInt(c.min, c.max); if (p.fert) n *= 1.25; if (has("gold_trowel")) n *= 1.2; n = Math.round(n);
   add(c.out, n); state.patches[i] = null;
@@ -2005,6 +2023,7 @@ function loadObj(o) {
   state.ach = o.ach || {}; state.stats = o.stats || {}; state.apSpent = o.apSpent || 0; state.apUp = Object.assign({}, o.apUp);
   for (const u of AP_UPGRADES) if (u.rank !== undefined && state.apUp[u.id]) { state.apSpent = Math.max(0, state.apSpent - u.costs[0]); delete state.apUp[u.id]; }
   curRank = achRank();
+  state.apBonus = o.apBonus || 0; state.daily = o.daily || {};
   state.xp.slayer = state.xp.slayer || 0;
   state.kills = o.kills || {}; state.buffs = o.buffs || {}; state.boats = o.boats || {}; state.islands = o.islands || {}; state.upgrades = o.upgrades || {};
   state.barrels = Array.isArray(o.barrels) ? o.barrels.concat([null,null,null]).slice(0, 3) : [null,null,null]; if (typeof o.hp !== "number") state.hp = lvl("hitpoints");
@@ -2082,7 +2101,7 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, railKey(), logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, state.daily && state.daily.day, state.daily && state.daily.list ? state.daily.list.map(c => c.done).join() : "", railKey(), logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
@@ -2092,7 +2111,7 @@ const SKILL_GROUPS = [
 ];
 const SECTIONS = [["skills","Skills","✦"],["combat","Combat","⚔"],["clog","Log","▤"],["bank","Bank","◫"],["more","More","≡"]];
 const NAV_ICON = { skills:"skills", combat:"attack", clog:"more", bank:"bank", more:"cog" };
-const sectionOf = t => ["combat","clog","bank","more"].includes(t) ? t : "skills";
+const sectionOf = t => ["combat","clog","bank","more","daily"].includes(t) ? t : "skills";
 function badges() {
   const now = Date.now();
   return {
@@ -2106,6 +2125,7 @@ function badges() {
 const MORE_NAMES = { quests: "Quests", clues: "Clues", hiscores: "Hiscores", news: "What's new", activity: "Activity", help: "Help & save" };
 const RAIL = [
   ["nav-skills", "Skills", "skills", "skills", "", "Play"],
+  ["nav-daily", "Daily", "lucky_horseshoe", "daily", "", "Play"],
   ["nav-combat", "Fight", "attack", "combat", "fight", "Combat"],
   ["csub-gear", "Equipment", "defence", "combat", "gear", "Combat"],
   ["csub-look", "Look", "wayfarer_hat", "combat", "look", "Combat"],
@@ -2120,10 +2140,10 @@ const RAIL = [
   ["msub-activity", "Activity", "captain_compass", "more", "activity", "More"],
   ["msub-help", "Help & save", "cog", "more", "help", "More"],
 ];
-const railKey = () => tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
+const railKey = () => tab === "daily" ? "daily:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
 function renderRail() {
   const b = badges(), cur = railKey(); let h = "", g = "";
-  const badge = { "skills:": b.skills, "bank:": b.bank, "more:quests": claimable() };
+  const badge = { "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
   for (const [id, label, ic, tb, sub, grp] of RAIL) {
     if (grp !== g) { h += `${g ? '<span class="sep"></span>' : ""}<h4>${grp}</h4>`; g = grp; }
     const key = tb + ":" + sub, n = badge[key], dot = key === "more:news" && newsUnseen();
@@ -2616,6 +2636,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 21, date: "8 Oct 2026", title: "Daily challenges", items: [
+    "Three new challenges every day, picked from what you can do: a skilling job, plus things like kills, xp, harvests, voyages, a Slayer task or clue steps. Find them under Daily in the menu.",
+    "Each one pays coins and 5 points to spend in the Point shop. Finish all three for 10 more points and a reward casket.",
+    "Keep a streak going: every 7th day in a row gives a hard casket, every 30th an elite casket.",
+    "New achievement: Daily devotee, up to 1,000 days." ] },
   { v: 20, date: "8 Oct 2026", title: "New side menu", items: [
     "Everything now lives in a menu down the left side: Skills, Fight, Equipment, Look, Bank, Collection log, Achievements, Point shop, Quests, Clues, Hiscores, What's new, Activity and Help & save.",
     "One tap to any page, with badges for things that need you. On a bigger screen the menu shows full names in groups." ] },
@@ -3990,6 +4015,7 @@ function render() {
   if (tab === "skills") h = overviewPanel();
   else if (tab === "bank") h = bankPanel();
   else if (tab === "more") h = morePanel();
+  else if (tab === "daily") h = `<div class="pagehead"><h2>Daily challenges</h2><span>${3 - dailyLeft()} / 3 done</span></div>` + dailyPanel();
   else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "ach" ? "Achievements" : logSub === "shop" ? "Point shop" : "Collection log"}</h2><span>${logSub === "ach" ? fmt(achPoints()) + " points" : logSub === "shop" ? fmt(apBalance()) + " to spend" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
 ` + (logSub === "ach" ? achPanel() : logSub === "shop" ? apShopPanel() : clogPanel());
   else if (tab === "combat") h = combatPanel();
@@ -4013,6 +4039,7 @@ function render() {
 
 /* Cheap in-place refresh, safe to run every frame */
 function update() {
+  if (tab === "daily" && state.daily.list) document.querySelectorAll(".daily").forEach((el, i) => { const c = state.daily.list[i]; if (!c) return; const prog = Math.min(c.n, dailyProgress(c)); const sp = el.querySelector(".dh div span"); if (sp && !c.done) sp.textContent = `${fmt(prog)} / ${fmt(c.n)}`; const bar = el.querySelector(".tbar i"); if (bar) bar.style.width = (c.done ? 100 : prog / c.n * 100) + "%"; });
   for (const t of CLUE_TIERS) { const c = state.clues.held[t];
     document.querySelectorAll(`[data-clueprog="${t}"]`).forEach(el => el.style.width = c ? (100 * c.cur.have / c.cur.n) + "%" : "0");
     document.querySelectorAll(`[data-cluehave="${t}"]`).forEach(el => el.textContent = c ? `${fmt(c.cur.have)} / ${fmt(c.cur.n)}` : ""); }
@@ -4169,6 +4196,7 @@ document.addEventListener("click", e => {
   if (d.tboat) { traderBoat = d.tboat; return after(); }
   if (d.slayer) { if (d.slayer === "fight") { fightTask(); render(); window.scrollTo(0, 0); return after(); } newTask(d.slayer === "skip"); return after(); }
   if (d.sbuy !== undefined) { buySlayer(+d.sbuy); return after(); }
+  if (d.dailygo !== undefined) { dailyGo(+d.dailygo); render(); window.scrollTo(0, 0); return after(); }
   if (d.logsub) { logSub = d.logsub; render(); return; }
   if (d.apup) { buyApUpgrade(d.apup); return after(); }
   if (d.apitem !== undefined) { buyApItem(+d.apitem); return after(); }
@@ -4618,6 +4646,7 @@ const ACH_TRACKS = [
   { id: "pockets", group: "Adventure", name: "Pickpocket", unit: "successful pickpockets", stat: () => state.stats.thieving || 0, tiers: [25, 100, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000] },
   { id: "laps",    group: "Adventure", name: "Free runner", unit: "agility laps", stat: () => state.stats.agility || 0, tiers: [10, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000] },
   { id: "voyages", group: "Adventure", name: "Seafarer", unit: "voyages", stat: () => sumOf(state.islands), tiers: [1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000] },
+  { id: "dailies", group: "Adventure", name: "Daily devotee", unit: "days of daily challenges", stat: () => (state.daily && state.daily.sets) || 0, tiers: [1, 7, 30, 60, 100, 180, 365, 500, 730, 1000] },
   { id: "clues",   group: "Treasure", name: "Treasure hunter", unit: "clues completed", stat: () => sumOf(state.clues.done), tiers: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500] },
   { id: "clog",    group: "Treasure", name: "Collector", unit: "collection log slots", stat: () => clogCounts()[0], tiers: () => { const t = clogCounts()[1]; return [0.02, 0.05, 0.1, 0.2, 0.3, 0.45, 0.6, 0.75, 0.9, 1].map((f, i) => Math.max(i + 1, Math.round(t * f))); } },
   { id: "pets",    group: "Treasure", name: "Pet keeper", unit: "pets", stat: () => allPets().filter(p => state.clog[p] > 0 || has(p)).length, tiers: () => [1, 2, 3, 5, 7, 10, 14, 18, 22, allPets().length] },
@@ -4713,7 +4742,7 @@ const AP_ITEMS = [
   { item: "champion_cape", price: 2500, once: true },
 ];
 const apEarned = () => achPoints();
-const apBalance = () => Math.max(0, apEarned() - (state.apSpent || 0));
+const apBalance = () => Math.max(0, apEarned() + (state.apBonus || 0) - (state.apSpent || 0));
 // rank perks (entries with a rank) are free and permanent once you reach that rank
 let curRank = -1;
 const PERK_RANK = {};
@@ -4772,6 +4801,99 @@ function achPanel() {
   h += `<h3>Ranks</h3><div class="ranks">${ACH_RANKS.map((r, i) => `<div class="rank ${i <= rk ? "got" : ""}">${icon(capeId(i))}<b>${r.name}</b><span>${fmt(r.ap)} pts</span></div>`).join("")}</div>
     <h3>Rank perks</h3><p class="note" style="margin-top:0">Each rank gives you its cape and a permanent perk, free, as soon as you reach it.</p><div class="perklist">${AP_UPGRADES.filter(u => u.rank !== undefined).map(u => `<div class="perk ${rk >= u.rank ? "got" : ""}">${icon(capeId(u.rank))}<div><b>${esc(u.name)}</b><span>${esc(ACH_RANKS[u.rank].name)} · ${esc(u.desc(1))}</span></div><em>${rk >= u.rank ? "Active" : "Locked"}</em></div>`).join("")}</div>
     <p class="note">Every tier pays coins and points; tier V, VII and IX add reward caskets, and tier X gives a trophy. These goals may be rebalanced in future updates.</p>`;
+  return h;
+}
+
+
+/* ================= DAILY CHALLENGES =================
+   Three goals each day (local time), picked from what you can do. Same three all day, new ones at midnight.
+   Finishing one pays coins and spendable points; finishing all three pays a casket and grows your streak. */
+const DAILY_PTS = 5, DAILY_SET_PTS = 10;
+const todayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const dayBefore = k => { const d = new Date(k + "T12:00:00"); d.setDate(d.getDate() - 1); return todayKey(d); };
+function seeded(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; }
+  return () => { h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; }; }
+// counters that some challenges measure from the moment they were set
+const DAILY_STATS = {
+  xp: () => totalXp(),
+  tasks: () => state.slayer.done,
+  voyages: () => sumOf(state.islands),
+  harvests: () => state.stats.harvests || 0,
+  clueSteps: () => state.stats.clueSteps || 0,
+};
+function makeDaily(day) {
+  const rnd = seeded(day + "|" + (cm.s ? cm.s.uid : "local")), pick = a => a[Math.floor(rnd() * a.length)];
+  const list = [];
+  // 1: a gathering, pickpocketing or agility job sized to about 20 minutes
+  const opts = [];
+  for (const sk of CLUE_SKILLS) { const ok = ACTIONS[sk].filter(a => reqMet(sk, a)); if (ok.length) opts.push([sk, ok.slice(-3)]); }
+  { const [sk, acts] = pick(opts), a = pick(acts), n = Math.max(10, Math.round(20 * 60000 / actionTime(sk, a) / 5) * 5);
+    list.push({ type: "act", key: sk + ":" + a.id, n }); }
+  // 2 and 3 from a pool of things you're able to do
+  const pool = [];
+  const mons = MONSTERS.filter(m => reqMet("combat", m) && !m.boss);
+  if (mons.length) pool.push(() => { const m = pick(mons.slice(-4)); return { type: "act", key: "combat:" + m.id, n: Math.max(5, Math.round(1500 / (m.hp + 10) / 5) * 5) }; });
+  pool.push(() => ({ type: "stat", stat: "xp", n: Math.max(5000, Math.round(totalXp() * 0.02 / 1000) * 1000) }));
+  if (lvl("farming") >= 1) pool.push(() => ({ type: "stat", stat: "harvests", n: 3 }));
+  if (Object.keys(state.boats).length) pool.push(() => ({ type: "stat", stat: "voyages", n: 2 }));
+  if (combatLevel() >= 10) pool.push(() => ({ type: "stat", stat: "tasks", n: 1 }));
+  if (Object.keys(state.clues.held).length) pool.push(() => ({ type: "stat", stat: "clueSteps", n: 2 }));
+  while (list.length < 3 && pool.length) { const i = Math.floor(rnd() * pool.length); list.push(pool.splice(i, 1)[0]()); }
+  for (const c of list) { c.have = 0; c.done = false; if (c.type === "stat") c.base = DAILY_STATS[c.stat](); }
+  return list;
+}
+function dailyText(c) {
+  if (c.type === "act") { const [sk, id] = c.key.split(":"), a = findAction(sk, id); return a ? clueVerb(sk, a).replace("{n}", fmt(c.n)) : "Unknown task"; }
+  return { xp: `Gain ${fmt(c.n)} xp in any skills`, harvests: `Harvest ${c.n} farming patches`, voyages: `Complete ${c.n} voyages`, tasks: `Finish ${c.n} Slayer task`, clueSteps: `Complete ${c.n} clue scroll steps` }[c.stat];
+}
+const dailyProgress = c => c.type === "stat" ? Math.max(0, DAILY_STATS[c.stat]() - c.base) : c.have;
+const dailyCoins = () => 2000 + totalLevel() * 40;
+function ensureDaily() {
+  const day = todayKey(), d = state.daily;
+  if (d.day !== day) { d.day = day; d.list = makeDaily(day); d.setDone = false; }
+}
+// an action or kill happened: count it towards matching challenges
+function dailyTick(key) { const d = state.daily; if (!d.list) return; for (const c of d.list) if (c.type === "act" && !c.done && c.key === key) c.have++; }
+function checkDaily() {
+  ensureDaily();
+  const d = state.daily; let newly = 0;
+  for (const c of d.list) if (!c.done && dailyProgress(c) >= c.n) {
+    c.done = true; newly++;
+    const coins = dailyCoins(); add("coins", coins); state.stats.achCoins = (state.stats.achCoins || 0) + coins; state.apBonus = (state.apBonus || 0) + DAILY_PTS;
+    toast(`Daily challenge done: ${dailyText(c)}! +${fmt(coins)} coins, +${DAILY_PTS} points`, true); log(`Daily challenge done: <b>${esc(dailyText(c))}</b>`, "l");
+  }
+  if (newly && !d.setDone && d.list.every(c => c.done)) {
+    d.setDone = true; d.streak = d.last === dayBefore(d.day) ? (d.streak || 0) + 1 : 1; d.last = d.day; d.sets = (d.sets || 0) + 1; d.best = Math.max(d.best || 0, d.streak);
+    const box = d.streak % 30 === 0 ? "clue_reward_elite" : d.streak % 7 === 0 ? "clue_reward_hard" : "clue_reward_medium";
+    add(box, 1); state.apBonus = (state.apBonus || 0) + DAILY_SET_PTS;
+    toast(`All 3 daily challenges done! Streak ${d.streak}. +${DAILY_SET_PTS} points and a ${ITEMS[box].name.toLowerCase()}`, true);
+    log(`All daily challenges done. Streak <b>${d.streak}</b>. Reward: <b>${ITEMS[box].name}</b>`, "r");
+  }
+}
+const dailyLeft = () => { const d = state.daily; return d && d.list ? d.list.filter(c => !c.done).length : 3; };
+function dailyGo(i) {
+  const c = state.daily.list[i]; if (!c || c.type !== "act") return;
+  const [sk, id] = c.key.split(":"), a = findAction(sk, id); if (!a || !reqMet(sk, a)) return;
+  state.active = { skill: sk, id }; state.progress = 0;
+  if (sk === "combat") { state.fight = null; tab = "combat"; combatSub = "fight"; } else tab = sk;
+}
+function dailyPanel() {
+  ensureDaily();
+  const d = state.daily, now = new Date(), mid = new Date(now); mid.setHours(24, 0, 0, 0);
+  const streakNow = d.last === d.day || d.last === dayBefore(d.day) ? (d.streak || 0) : 0;
+  let h = `<div class="achtop">${icon("lucky_horseshoe")}<div><span class="ar">Streak</span><b class="num">${streakNow} day${streakNow === 1 ? "" : "s"}</b><span>New challenges in ${dur(mid - now)} · best streak ${d.best || 0} · ${fmt(d.sets || 0)} days completed</span></div></div>`;
+  h += `<div class="dailies">` + d.list.map((c, i) => {
+    const prog = Math.min(c.n, dailyProgress(c)), pct = c.done ? 100 : c.n ? prog / c.n * 100 : 0;
+    const [sk, id] = c.type === "act" ? c.key.split(":") : [], a = c.type === "act" ? findAction(sk, id) : null;
+    const active = a && state.active && state.active.skill === sk && state.active.id === id;
+    const ic = c.type === "act" ? (sk === "combat" ? "attack" : sk) : { xp: "skills", harvests: "farming", voyages: "seafaring", tasks: "slayer", clueSteps: "clue_easy" }[c.stat];
+    return `<div class="daily ${c.done ? "done" : ""}"><div class="dh">${icon(ic)}<div><b>${esc(dailyText(c))}</b><span>${c.done ? "Complete!" : `${fmt(prog)} / ${fmt(c.n)}`}</span><span class="rw">${c.done ? "Reward collected" : `Reward: ${fmt(dailyCoins())} coins · ${DAILY_PTS} points`}</span></div>${c.done ? '<span class="tick">✓</span>' : ""}</div>
+      <div class="tbar"><i style="width:${pct}%"></i></div>
+      ${!c.done && a && reqMet(sk, a) ? `<button class="btn ${active ? "" : "solid"}" id="dailygo-${i}" data-dailygo="${i}" ${active ? "disabled" : ""}>${active ? "Doing it now" : "Do this now"}</button>` : ""}</div>`;
+  }).join("") + `</div>`;
+  const nextStreak = (d.last === dayBefore(d.day) ? (d.streak || 0) : 0) + 1, box = nextStreak % 30 === 0 ? "clue_reward_elite" : nextStreak % 7 === 0 ? "clue_reward_hard" : "clue_reward_medium";
+  h += `<div class="dbonus ${d.setDone ? "done" : ""}">${icon(d.setDone ? "clue_reward_medium" : box)}<div><b>${d.setDone ? "All done for today!" : "Finish all three"}</b><span>${d.setDone ? "Come back tomorrow to keep your streak going." : `+${DAILY_SET_PTS} points and a ${esc(ITEMS[box].name.toLowerCase())}. Every 7th day in a row: a hard casket; every 30th: an elite casket.`}</span></div></div>
+    <p class="note">Points from daily challenges go straight to your Point shop balance. Progress counts while you're away too.</p>`;
   return h;
 }
 
@@ -4839,7 +4961,7 @@ function frame(now) {
   const dt = Math.max(0, now - lastFrame); lastFrame = now;
   const sum = advance(dt);
   if (sum.actions || sum.notes.length) report(sum, dt > 60000);
-  if (now - lastQuestCheck > 1000) { lastQuestCheck = now; checkQuests(); checkAch(); }
+  if (now - lastQuestCheck > 1000) { lastQuestCheck = now; checkQuests(); checkAch(); checkDaily(); }
   if (now - lastSigCheck > 250 || sum.notes.length) { lastSigCheck = now; if (signature() !== lastSig) render(); }
   if (dt > 5000) { fxq = []; skq = []; }
   update(); renderNow(); drawScene(now); drawSkillScene(now); drawVoyageScene(now); drawLookScene(now);
@@ -4876,7 +4998,7 @@ function begin() {
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
 }
-window.__thornwick = { get state() { return state; }, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
