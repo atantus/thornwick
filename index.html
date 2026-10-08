@@ -405,6 +405,16 @@ body.noscroll{overflow:hidden}
 .perk.got{border-color:var(--ember-dim)}
 .perk.got .ico{filter:none}
 .perk.got em{color:var(--moss)}
+.crumb{display:inline-block;padding:4px 0 0;text-decoration:none}
+.mglist{display:grid;gap:12px}
+@media (min-width:760px){.mglist{grid-template-columns:1fr 1fr}}
+.mgcard{display:flex;flex-direction:column;gap:12px;padding:16px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(160deg,#f0a33a12,transparent 55%),var(--panel)}
+.mgtop{display:flex;gap:14px;align-items:flex-start}
+.mgtop .ico{width:48px;height:48px;flex:none}
+.mgtop h3{margin:0 0 4px;font-family:var(--f-display);font-size:1.5rem;font-weight:400;letter-spacing:0;text-transform:none;color:var(--fg)}
+.mgtop p{margin:0;color:var(--muted);font-size:.9rem}
+.mgchips{display:flex;flex-wrap:wrap;gap:6px;font-size:.78rem;color:var(--muted)}
+.mgcard .btn{align-self:flex-start;min-width:150px}
 .arena-hp{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0 8px}
 .arena-hp .r{text-align:right}
 .hpbar{height:9px;border-radius:5px;background:#0b0b0d;overflow:hidden;margin:4px 0;border:1px solid var(--line)}
@@ -2145,7 +2155,7 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, state.daily && state.daily.day, state.daily && state.daily.list ? state.daily.list.map(c => c.done).join() : "", state.weekly && state.weekly.list ? state.weekly.list.map(c => c.done).join() + state.weekly.week + !!(state.weekly.boss && state.weekly.boss.done) : "", state.dspecial && state.dspecial.day + state.dspecial.bought, tab === "dshop" || tab === "daily" ? qty(TOK) : 0, railKey(), tab === "arena" ? [qty(GLORY), arena.opps ? arena.opps.map(o => o.name).join() : "", arena.fight ? [arena.fight.round, arena.fight.over] : 0, arenaState().fights] : 0, tab === "roof" ? [roof.last && roof.last.t, roofState().runs] : 0, logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, state.daily && state.daily.day, state.daily && state.daily.list ? state.daily.list.map(c => c.done).join() : "", state.weekly && state.weekly.list ? state.weekly.list.map(c => c.done).join() + state.weekly.week + !!(state.weekly.boss && state.weekly.boss.done) : "", state.dspecial && state.dspecial.day + state.dspecial.bought, tab === "dshop" || tab === "daily" ? qty(TOK) : 0, railKey(), tab === "mini" ? [arenaLeft(), roofState().runs, roofState().best, qty(GLORY)] : 0, tab === "arena" ? [qty(GLORY), arena.opps ? arena.opps.map(o => o.name).join() : "", arena.fight ? [arena.fight.round, arena.fight.over] : 0, arenaState().fights] : 0, tab === "roof" ? [roof.last && roof.last.t, roofState().runs] : 0, logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
@@ -2155,7 +2165,7 @@ const SKILL_GROUPS = [
 ];
 const SECTIONS = [["skills","Skills","✦"],["combat","Combat","⚔"],["clog","Log","▤"],["bank","Bank","◫"],["more","More","≡"]];
 const NAV_ICON = { skills:"skills", combat:"attack", clog:"more", bank:"bank", more:"cog" };
-const sectionOf = t => ["combat","clog","bank","more","daily","dshop","arena","roof"].includes(t) ? t : "skills";
+const sectionOf = t => ["combat","clog","bank","more","daily","dshop","arena","roof","mini"].includes(t) ? t : "skills";
 function badges() {
   const now = Date.now();
   return {
@@ -2171,8 +2181,7 @@ const RAIL = [
   ["nav-skills", "Skills", "skills", "skills", "", "Play"],
   ["nav-daily", "Challenges", "lucky_horseshoe", "daily", "", "Play"],
   ["nav-dshop", "Daily shop", "daily_token", "dshop", "", "Play"],
-  ["nav-arena", "Arena", "arena_helm", "arena", "", "Play"],
-  ["nav-roof", "Rooftop run", "agility", "roof", "", "Play"],
+  ["nav-mini", "Minigames", "arena_helm", "mini", "", "Play"],
   ["nav-combat", "Fight", "attack", "combat", "fight", "Combat"],
   ["csub-gear", "Equipment", "defence", "combat", "gear", "Combat"],
   ["csub-look", "Look", "wayfarer_hat", "combat", "look", "Combat"],
@@ -2187,7 +2196,7 @@ const RAIL = [
   ["msub-activity", "Activity", "captain_compass", "more", "activity", "More"],
   ["msub-help", "Help & save", "cog", "more", "help", "More"],
 ];
-const railKey = () => tab === "daily" ? "daily:" : tab === "dshop" ? "dshop:" : tab === "arena" ? "arena:" : tab === "roof" ? "roof:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
+const railKey = () => tab === "daily" ? "daily:" : tab === "dshop" ? "dshop:" : tab === "arena" || tab === "roof" || tab === "mini" ? "mini:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
 function renderRail() {
   const b = badges(), cur = railKey(); let h = "", g = "";
   const badge = { "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
@@ -2686,6 +2695,8 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 25, date: "8 Oct 2026", title: "Minigames tab", items: [
+    "The Arena and Rooftop run now live together under Minigames in the side menu, with your daily limits, glory, best distance and next unlock at a glance." ] },
   { v: 24, date: "8 Oct 2026", title: "The Arena and Rooftop run", items: [
     "The Arena: turn-based duels in the new Arena page. Each round pick Attack, Block or Special. Attack beats Special, Block beats Attack, Special beats Block (and needs 2 focus). Watch for your opponent's tells.",
     "Fight ghosts of real hiscores players near your combat level, plus the arena's own gladiators. 10 ranked fights a day earn glory and coins; win streaks pay extra.",
@@ -4090,8 +4101,9 @@ function render() {
   else if (tab === "bank") h = bankPanel();
   else if (tab === "more") h = morePanel();
   else if (tab === "daily") h = `<div class="pagehead"><h2>Challenges</h2><span>${3 - dailyLeft()} / 3 today</span></div>` + dailyPanel();
-  else if (tab === "arena") h = `<div class="pagehead"><h2>Arena</h2><span>${arenaLeft()} / ${ARENA_DAILY} ranked left</span></div>` + arenaPanel();
-  else if (tab === "roof") h = `<div class="pagehead"><h2>Rooftop run</h2><span>${Math.max(0, ROOF_DAILY - roofState().runs)} / ${ROOF_DAILY} rewarded left</span></div>` + roofPanel();
+  else if (tab === "mini") h = `<div class="pagehead"><h2>Minigames</h2><span>Hands-on play</span></div>` + miniPanel();
+  else if (tab === "arena") h = miniBack + `<div class="pagehead"><h2>Arena</h2><span>${arenaLeft()} / ${ARENA_DAILY} ranked left</span></div>` + arenaPanel();
+  else if (tab === "roof") h = miniBack + `<div class="pagehead"><h2>Rooftop run</h2><span>${Math.max(0, ROOF_DAILY - roofState().runs)} / ${ROOF_DAILY} rewarded left</span></div>` + roofPanel();
   else if (tab === "dshop") h = `<div class="pagehead"><h2>Daily shop</h2><span>${fmt(qty(TOK))} tokens</span></div>` + dshopPanel();
   else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "ach" ? "Achievements" : logSub === "shop" ? "Point shop" : "Collection log"}</h2><span>${logSub === "ach" ? fmt(achPoints()) + " points" : logSub === "shop" ? fmt(apBalance()) + " to spend" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
 ` + (logSub === "ach" ? achPanel() : logSub === "shop" ? apShopPanel() : clogPanel());
@@ -5135,6 +5147,22 @@ function dshopPanel() {
     return `<button class="act" id="dshop-${e.item}" data-dshop="${i}" ${owned || full || t < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${e.qty > 1 ? e.qty + "× " : ""}${esc(ITEMS[e.item].name)}</span><span class="meta">${owned ? `<span class="ok">Owned</span> · ` : full ? `<span class="ok">Holding ${e.max}</span> · ` : e.max ? `Holding ${qty(e.item)}/${e.max} · ` : ""}${esc(e.note || ITEMS[e.item].desc)}</span><span class="side"><b>${fmt(e.price)}</b>tokens</span></button>`;
   }).join("") + `</div>`;
   return h;
+}
+
+/* ================= MINIGAMES HUB ================= */
+const miniBack = `<button class="linkbtn crumb" id="toMini" data-nav="mini:">‹ Minigames</button>`;
+function miniPanel() {
+  const A = arenaState(), S = roofState(), al = arenaLeft(), rl = Math.max(0, ROOF_DAILY - S.runs);
+  const card = (id, nav, ic, title, blurb, chips, btn) => `<div class="mgcard"><div class="mgtop">${icon(ic)}<div><h3>${title}</h3><p>${blurb}</p></div></div>
+    <div class="mgchips">${chips.map(c => `<span class="chip">${c}</span>`).join("")}</div>
+    <button class="btn solid" id="${id}" data-nav="${nav}">${btn}</button></div>`;
+  return `<p class="note" style="margin-top:0">Short bursts of active play alongside your idle progress. Each has a daily limit on rewards and its own unlocks.</p>
+  <div class="mglist">
+  ${card("go-arena", "arena:", "arena_helm", "Arena", "Turn-based duels against ghosts of real players. Attack beats Special, Block beats Attack, Special beats Block. Read the tells to win.",
+    [al ? `${al} / ${ARENA_DAILY} ranked fights left` : "Practice only until midnight", `${fmt(qty(GLORY))} glory`, `${fmt(A.wins)} wins`].concat(A.streak > 1 ? [`${A.streak}-win streak`] : []), arena.fight && !arena.fight.over ? "Back to your fight" : "Enter the Arena")}
+  ${card("go-roof", "roof:", "agility", "Rooftop run", `Leap across Thornwick's rooftops at night. Tap to jump, hold to jump higher${roofDouble() ? ", tap again to double jump" : ""}. Earn Agility xp and skyfeathers.`,
+    [rl ? `${rl} / ${ROOF_DAILY} rewarded runs left` : "Practice only until midnight", `Best ${fmt(S.best)} m`].concat(ROOF_UNLOCKS.filter(u => !ownedEver(u.item)).slice(0, 1).map(u => `Next unlock at ${fmt(u.m)} m`)), roof.run && roof.run.paused && !roof.run.dead ? "Resume your run" : "Start running")}
+  </div>`;
 }
 
 /* ================= ARENA =================
