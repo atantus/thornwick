@@ -45,6 +45,11 @@ img{max-width:100%}
 html,body{background:var(--bg);color:var(--fg)}
 body{font-family:var(--f-body);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:0 150px}
 .wrap{max-width:560px;margin:0 auto}
+.brandline{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.sync{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.72rem;color:var(--muted);background:none;border:0;padding:2px 0;cursor:pointer;min-height:24px}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--moss);box-shadow:0 0 6px var(--moss)}
+.sync.stale i{background:var(--ember);box-shadow:0 0 6px var(--ember)}
+.sync.err i{background:var(--danger);box-shadow:none}
 header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding-block:18px 12px;border-bottom:1px solid var(--line);margin-bottom:12px}
 h1{font-family:var(--f-display);font-weight:400;font-size:2.1rem;line-height:1;margin:0;color:var(--fg)}
 h1 span{color:var(--ember)}
@@ -317,6 +322,34 @@ body.noscroll{overflow:hidden}
 #login .fine.center{text-align:center;margin:0}
 #login .lcard .lmsg{min-height:1.2em;margin:10px 0 0;font-size:.85rem;color:var(--ember)}
 #login .lmsg:empty{display:none}
+.hshead{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.hshead .lbl{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.hssel{flex:1;margin:0;min-height:42px}
+.hsme{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.hsme.col{flex-direction:column;align-items:stretch}
+.hsme.col span{color:var(--muted);font-size:.85rem}
+.hsme .lmsg{color:var(--ember)}
+.hsname{display:flex;gap:8px}
+.hsname .cin{margin:0;flex:1}
+.hst{width:100%;border-collapse:collapse;font-size:.9rem}
+.hst th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}
+.hst td{padding:9px 8px;border-bottom:1px solid var(--line)}
+.hst td.num,.hst th:nth-child(n+3){text-align:right}
+.hst th:first-child,.hst td:first-child{width:3em;color:var(--muted)}
+.hst tr.me td{background:rgba(240,163,58,.12);color:var(--fg);font-weight:700}
+.hst tr.gap td{text-align:center;color:var(--muted);padding:2px}
+.task{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.taskhead{display:flex;gap:12px;align-items:center}
+.taskhead .ico{width:40px;height:40px;flex:none}
+.taskhead b{display:block;font-size:1rem}
+.taskhead span{color:var(--muted);font-size:.85rem}
+.tbar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:12px 0 10px}
+.tbar i{display:block;height:100%;background:var(--ember);transition:width .3s}
+.task .row{display:flex;gap:8px;flex-wrap:wrap}
+.taskbar{display:flex;align-items:center;gap:10px;width:100%;font:inherit;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:10px 0;color:var(--fg);cursor:pointer;min-height:44px}
+.taskbar .ico{width:26px;height:26px;flex:none}
+.taskbar span{flex:1}
+.taskbar .go{flex:none;color:var(--ember);font-weight:700;font-size:.85rem}
 #cloudPrompt{position:fixed;inset:0;z-index:20;background:rgba(5,10,8,.72);display:flex;align-items:center;justify-content:center;padding:16px}
 #cloudPrompt[hidden]{display:none}
 #cloudPrompt .in{max-width:420px;width:100%;background:var(--panel-2);border:1px solid var(--ember-dim);border-radius:14px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
@@ -373,7 +406,7 @@ body.noscroll{overflow:hidden}
 
 <div class="wrap">
   <header>
-    <h1>Thorn<span>wick</span></h1>
+    <div class="brandline"><h1>Thorn<span>wick</span></h1><button class="sync" id="syncInd" data-tab="more" data-moresub="help" hidden aria-label="Cloud save status"><i></i><span id="syncTxt"></span></button></div>
     <div class="total"><div>Coins<b class="num" data-q="coins">0</b></div><div>Total lvl<b class="num" id="total">3</b></div></div>
   </header>
   <div class="buffs" id="buffs" aria-label="Active brews"></div>
@@ -427,10 +460,36 @@ const SKILLS = {
   magic:       { name: "Magic" },
   fletching:   { name: "Fletching" },
   thieving:    { name: "Thieving" },
+  slayer:      { name: "Slayer" },
 };
 
 // sell: coins each (omit = can't sell)
 const ITEMS = {
+  pet_twiglet: { name: "Twiglet", desc: "Woodcutting pet. A sapling that decided to follow you home. +3% Woodcutting xp.", rare: true },
+  pet_cinder: { name: "Cinder", desc: "Firemaking pet. A friendly ember that never quite goes out. +3% Firemaking xp.", rare: true },
+  pet_burrow: { name: "Burrow", desc: "Farming pet. A mole with a nose for good soil. +3% Farming xp.", rare: true },
+  pet_puffin: { name: "Puffin", desc: "Fishing pet. Steals one fish in ten. You don't mind. +3% Fishing xp.", rare: true },
+  pet_crumb: { name: "Crumb", desc: "Cooking pet. A mouse in a very small chef's hat. +3% Cooking xp.", rare: true },
+  pet_pebble: { name: "Pebble", desc: "Mining pet. A rock crab, about the size of a fist. +3% Mining xp.", rare: true },
+  pet_clinker: { name: "Clinker", desc: "Smithing pet. A forge salamander. Warm to the touch. +3% Smithing xp.", rare: true },
+  pet_quill: { name: "Quill", desc: "Fletching pet. An owlet who collects feathers. +3% Fletching xp.", rare: true },
+  pet_glimmer: { name: "Glimmer", desc: "Enchanting pet. A moth drawn to runes instead of lamps. +3% Enchanting xp.", rare: true },
+  pet_hops: { name: "Hops", desc: "Brewing pet. A frog who lives in your barrels. +3% Brewing xp.", rare: true },
+  pet_scamper: { name: "Scamper", desc: "Agility pet. Beats you round every course. +3% Agility xp.", rare: true },
+  pet_fidget: { name: "Fidget", desc: "Thieving pet. A ferret with your coin purse. +3% Thieving xp.", rare: true },
+  pet_grimling: { name: "Grimling", desc: "Slayer pet. A tiny horned imp who keeps count of your kills. +3% Slayer xp.", rare: true },
+  slayer_helm:   { name: "Slayer helm",     desc: "Head. Defence +10. On a Slayer task you hit 15% more often and 15% harder.", rare: true },
+  hunter_satchel:{ name: "Hunter's satchel", desc: "+25% Slayer points from tasks.", rare: true },
+  bone_charm:    { name: "Bone charm",      desc: "+5% Slayer xp.", rare: true },
+  echo_charm:    { name: "Echo charm",      desc: "Gloom bat unique. +10% Slayer xp.", rare: true },
+  mire_greaves:  { name: "Mire greaves",    desc: "Bog horror unique. Legs, Defence 35.", rare: true, sell: 6000 },
+  gargant_maul:  { name: "Gargant maul",    desc: "Stone gargant unique. Weapon, Attack 60. Hits very hard.", rare: true, sell: 20000 },
+  voidlash:      { name: "Voidlash",        desc: "Void stalker unique. Weapon, Attack 75. Very accurate.", rare: true, sell: 40000 },
+  bat_wing:      { name: "Bat wing",        desc: "Leathery. Sells well to apothecaries.", sell: 40 },
+  bog_moss:      { name: "Bog moss",        desc: "Smells awful. Brewers love it.", sell: 90 },
+  gargant_shard: { name: "Gargant shard",   desc: "A chip of living stone.", sell: 400 },
+  void_essence:  { name: "Void essence",    desc: "Cold, dark and humming.", sell: 1200 },
+
   logs:          { name: "Logs",            desc: "Burn with Firemaking.", sell: 2 },
   oak_logs:      { name: "Oak logs",        desc: "Burn with Firemaking.", sell: 5 },
   willow_logs:   { name: "Willow logs",     desc: "Burn with Firemaking.", sell: 10 },
@@ -882,9 +941,33 @@ const MONSTERS = [
   { id:"colossus",name:"Ashen Colossus", weak:"magic", lvl:95, hp:450, att:105, def:100, max:26, always:[], boss:true,
     table:[{item:"coins",weight:40,min:2000,max:6000},{item:"runite_bar",weight:15,min:2,max:4},{item:"magic_logs",weight:12,min:10,max:30},{item:"uncut_diamond",weight:10,min:1,max:2},{item:"casket",weight:10,min:2,max:3},{item:"magic_seed",weight:8,min:1,max:2},{item:"skyfeather",weight:5,min:20,max:40}],
     uniques:[{item:"voidreaver",chance:1/150},{item:"colossus_plate",chance:1/250},{item:"ember_core",chance:1/300},{item:"pet_colossus",chance:1/5000}] },
+  // Slayer monsters: need a Slayer level as well as a combat level
+  { id:"gloombat", name:"Gloom bat", slayer:10, weak:"ranged", lvl:8, hp:14, att:10, def:8, max:2, always:[{item:"bat_wing",min:1,max:1}],
+    table:[{item:null,weight:30},{item:"coins",weight:40,min:10,max:30},{item:"bat_wing",weight:20,min:1,max:2},{item:"oak_logs",weight:10,min:2,max:5}],
+    uniques:[{item:"echo_charm",chance:1/250}] },
+  { id:"boghorror", name:"Bog horror", slayer:30, weak:"magic", lvl:30, hp:48, att:36, def:30, max:6, always:[{item:"bog_moss",min:1,max:2}],
+    table:[{item:null,weight:15},{item:"coins",weight:40,min:60,max:160},{item:"barley_seed",weight:10,min:2,max:5},{item:"willow_seed",weight:8,min:1,max:1},{item:"steel_bar",weight:12,min:1,max:3},{item:"raw_salmon",weight:15,min:2,max:4}],
+    uniques:[{item:"mire_greaves",chance:1/200}] },
+  { id:"gargant", name:"Stone gargant", slayer:55, weak:"ranged", lvl:55, hp:140, att:62, def:72, max:13, always:[{item:"gargant_shard",min:1,max:1}],
+    table:[{item:null,weight:10},{item:"coins",weight:40,min:250,max:700},{item:"mithril_ore",weight:15,min:3,max:6},{item:"coal",weight:15,min:6,max:12},{item:"uncut_ruby",weight:5,min:1,max:1},{item:"casket",weight:5,min:1,max:1}],
+    uniques:[{item:"gargant_maul",chance:1/180}] },
+  { id:"voidstalker", name:"Void stalker", slayer:78, weak:"magic", lvl:82, hp:240, att:92, def:88, max:21, always:[{item:"void_essence",min:1,max:1}],
+    table:[{item:null,weight:10},{item:"coins",weight:40,min:700,max:1700},{item:"death_rune",weight:15,min:8,max:20},{item:"cobalt_bar",weight:12,min:1,max:3},{item:"runite_ore",weight:6,min:1,max:2},{item:"uncut_diamond",weight:4,min:1,max:1},{item:"magic_seed",weight:3,min:1,max:1}],
+    uniques:[{item:"voidlash",chance:1/220}] },
 ];
+// Skilling pets: one per skill. Rolled per action, so the odds depend on time spent, not on how fast the action is.
+const SKILL_PETS = { woodcutting:"pet_twiglet", firemaking:"pet_cinder", farming:"pet_burrow", fishing:"pet_puffin", cooking:"pet_crumb", mining:"pet_pebble", smithing:"pet_clinker", fletching:"pet_quill", enchanting:"pet_glimmer", brewing:"pet_hops", agility:"pet_scamper", thieving:"pet_fidget", slayer:"pet_grimling" };
+const PET_HOURS = 60;               // average hours of training per pet at a mid-level action
+const PET_PER_HARVEST = 1 / 300, PET_PER_BREW = 1 / 150, PET_PER_TASK = 1 / 60;
+// Slayer
+const SLAYER_SHOP = [
+  { item:"slayer_helm", price:250, req:10 },
+  { item:"bone_charm", price:150, req:20 },
+  { item:"hunter_satchel", price:400, req:40 },
+];
+const SKIP_COST = 30, SLAYER_XP = 6;   // Slayer xp per monster hitpoint, on task
 // Gear: best piece you own and meet the level for is used automatically
-const WEAPONS = [ ["voidreaver",70,66,60], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
+const WEAPONS = [ ["voidlash",75,74,58], ["voidreaver",70,66,60], ["gargant_maul",60,44,64], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
 const ARMOURS = [ ["colossus_plate",70,95], ["troll_hide",60,85], ["runite_platebody",55,72], ["cobalt_platebody",40,60], ["drake_scale",50,75], ["mithril_platebody",30,46], ["steel_platebody",20,32], ["iron_platebody",10,21], ["leather_body",1,8] ]; // id, defence req, defence bonus
 const PETS = ["pet_chick","pet_goblin","pet_magpie","pet_giant","pet_squire","pet_drakeling","pet_troll","pet_wraith","pet_colossus","pet_gull","pet_parrot"];
 const FOOD = { eel:26, anglerfish:22, shark:20, sunfruit:18, swordfish:14, lobster:12, salmon:9, trout:7, baked_potato:4, cooked_chicken:3, shrimp:3, ship_biscuit:2 };
@@ -970,7 +1053,7 @@ function rollTable(table) {
 const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 /* ================= STATE ================= */
-const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} } });
+const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 } });
 let state = fresh();
 let tab = "skills";
 let bankSub = "items", bankFilter = "All", bankSel = null;
@@ -1051,6 +1134,7 @@ for (const [m, [r, def]] of Object.entries(METAL_DEF)) {
 }
 Object.assign(GEAR, {
   bandit_mask:{ slot:"head", def:2 }, smuggler_coat:{ slot:"body", def:15 },
+  slayer_helm:{ slot:"head", def:10 }, mire_greaves:{ slot:"legs", req:["defence", 35], def:35 },
   gull_cloak:{ slot:"cape" }, windrunner_cape:{ slot:"cape" }, mastery_cape:{ slot:"cape", def:5 },
   kindling_amulet:{ slot:"amulet" }, seam_amulet:{ slot:"amulet" }, plenty_amulet:{ slot:"amulet" }, deep_amulet:{ slot:"amulet" }, knight_oath:{ slot:"amulet" }, silver_locket:{ slot:"amulet" },
   tide_ring:{ slot:"ring" }, roots_ring:{ slot:"ring" }, fury_ring:{ slot:"ring" }, wealth_ring:{ slot:"ring" }, forester_ring:{ slot:"ring" }, gold_signet:{ slot:"ring" },
@@ -1129,7 +1213,7 @@ const playerMax = () => 1 + Math.max(1, Math.floor(baseMax() * (worn("fury_ring"
 const foeAcc = m => hitChance((m.att + 9) * 64, (lvl("defence") + 8 + (state.opts.style === "defence" ? 3 : 0)) * (defBonus() + 64)) * (has("warding_charm") ? 0.85 : 1) * (worn("knight_oath") ? 0.9 : 1);
 const bestFood = () => Object.keys(FOOD).find(has);
 const foodCount = () => Object.keys(FOOD).reduce((s, f) => s + qty(f), 0);
-const reqMet = (skill, a) => skill === "combat" ? combatLevel() >= a.lvl : lvl(skill) >= a.lvl;
+const reqMet = (skill, a) => skill === "combat" ? combatLevel() >= a.lvl && (!a.slayer || lvl("slayer") >= a.slayer) : lvl(skill) >= a.lvl;
 const skillName = s => s === "combat" ? "Combat" : SKILLS[s].name;
 
 function regen(ms) {
@@ -1148,8 +1232,9 @@ function fightRound(m, sum) {
   if (t === "magic") { const sp = spellOf(); for (const [r, q] of Object.entries(spellCost(sp))) { add(r, -q); sum.items[r] = (sum.items[r] || 0) - q; } gainXp("magic", sp.xp * 1.5 * px, sum); }
   // you attack
   let landed = 0;
-  if (Math.random() < playerAcc(m)) {
-    const dmg = Math.min(state.fight.mhp, Math.floor(Math.random() * (playerMax() + 1)));
+  const helm = onTask(m) && worn("slayer_helm") ? 1.15 : 1;
+  if (Math.random() < Math.min(0.98, playerAcc(m) * helm)) {
+    const dmg = Math.min(state.fight.mhp, Math.floor(Math.random() * (Math.floor(playerMax() * helm) + 1)));
     landed = dmg;
     if (dmg > 0) {
       state.fight.mhp -= dmg;
@@ -1161,6 +1246,7 @@ function fightRound(m, sum) {
   if (state.fight.mhp <= 0) {
     fx({ t:"kill", mon: m.id });
     state.kills[m.id] = (state.kills[m.id] || 0) + 1; sum.kills = (sum.kills || 0) + 1;
+    if (onTask(m)) slayerKill(m, sum);
     const drops = m.always.map(e => ({ item: e.item, qty: randInt(e.min, e.max) }));
     const r = rollTable(m.table); if (r && r.item) { if (r.item === "coins" && worn("bandit_mask")) r.qty = Math.round(r.qty * 1.25); drops.push(r); }
     for (const u of m.uniques) if (Math.random() < u.chance * (worn("wealth_ring") ? 1.1 : 1)) { drops.push({ item: u.item, qty: 1 }); sum.uniques = (sum.uniques || []).concat(ITEMS[u.item].name); }
@@ -1221,6 +1307,8 @@ function xpMult(skill) {
   if (worn("deep_amulet")) m *= 1.05;
   if (has("ember_core")) m *= 1.05;
   if (worn("mastery_cape")) m *= 1.05;
+  if (SKILL_PETS[skill] && has(SKILL_PETS[skill])) m *= 1.03;
+  if (skill === "slayer") { if (has("echo_charm")) m *= 1.1; if (has("bone_charm")) m *= 1.05; }
   return m;
 }
 function gainXp(skill, x, sum) {
@@ -1232,6 +1320,22 @@ function gainXp(skill, x, sum) {
     if (sum) { sum.levels.push(`${SKILLS[skill].name} ${after}`); const r = (sum.lvlRange = sum.lvlRange || {}); r[skill] = [r[skill] ? r[skill][0] : before, after]; }
     else { announceLevel(`${SKILLS[skill].name} ${after}`); levelPop(skill, before, after); }
   }
+}
+
+/* ================= PETS ================= */
+const allPets = () => [...PETS, ...Object.values(SKILL_PETS)];
+function givePet(skill, sum) {
+  const pet = SKILL_PETS[skill]; if (!pet || has(pet)) return;
+  add(pet, 1); sum.items[pet] = (sum.items[pet] || 0) + 1;
+  sum.rare.push(ITEMS[pet].name); sum.uniques = (sum.uniques || []).concat(ITEMS[pet].name);
+  sum.pets = (sum.pets || []).concat(pet);
+  if (!state.opts.follow) state.opts.follow = pet;
+  log(`<b>${ITEMS[pet].name}</b> started following you! (${SKILLS[skill].name} pet)`, "r");
+}
+// chance per action scales with the action's length, and a little with its level
+function petRoll(skill, a, sum) {
+  const secs = actionTime(skill, a) / 1000, lv = a.lvl || 1;
+  if (Math.random() < secs / (PET_HOURS * 3600) * (0.6 + 0.8 * lv / 99)) givePet(skill, sum);
 }
 
 /* One completed action. Returns false if it cannot run. */
@@ -1279,6 +1383,7 @@ function complete(sum) {
     add("ashes", 1); sum.items.ashes = (sum.items.ashes || 0) + 1;
   }
   gainXp(skill, a.xp * (skill === "firemaking" && has("ember_lantern") ? 1.1 : 1), sum); sum.actions++;
+  petRoll(skill, a, sum);
   return true;
 }
 
@@ -1337,6 +1442,58 @@ function advanceCore(ms, sum) {
   return sum;
 }
 
+
+/* ================= SLAYER ================= */
+const onTask = m => !!(state.slayer && state.slayer.task && state.slayer.task.mon === m.id && state.slayer.task.left > 0);
+const taskMon = () => state.slayer.task ? MONSTERS.find(m => m.id === state.slayer.task.mon) : null;
+// monsters the task master can hand out: ones you can fight, not too far below you
+function taskPool() {
+  const ok = MONSTERS.filter(m => reqMet("combat", m));
+  const strong = ok.filter(m => m.lvl >= combatLevel() * 0.35);
+  return strong.length ? strong : ok;
+}
+function newTask(skip) {
+  const s = state.slayer;
+  if (s.task && s.task.left > 0 && !skip) return;
+  if (skip) { if (s.points < SKIP_COST) return; s.points -= SKIP_COST; s.streak = 0; }
+  const pool = taskPool(); if (!pool.length) return;
+  const prev = s.task && s.task.mon;
+  const choices = pool.length > 1 ? pool.filter(m => m.id !== prev) : pool;
+  const w = choices.map((m, i) => 1 + i + (m.slayer ? 3 : 0)), tot = w.reduce((a, b) => a + b, 0);
+  let r = Math.random() * tot, pick = choices[0];
+  for (let i = 0; i < choices.length; i++) { r -= w[i]; if (r <= 0) { pick = choices[i]; break; } }
+  const n = pick.boss ? randInt(3, 6) : pick.hp >= 200 ? randInt(10, 20) : randInt(15, 35);
+  s.task = { mon: pick.id, left: n, total: n };
+  toast(`New Slayer task: ${n} ${pick.name.toLowerCase()}${n > 1 && !/s$/.test(pick.name) ? "s" : ""}`);
+}
+function slayerKill(m, sum) {
+  const s = state.slayer;
+  gainXp("slayer", m.hp * SLAYER_XP, sum);
+  s.task.left--;
+  if (s.task.left > 0) return;
+  s.done++; s.streak++;
+  let pts = 12 + Math.floor(lvl("slayer") / 8);
+  if (s.streak % 50 === 0) pts *= 15; else if (s.streak % 10 === 0) pts *= 5;
+  if (has("hunter_satchel")) pts = Math.round(pts * 1.25);
+  s.points += pts;
+  sum.notes.push(`Slayer task complete: ${s.task.total} ${m.name.toLowerCase()}. +${pts} Slayer points`);
+  log(`Slayer task complete (${s.task.total} ${esc(m.name.toLowerCase())}). <b>+${pts} points</b>, streak ${s.streak}`, "l");
+  s.task = null;
+  if (Math.random() < PET_PER_TASK) givePet("slayer", sum);
+  // carry straight on with a new task if the next one is the same monster you're fighting
+}
+function buySlayer(i) {
+  const e = SLAYER_SHOP[i]; const s = state.slayer;
+  if (!e || s.points < e.price || lvl("slayer") < e.req || has(e.item)) return;
+  s.points -= e.price; add(e.item, 1);
+  if (GEAR[e.item]) equipItem(e.item, true);
+  toast(`Bought ${ITEMS[e.item].name.toLowerCase()}`);
+}
+function fightTask() {
+  const m = taskMon(); if (!m || !reqMet("combat", m)) return;
+  state.active = { skill: "combat", id: m.id }; state.progress = 0; tab = "combat"; combatSub = "fight";
+}
+
 /* ================= FARMING ================= */
 function plant(i, cropId) {
   const c = cropById(cropId);
@@ -1354,6 +1511,7 @@ function fertilise(i) {
   toast("Fertilised: grows twice as fast, +25% yield");
 }
 function harvest(i) {
+  if (state.patches[i] && Date.now() >= state.patches[i].readyAt && Math.random() < PET_PER_HARVEST) { const sum = { items:{}, rare:[] }; givePet("farming", sum); if (sum.pets) toast(`${ITEMS.pet_burrow.name} popped out of the soil and started following you!`, true); }
   const p = state.patches[i]; if (!p || Date.now() < p.readyAt) return;
   const c = cropById(p.crop);
   let n = randInt(c.min, c.max); if (p.fert) n *= 1.25; if (has("gold_trowel")) n *= 1.2; n = Math.round(n);
@@ -1375,6 +1533,7 @@ function startBrew(i, id) {
   gainXp("brewing", b.startXp); toast(`${b.name} is fermenting`);
 }
 function collectBrew(i) {
+  if (state.barrels[i] && Date.now() >= state.barrels[i].readyAt && Math.random() < PET_PER_BREW) { const sum = { items:{}, rare:[] }; givePet("brewing", sum); if (sum.pets) toast(`${ITEMS.pet_hops.name} hopped out of the barrel and started following you!`, true); }
   const p = state.barrels[i]; if (!p || Date.now() < p.readyAt) return;
   const b = brewById(p.brew); add(b.out, BREW_YIELD); state.barrels[i] = null;
   gainXp("brewing", b.xp); toast(`Collected ${BREW_YIELD} ${b.name}`); log(`Brewed <b>${BREW_YIELD} ${b.name}</b>`);
@@ -1510,6 +1669,8 @@ function loadObj(o) {
   if (!o.clogSrc) { // older saves: file known uniques under the source they come from
     for (const e of clogTree().flatMap(g => g.entries)) if (e.tracked) for (const x of e.items) if (x.unique && state.clog[x.item]) { (state.clogSrc[e.id] = state.clogSrc[e.id] || {})[x.item] = state.clog[x.item]; }
   }
+  state.slayer = Object.assign({ task:null, points:0, streak:0, done:0 }, o.slayer);
+  state.xp.slayer = state.xp.slayer || 0;
   state.kills = o.kills || {}; state.buffs = o.buffs || {}; state.boats = o.boats || {}; state.islands = o.islands || {}; state.upgrades = o.upgrades || {};
   state.barrels = Array.isArray(o.barrels) ? o.barrels.concat([null,null,null]).slice(0, 3) : [null,null,null]; if (typeof o.hp !== "number") state.hp = lvl("hitpoints");
   if (state.bank.mark_of_grace) { add("skyfeather", state.bank.mark_of_grace); delete state.bank.mark_of_grace; }
@@ -1581,13 +1742,13 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
   ["Gathering", ["woodcutting","fishing","mining","farming"]],
   ["Production", ["firemaking","cooking","smithing","fletching","enchanting","brewing"]],
-  ["Utility", ["agility","thieving","seafaring"]],
+  ["Utility", ["agility","thieving","seafaring","slayer"]],
 ];
 const SECTIONS = [["skills","Skills","✦"],["combat","Combat","⚔"],["clog","Log","▤"],["bank","Bank","◫"],["more","More","≡"]];
 const NAV_ICON = { skills:"skills", combat:"attack", clog:"more", bank:"bank", more:"cog" };
@@ -1612,6 +1773,7 @@ function skillStatus(k) {
   if (k === "farming") { const r = state.patches.filter(p => p && now >= p.readyAt).length, g = state.patches.filter(p => p && now < p.readyAt).length; return r ? ["ok", `${r} ready to harvest`] : g ? ["", `${g} growing`] : ["", "Patches empty"]; }
   if (k === "seafaring") { const b = Object.values(state.boats), back = b.filter(t => t && now >= t.readyAt).length, sea = b.filter(t => t && now < t.readyAt).length;
     return back ? ["ok", `${back} back in port${sea ? ` · ${sea} at sea` : ""}`] : sea ? ["", `${sea} at sea`] : b.length ? ["", "Boats docked"] : ["", "No boats yet"]; }
+  if (k === "slayer") { const m = taskMon(); return m ? ["", `${state.slayer.task.left} ${m.name.toLowerCase()} left`] : ["", "No task"]; }
   if (k === "brewing") { const r = state.barrels.filter(p => p && now >= p.readyAt).length, g = state.barrels.filter(p => p && now < p.readyAt).length; return r ? ["ok", `${r} ready to collect`] : g ? ["", `${g} fermenting`] : ["", "Barrels empty"]; }
   return ["", ""];
 }
@@ -1637,7 +1799,9 @@ function skillHead(skill) {
   else if (skill === "fletching") perks = `<span class="chip on">Bows and arrows for Ranged</span><span class="chip on">Arrows: a bar + a log makes 15</span>`;
   else if (skill === "fishing") perks = `<span class="chip ${has("lucky_lure") ? "on" : ""}">Lucky lure${has("lucky_lure") ? ": 10% faster" : " (from caskets)"}</span><span class="chip on">Raw fish feeds Cooking</span>`;
   else if (skill === "cooking") perks = `<span class="chip on">Firemaking ${lvl("firemaking")}: burn −${(lvl("firemaking") * 0.3).toFixed(1)}%</span><span class="chip on">Better logs burn longer</span><span class="chip on">Fuel: <span class="num" data-fuel></span> logs</span>`;
+  else if (skill === "slayer") perks = `<span class="chip on">On task: ${SLAYER_XP} Slayer xp per monster hitpoint</span><span class="chip on">Slayer monsters need a Slayer level</span><span class="chip ${worn("slayer_helm") ? "on" : ""}">Slayer helm${worn("slayer_helm") ? ": +15% on task" : " (Slayer shop)"}</span><span class="chip ${has("echo_charm") ? "on" : ""}">Echo charm${has("echo_charm") ? ": +10% xp" : " (Gloom bats)"}</span><span class="chip ${has("bone_charm") ? "on" : ""}">Bone charm${has("bone_charm") ? ": +5% xp" : " (Slayer shop)"}</span>`;
   else perks = `<span class="chip on">Crops grow while you're away</span><span class="chip on">${FERTILISE_COST} ashes: 2× speed, +25% yield</span>`;
+  if (SKILL_PETS[skill]) { const pt = SKILL_PETS[skill]; perks += `<span class="chip ${has(pt) ? "on" : ""}">${has(pt) ? `${ITEMS[pt].name}: +3% xp` : "Pet: ???"}</span>`; }
   const eyrieItem = { woodcutting:"bird_whistle", firemaking:"ember_lantern", farming:"gold_trowel", thieving:"thief_satchel", combat:"warding_charm", agility:"windrunner_cape", fishing:"heron_float", cooking:"chef_gauntlets", mining:"prospector_charm" }[skill];
   if (eyrieItem) perks += `<span class="chip ${has(eyrieItem) ? "on" : ""}">${ITEMS[eyrieItem].name}${has(eyrieItem) ? ": " + ITEMS[eyrieItem].desc.replace(/\.$/, "").toLowerCase() : " (The Eyrie)"}</span>`;
   return `<div class="skillhead">
@@ -1793,7 +1957,9 @@ function clogTree() {
       { id: "brews", name: "Brews", sub: "Brewing", items: BREWS.map(b => ({ item: b.out, rate: `Brewing ${b.lvl}` })) },
     ] },
     { id: "other", name: "Other", entries: [
-      { id: "pets", name: "Pets", sub: "Each gives +2% combat xp", items: PETS.map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }) },
+      { id: "pets", name: "Pets", sub: "Combat pets +2% combat xp · skilling pets +3% to their skill", items: [...PETS.map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }),
+        ...Object.entries(SKILL_PETS).map(([sk, p]) => ({ item: p, unique: true, rate: sk === "farming" ? "1/300 per harvest" : sk === "brewing" ? "1/150 per barrel" : sk === "slayer" ? "1/60 per task" : `${SKILLS[sk].name}, about ${PET_HOURS}h` }))] },
+      { id: "slayershop", name: "Slayer shop", sub: "Slayer points", items: SLAYER_SHOP.map(e => ({ item: e.item, rate: `${e.price} points` })) },
       { id: "eyrie", name: "The Eyrie", sub: "Skyfeather shop", items: EYRIE.filter(e => e.item).map(e => ({ item: e.item, rate: `${e.price} feathers` })) },
     ] },
   ];
@@ -1812,6 +1978,10 @@ function clogItems() {
 // goal: lvl [skill,n] | total n | cmb n | kills [monster,n] | life [item,n] | trips n | clog n ("all" = every slot) | max99 1
 const QUEST_TIERS = ["Novice", "Adept", "Master", "Grandmaster"];
 const QUESTS = [
+  { id:"s1", tier:0, name:"Monster hunter",    desc:"Reach Slayer level 10.",                  goal:{ lvl:["slayer",10] },        reward:{ coins:500 } },
+  { id:"s2", tier:1, name:"Bog standard",      desc:"Defeat 100 bog horrors.",                 goal:{ kills:["boghorror",100] },  reward:{ coins:5000 } },
+  { id:"s3", tier:2, name:"Stone breaker",     desc:"Reach Slayer level 60.",                  goal:{ lvl:["slayer",60] },        reward:{ coins:25000 } },
+  { id:"s4", tier:3, name:"Into the void",     desc:"Defeat 200 void stalkers.",               goal:{ kills:["voidstalker",200] },reward:{ coins:150000 } },
   { id:"n1", tier:0, name:"First chop",        desc:"Reach Woodcutting level 10.",            goal:{ lvl:["woodcutting",10] },  reward:{ coins:100, items:{ oak_logs:10 } } },
   { id:"n2", tier:0, name:"Kindling",          desc:"Collect 50 ashes from Firemaking.",       goal:{ life:["ashes",50] },        reward:{ coins:150 } },
   { id:"n3", tier:0, name:"Green fingers",     desc:"Harvest 20 potatoes.",                    goal:{ life:["potato",20] },       reward:{ items:{ barley_seed:10 } } },
@@ -1919,8 +2089,9 @@ function clogPanel() {
 
 function morePanel() {
   let h = `<div class="pagehead"><h2>More</h2><span>Total level ${totalLevel()}</span></div>
-    <div class="seg" role="group" aria-label="More" style="grid-template-columns:repeat(3,1fr)">${[["quests","Quests"],["activity","Activity"],["help","Help & save"]].map(([k, n]) => `<button id="msub-${k}" data-moresub="${k}" aria-pressed="${moreSub === k}">${n}</button>`).join("")}</div>`;
+    <div class="seg" role="group" aria-label="More" style="grid-template-columns:repeat(4,1fr)">${[["quests","Quests"],["hiscores","Hiscores"],["activity","Activity"],["help","Help & save"]].map(([k, n]) => `<button id="msub-${k}" data-moresub="${k}" aria-pressed="${moreSub === k}">${n}</button>`).join("")}</div>`;
   if (moreSub === "quests") return h + questsPanel();
+  if (moreSub === "hiscores") return h + hiscoresPanel();
   if (moreSub === "clog") moreSub = "quests";
   if (moreSub === "activity") return h + (state.feed.length ? `<ul class="feed">` + state.feed.map(f => `<li class="${f.k}">${f.t}</li>`).join("") + `</ul>` : `<div class="empty">Level-ups, rare drops and voyages will be listed here.</div>`);
   h += `<h3>How to play</h3><ol class="guide">
@@ -2008,6 +2179,8 @@ function combatPanel() {
   let h = head + `<canvas id="scene" class="scene" role="img" aria-label="Battle scene"></canvas><div class="cmbtop"><div class="lvl">${combatLevel()}</div><h2>Combat level</h2>
     <div class="hpline"><span>Hitpoints</span><span class="num" data-hp></span></div>
     <div class="hpbar"><i data-hpbar></i></div></div>`;
+  { const tm = taskMon();
+    h += `<button class="taskbar" id="toSlayer" data-tab="slayer">${icon("slayer")}<span>${tm ? `Slayer task: <b><span class="num" data-taskleft></span> ${esc(tm.name.toLowerCase())}</b> left` : "No Slayer task"}</span><span class="go">${tm ? "Slayer" : "Get one"} ›</span></button>`; }
   h += `<div class="cskills" style="grid-template-columns:repeat(3,1fr)">` + ["attack","strength","defence","ranged","magic","hitpoints"].map(k => `<div class="cskill"><span>${icon(k)}${SKILLS[k].name}</span><b>${lvl(k)}</b><div class="bar"><i data-xpbar="${k}"></i></div></div>`).join("") + `</div>`;
   const t = ctype();
   h += loadoutSeg();
@@ -2034,10 +2207,10 @@ function combatPanel() {
     <span class="chip ${has("warding_charm") ? "on" : ""}">Warding charm${has("warding_charm") ? ": hit 15% less" : " (The Eyrie)"}</span></div>
     ${blockMsg ? `<p class="note lock">${blockMsg}. ${t === "ranged" ? "Bows and arrows are made in Fletching." : "Runes and staffs are made in Enchanting."}</p>` : ""}`;
   h += `<div class="actions">` + MONSTERS.map(m => {
-    const locked = combatLevel() < m.lvl, active = state.active && state.active.skill === "combat" && state.active.id === m.id;
+    const locked = !reqMet("combat", m), active = state.active && state.active.skill === "combat" && state.active.id === m.id;
     const notable = m.uniques.filter(u => !PETS.includes(u.item)).map(u => ITEMS[u.item].name).join(", ");
-    const meta = locked ? `<span class="lock">Needs combat level ${m.lvl}</span>`
-      : `${m.boss ? `<span class="chip" style="padding:0 7px;margin-right:4px;border-color:#ff7a1a;color:#ff7a1a">Boss</span>` : ""}${m.weak ? `<span class="chip" style="padding:0 7px;margin-right:4px">Weak to ${CTYPES[m.weak].toLowerCase()}</span>` : ""}<span class="ok">${Math.round(playerAcc(m) * 100)}% to hit</span> · it hits ${Math.round(foeAcc(m) * 100)}% up to ${m.max} · ${m.hp} hp · kills <span class="num">${fmt(state.kills[m.id] || 0)}</span>${notable ? `<br><span style="color:var(--rare)">Uniques: ${esc(notable)}</span>` : ""}`;
+    const meta = locked ? `<span class="lock">${combatLevel() < m.lvl ? `Needs combat level ${m.lvl}` : ""}${combatLevel() < m.lvl && m.slayer && lvl("slayer") < m.slayer ? " and " : ""}${m.slayer && lvl("slayer") < m.slayer ? `Needs Slayer ${m.slayer}` : ""}</span>`
+      : `${onTask(m) ? `<span class="chip on" style="padding:0 7px;margin-right:4px">Task</span>` : ""}${m.slayer ? `<span class="chip" style="padding:0 7px;margin-right:4px;border-color:var(--rare);color:var(--rare)">Slayer</span>` : ""}${m.boss ? `<span class="chip" style="padding:0 7px;margin-right:4px;border-color:#ff7a1a;color:#ff7a1a">Boss</span>` : ""}${m.weak ? `<span class="chip" style="padding:0 7px;margin-right:4px">Weak to ${CTYPES[m.weak].toLowerCase()}</span>` : ""}<span class="ok">${Math.round(playerAcc(m) * 100)}% to hit</span> · it hits ${Math.round(foeAcc(m) * 100)}% up to ${m.max} · ${m.hp} hp · kills <span class="num">${fmt(state.kills[m.id] || 0)}</span>${notable ? `<br><span style="color:var(--rare)">Uniques: ${esc(notable)}</span>` : ""}`;
     return `<button class="act" id="act-combat-${m.id}" data-skill="combat" data-id="${m.id}" aria-pressed="${active}" ${locked || state.hp <= 0 ? "disabled" : ""}>
       <span class="nm">${esc(m.name)}</span><span class="meta">${meta}</span><span class="side"><b>${m.hp * 16}</b>xp/kill</span></button>`;
   }).join("") + `</div>`;
@@ -2049,6 +2222,24 @@ function combatPanel() {
   return h;
 }
 
+function slayerPanel() {
+  const st = state.slayer, m = taskMon(), l = lvl("slayer");
+  let h = `<div class="task">`;
+  if (m) {
+    h += `<div class="taskhead">${icon("slayer")}<div><b>Kill ${st.task.total} × ${esc(m.name)}</b><span><span class="num" data-taskleft></span> left${reqMet("combat", m) ? "" : ` · <span class="lock">you can't fight these yet</span>`}</span></div></div>
+      <div class="tbar"><i data-taskbar></i></div>
+      <div class="row"><button class="btn solid" id="slayerFight" data-slayer="fight" ${reqMet("combat", m) ? "" : "disabled"}>Fight ${esc(m.name.toLowerCase())}</button><button class="btn" id="slayerSkip" data-slayer="skip" ${st.points < SKIP_COST ? "disabled" : ""}>Skip · ${SKIP_COST} points</button></div>`;
+  } else h += `<div class="taskhead">${icon("slayer")}<div><b>No task</b><span>The task master picks a monster you can handle and how many to kill.</span></div></div><div class="row"><button class="btn solid" id="slayerNew" data-slayer="new">Get a task</button></div>`;
+  h += `</div><div class="perks"><span class="chip on">Points: <b class="num" data-slayerpts></b></span><span class="chip on">Tasks done: ${fmt(st.done)}</span><span class="chip on">Streak ${st.streak} (every 10th task ×5 points, 50th ×15)</span></div>`;
+  h += `<h3>Slayer shop</h3><div class="actions">` + SLAYER_SHOP.map((e, i) => {
+    const owned = has(e.item), locked = l < e.req;
+    return `<button class="act" id="sbuy-${e.item}" data-sbuy="${i}" ${owned || locked || st.points < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${esc(ITEMS[e.item].name)}</span><span class="meta">${locked ? `<span class="lock">Needs Slayer ${e.req}</span>` : owned ? `<span class="ok">Owned</span> · ${esc(ITEMS[e.item].desc)}` : esc(ITEMS[e.item].desc)}</span><span class="side"><b>${e.price}</b>points</span></button>`;
+  }).join("") + `</div>`;
+  h += `<h3>Slayer monsters</h3><div class="clog">` + MONSTERS.filter(x => x.slayer).map(x =>
+    `<div class="row"><b>${esc(x.name)}</b><span><span class="${l >= x.slayer ? "got" : ""}">Slayer ${x.slayer}</span> · combat ${x.lvl} · ${x.uniques.map(u => `<span class="${got(u.item) ? "got" : ""}">${esc(ITEMS[u.item].name)} 1/${fmt(Math.round(1 / u.chance))}</span>`).join(", ")}</span></div>`).join("") + `</div>
+    <p class="note">Every kill on task gives Slayer xp as well as combat xp. Finish a task to earn points, then get a new one here. ${has(SKILL_PETS.slayer) ? "" : "Some say a small horned creature follows the most dedicated hunters…"}</p>`;
+  return h;
+}
 function brewingPanel() {
   const bl = lvl("brewing"), now = Date.now();
   let h = `<div class="patches">` + state.barrels.map((p, i) => {
@@ -2131,6 +2322,7 @@ function renderSheet() {
   const k = bankSel, it = ITEMS[k] || { name: k, desc: "" };
   let b = "";
   if (it.buff) b += `<button class="btn solid" id="drink-${k}" data-drink="${k}">Drink</button>`;
+  if (allPets().includes(k)) b += `<button class="btn ${state.opts.follow === k ? "" : "solid"}" id="follow-${k}" data-follow="${k}">${state.opts.follow === k ? "Stop following" : "Follow me"}</button>`;
   if (GEAR[k]) b += worn(k) ? `<button class="btn" id="sheet-unequip" data-unequip="${GEAR[k].slot}">Remove (${CTYPES[state.opts.ctype || "melee"]})</button>` : `<button class="btn solid" id="sheet-equip" data-equip="${k}">Wear (${CTYPES[state.opts.ctype || "melee"]})</button>`;
   if (k === "geode") b += `<button class="btn solid" id="openg1" data-geode="1">Open</button><button class="btn" id="opengall" data-geode="all">Open all</button>`;
   if (k === "casket") b += `<button class="btn solid" id="openc1" data-casket="1">Open</button><button class="btn" id="opencall" data-casket="all">Open all</button>`;
@@ -2153,6 +2345,19 @@ const ICON_PAL = {
   K:"#6b7480", k:"#3a4048", F:"#e3b98f", f:"#b58a63", T:"#c2a36b", t:"#8a7044", L:"#b07a3e",
 };
 const ICONS = {
+  slayer: [
+    "............",
+    "...WWWWWW...",
+    "..WWWWWWWW..",
+    ".WWWWWWWWWW.",
+    ".WkkWWWWkkW.",
+    ".WkRWWWWkRW.",
+    ".WWWWkkWWWW.",
+    "..WWWWWWWW..",
+    "...WkWkWk...",
+    "...WWWWWW...",
+    "..RR....RR..",
+    ".RR......RR."],
   woodcutting: [
     "............",
     "............",
@@ -2455,6 +2660,23 @@ const ICONS = {
 };
 // Item icons: templates use role digits 1-4 (recoloured per item) plus shared palette letters.
 const ITEM_TPL = {
+  sapling: ["....3333....", "...333333...", "..33343333..", "...333333...", "....1111....", "...1k11k1...", "...111111...", "..21111112..", "....1111....", "....2..2....", "...22..22...", "............"],
+  ember: [".....3......", "....33..3...", "...3443.33..", "..3444433...", "..34114433..", ".3411111443.", ".3k1111k143.", ".3411111143.", "..34111143..", "...333333...", "............", "............"],
+  mole: ["............", "............", "...111111...", "..11111111..", ".1111111111.", "441k1111111.", "4411111111..", ".1111111111.", ".1111111111.", "33.33..33...", "............", "............"],
+  bird: ["............", "....1111....", "...111111...", "..1W11W111..", "..1k11k111..", "..133311....", "..11WW111...", ".11WWWW11...", ".11WWWW11...", "..1WWWW1....", "...44.44....", "............"],
+  mouse: ["....WWWW....", "...WWWWWW...", "....WWWW....", ".11.1111.11.", ".1311111131.", "..1k1111k1..", "..11111111..", "....1441....", "..11111111..", ".1111111111.", "..2.2..2.22.", "..........2."],
+  crab: ["............", "..3......3..", ".33......33.", ".3.k....k.3.", "..11111111..", ".1121111211.", "111111111111", ".1112112111.", "..11111111..", ".2.2....2.2.", "2..2....2..2", "............"],
+  lizard: ["............", "............", "........111.", ".......1k111", "......11111.", "..11111114..", ".1141141111.", "11111111111.", "1..2.....2..", "..2.....2...", "............", "............"],
+  moth: ["............", ".33......33.", "3443....3443", "34443..34443", "344431134443", ".3443k1k3443", "..33311133..", ".3443113443.", "34443..34443", ".333....333.", "............", "............"],
+  frog: ["............", "............", "..11....11..", ".1Wk1..1kW1.", ".1111111111.", "111111111111", "112222222211", "111333333111", ".1133333311.", "22.22..22.22", "............", "............"],
+  squirrel: [".......333..", "......33333.", "..1..333333.", ".111.333333.", ".1k1133333..", "1111113333..", ".111111133..", "..111111....", "..144111....", "..111111....", "..2..2......", "............"],
+  ferret: ["............", "............", "............", ".33.........", "3k33........", "33331111111.", ".1111111111.", "..111111111.", "..2...2..222", "..2...2.....", "............", "............"],
+  imp: ["............", "..3......3..", "..33....33..", "...111111...", "..1Yk11kY1..", "..11111111..", "...1WWWW1...", "..11111111..", ".1.111111.1.", "...11..11...", "...2....2...", "..22....22.."],
+  satchel: ["............", "....2222....", "...2....2...", "..22222222..", ".2111111112.", ".2113311112.", ".2111111112.", ".2111441112.", ".2111111112.", ".2222222222.", "............", "............"],
+  skull: ["............", "...111111...", "..11111111..", ".1111111111.", ".1kk1111kk1.", ".1kk1111kk1.", ".11111k1111.", "..11111111..", "...1k1k1k...", "...111111...", "............", "............"],
+  maul: ["....1111....", "...111111...", "...131111...", "...111111...", "....1111....", ".....22.....", ".....22.....", ".....22.....", ".....22.....", ".....22.....", ".....44.....", "............"],
+  whip: ["............", "........111.", ".......1...1", "......1....1", ".....1....1.", "....1....1..", "...2......1.", "..42........", ".44.........", "44..........", "............", "............"],
+  wing: ["............", "1...........", "11.......1..", "111.....11..", "1111...111..", "11111.1111..", "111111111...", "1111111.....", "22222.......", "............", "............", "............"],
   log: ["............","............","............",".222222233..","211111113443","211111113443","212221213443",".222222233..","............","............","............","............"],
   ore: ["............","............","....2222....","..22111122..",".2111411112.",".2141111412.","211111411112","211411111412",".2111141112.","..22222222..","............","............"],
   bar: ["............","............","............","............","...3333333..","..31111112..",".3111111112.","311111111112","222222222222","............","............","............"],
@@ -2517,6 +2739,7 @@ const IC = {
 };
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
+  pet_twiglet:["sapling",["#a0703a", "#5a3a1c", "#6fbf5a", "#3f7a3a"]], pet_cinder:["ember",["#f7d35a", "#8e2a1f", "#d2452f", "#f0a33a"]], pet_burrow:["mole",["#5a4a52", "#2e242a", "#e3b98f", "#f2a0b0"]], pet_puffin:["bird",["#2a2a30", "#111114", "#f0a33a", "#f0a33a"]], pet_crumb:["mouse",["#b8b0a8", "#7a706a", "#f2a0b0", "#f2a0b0"]], pet_pebble:["crab",["#8a8f96", "#4e5359", "#b8c0c8", "#000"]], pet_clinker:["lizard",["#d2452f", "#7a2418", "#000", "#f7d35a"]], pet_quill:["bird",["#9a6a3a", "#5a3a1c", "#f7d35a", "#e8b84a"]], pet_glimmer:["moth",["#c79bf2", "#6b4fa0", "#6b4fa0", "#f2efe6"]], pet_hops:["frog",["#5aa846", "#2f6a24", "#d8e8a0", "#000"]], pet_scamper:["squirrel",["#c0703a", "#7a4a1e", "#d88a4a", "#f2efe6"]], pet_fidget:["ferret",["#d8c8a8", "#7a6a50", "#4a3a2e", "#000"]], pet_grimling:["imp",["#b03a5a", "#5a1a2e", "#e8dcc0", "#000"]], slayer_helm:["helm",["#3a3e44", "#1a1c20", "#d2452f", "#000"]], hunter_satchel:["satchel",["#8a5a2a", "#4a2e16", "#c8ccd2", "#e8b84a"]], bone_charm:["amulet",["#e8dcc0", "#000", "#f2efe6", "#c2a36b"]], echo_charm:["amulet",["#9aa3ad", "#000", "#c79bf2", "#5a3a8a"]], mire_greaves:["legs",["#5a7a2a", "#2f4a14", "#a0c060", "#000"]], gargant_maul:["maul",["#8a8f96", "#5a3a1c", "#c8ccd2", "#3a3e44"]], voidlash:["whip",["#7a4ad0", "#3a1e6a", "#000", "#7dff6a"]], bat_wing:["wing",["#5a3a8a", "#2e1e4a", "#000", "#000"]], bog_moss:["pile",["#5a7a2a", "#2f4a14", "#a0c060", "#000"]], gargant_shard:["gem",["#8a8f96", "#4e5359", "#c8ccd2", "#ff7a1a"]], void_essence:["orb",["#3a1e6a", "#1e0f3a", "#7dff6a", "#000"]],
   logs:["log",IC.wood], oak_logs:["log",IC.oak], willow_logs:["log",IC.willow], maple_logs:["log",IC.maple], ashes:["pile",["#8a8f96","#4e5359","#c8ccd2","#000"]],
   bird_nest:["nest",["#8a5a2a","#4a2e16","#000","#000"]], coins:["coins",["#e8b84a","#9a7420","#f7e08a","#000"]], doubloon:["coin",["#d9a430","#8a6418","#f7d35a","#000"]],
   acorn:["acorn",["#b07a3e","#5a3a1c","#e3c58e","#000"]], potato_seed:["seeds",["#c8a46a","#8a6a3a","#000","#000"]], willow_seed:["seeds",["#9aa050","#5a5e28","#000","#000"]], maple_seed:["seeds",["#c0562e","#7a3018","#000","#000"]],
@@ -2611,6 +2834,56 @@ const icon = (key, cls) => { const u = iconURL(key); return u ? `<img class="ico
 // A 1-pixel black outline is added automatically. px = screen pixels per sprite pixel.
 const SKIN = "#f2c08e";
 const SPRITES = {
+  gloombat: { px: 7, pal: { b:"#6a4aa0", B:"#2e1e4a", e:"#ff5050", t:"#ffffff" }, grid: [
+    "b..........b",
+    "bb...bb...bb",
+    "bbb.bbbb.bbb",
+    "bBbbbbbbbbBb",
+    "BBbbebbebbBB",
+    "B.bbbbbbbb.B",
+    "...btbbtb...",
+    "....bbbb....",
+    ".....bb.....",
+  ] },
+  boghorror: { px: 7, pal: { g:"#5a7a2a", G:"#3a5218", m:"#2a3a12", e:"#f7e04a", d:"#1a1a1a" }, grid: [
+    "....gggg....",
+    "..gggggggg..",
+    ".ggeeggeegg.",
+    ".ggdeggdegg.",
+    "gggggggggggg",
+    "gGggmmmmggGg",
+    "gGgmddddmgGg",
+    "GGggmmmmggGG",
+    "GgGggggggGgG",
+    "G.GGgGGgGG.G",
+    "g..G.GG.G..g",
+  ] },
+  gargant: { px: 7, pal: { s:"#8a8f96", S:"#5a5e66", d:"#3a3e44", e:"#ff7a1a", w:"#c8ccd2" }, grid: [
+    "SS........SS",
+    "SSS.ssss.SSS",
+    "SSssssssssSS",
+    ".SseSssSesS.",
+    ".SsssddsssS.",
+    "..ssswwsss..",
+    ".ssssssssss.",
+    "sSssssssssSs",
+    "sS.ssssss.Ss",
+    "...ss..ss...",
+    "..SSS..SSS..",
+  ] },
+  voidstalker: { px: 7, pal: { v:"#4a2a80", V:"#1e0f3a", p:"#7a4ad0", e:"#7dff6a", k:"#0b0b0d" }, grid: [
+    "....vvvv....",
+    "...vvvvvv...",
+    "..vvekkevv..",
+    "..vvvvvvvv..",
+    "...vpppv....",
+    "..vvvvvvvv..",
+    ".vvVvvvvVvv.",
+    "vvV.vvvv.Vvv",
+    "v.V.vVVv.V.v",
+    "..V.v..v.V..",
+    ".V..V..V..V.",
+  ] },
   warrior: { px: 8, pal: { h:"#d4d8de", H:"#8a939d", s:SKIN, e:"#1a1a1a", b:"#2f6fd0", B:"#1f4a94", g:"#f2c230", p:"#5a3a22", k:"#3a2614", w:"#eef2f6" }, grid: [
     "..hhhh....",
     ".hHHHHh..w",
@@ -2791,6 +3064,12 @@ function hpBar(ctx, x, y, w, frac) {
   ctx.fillStyle = frac > 0.5 ? "#4fe04a" : frac > 0.25 ? "#ffb52e" : "#ff3b30"; ctx.fillRect(x - w / 2, y, w * Math.max(0, Math.min(1, frac)), 4);
 }
 
+// your chosen pet trots along beside you
+function drawFollower(ctx, x, ground, now, still) {
+  const f = state.opts.follow; if (!f || !has(f)) return;
+  const hop = still ? 0 : Math.abs(Math.sin(now / 240)) * 4;
+  drawIcon(ctx, f, x, ground - 16 - hop, 32);
+}
 function drawScene(now) {
   const cv = $("scene"); if (!cv) { fxq = []; return; }
   const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
@@ -2838,6 +3117,7 @@ function drawScene(now) {
   const resting = fighting && state.fight.resting;
   const t = ctype(), hero = t === "ranged" ? SPRITES.archer : t === "magic" ? SPRITES.wizard : SPRITES.warrior;
   if (t === "magic") hero.pal.o = SPELL_COLOURS[spellOf().id];
+  drawFollower(ctx, pX - 52, ground, now, still);
   const ps = drawSprite(ctx, hero, pX + pdx, ground + bob, 5, false, 1);
   hpBar(ctx, pX, ground - ps.h - 12, 34, state.hp / maxHp());
   if (resting) { ctx.fillStyle = "#93a597"; ctx.font = "700 13px Karla, sans-serif"; ctx.textAlign = "left"; const z = (now / 600) % 3; ctx.fillText("z".repeat(1 + Math.floor(z)), pX + 14, ground - ps.h - 18); }
@@ -3092,6 +3372,7 @@ function drawSkillScene(now) {
     if (state.progress < 0) pdx = -10;
     else pdx = t * (oX - pX - 46) + (now - sscene.swingAt < 200 ? 6 : 0);
   }
+  drawFollower(ctx, px2 - WORKER.grid[0].length * s / 2 - 22, ground, now, still);
   const pr = drawGrid(ctx, "worker", WORKER.grid, WORKER.pal, px2 + pdx, ground + bob + pdy, s);
   const hx = px2 + pdx + 4.5 * s, hy = ground + bob + pdy - 2.8 * s;
   const tool = { woodcutting: "axe", mining: "pickaxe", smithing: "hammer", fletching: "knife" }[skill];
@@ -3215,6 +3496,7 @@ function render() {
   else if (tab === "seafaring") h = backBtn() + skillHead("seafaring") + `<canvas id="vscene" class="scene" style="height:230px" role="img" aria-label="Your boats at sea"></canvas>` + seafaringPanel();
   else if (tab === "farming") h = backBtn() + skillHead("farming") + farmingPanel();
   else if (tab === "brewing") h = backBtn() + skillHead("brewing") + brewingPanel();
+  else if (tab === "slayer") h = backBtn() + skillHead("slayer") + slayerPanel();
   else h = backBtn() + skillHead(tab) + (SCENE_SKILLS.includes(tab) ? `<canvas id="sscene" class="scene" role="img" aria-label="${SKILLS[tab].name} scene"></canvas>` : "") + actionList(tab) + (tab === "agility" ? eyriePanel() : "");
   const focusId = document.activeElement && document.activeElement.id;
   const openDetails = [...document.querySelectorAll("#panel details.more[open]")].length > 0;
@@ -3231,6 +3513,12 @@ function render() {
 
 /* Cheap in-place refresh, safe to run every frame */
 function update() {
+  { const el = $("syncInd"); if (el) { const on = cloudOn && !!cm.s; el.hidden = !on;
+    if (on) { const err = /reach|error|expired/i.test(cloud.msg || ""), stale = !cm.at || Date.now() - cm.at > 3 * 60000;
+      el.className = "sync" + (err ? " err" : stale ? " stale" : ""); const txt = err ? "Not synced, will retry" : cm.at ? `Synced ${ago(cm.at)}` : "Not synced yet"; if ($("syncTxt").textContent !== txt) $("syncTxt").textContent = txt; } } }
+  { const t = state.slayer.task; document.querySelectorAll("[data-taskleft]").forEach(el => el.textContent = t ? fmt(t.left) : "0");
+    document.querySelectorAll("[data-taskbar]").forEach(el => el.style.width = t ? (100 * (t.total - t.left) / t.total) + "%" : "0");
+    document.querySelectorAll("[data-slayerpts]").forEach(el => el.textContent = fmt(state.slayer.points)); }
   { const ca = $("cloudAgo"); if (ca) ca.textContent = ago(cm.at); }
   document.querySelectorAll("[data-qs]").forEach(el => { const q = qty(el.dataset.qs), v = shortQty(q); if (el.textContent !== v) { el.textContent = v; el.className = "qn " + (q >= 1e7 ? "m" : q >= 1e5 ? "k" : ""); } });
   document.querySelectorAll("[data-sellk]").forEach(el => { const k = el.dataset.sellk, n = Math.max(0, qty(k) - 1); el.textContent = fmt(n * (ITEMS[k].sell || 0)); el.closest("button").disabled = n === 0; });
@@ -3303,13 +3591,18 @@ function report(sum, away) {
 }
 
 /* ================= EVENTS ================= */
-let resetArmed = false;
+let resetArmed = false, sellArmed = null;
 function after() { if (signature() !== lastSig) render(); else update(); renderNow(); save(); }
 
 document.addEventListener("click", e => { if (e.target.closest("#lvlpop")) { hideLevel(); return; } });
 document.addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t || t.disabled) return;
   if (t.id && cloudClick(t.id)) return;
+  if (t.id === "hsRefresh") { hsLoad(true); return; }
+  if (t.id === "hsSave") { hsSaveName(); return; }
+  if (t.id === "hsRename") { hs.renaming = true; hs.nameDraft = cm.hsName || ""; hs.nameMsg = ""; hsRender(); return; }
+  if (t.id === "hsCancel") { hs.renaming = false; hs.nameMsg = ""; hsRender(); return; }
+  if (t.id === "hsSignIn") { cloud.step = "out"; showLogin(); return; }
   const d = t.dataset;
   if (d.clog !== undefined) { clogPath = d.clog ? d.clog.split("/") : []; if (!d.tab) { tab = "clog"; render(); window.scrollTo(0, 0); return; } }
   if (d.moresub) { moreSub = d.moresub; if (d.moresub === "clog" && d.clog === undefined) clogPath = []; if (!d.tab) { render(); return; } }
@@ -3337,6 +3630,15 @@ document.addEventListener("click", e => {
   if (d.open) { openNests(d.open === "all"); return after(); }
   if (d.casket) { openCaskets(d.casket === "all"); return after(); }
   if (d.geode) { openGeodes(d.geode === "all"); return after(); }
+  { // rare items need a second tap before they're sold
+    const k = d.sell || d.sellall || d.sellkeep;
+    if (k && ITEMS[k] && ITEMS[k].rare && sellArmed !== t.id) {
+      sellArmed = t.id; t.dataset.label = t.innerHTML; t.innerHTML = `Tap again to sell ${esc(ITEMS[k].name)}`; t.classList.add("danger");
+      setTimeout(() => { if (sellArmed === t.id) sellArmed = null; if (t.isConnected && t.dataset.label) { t.innerHTML = t.dataset.label; t.classList.remove("danger"); update(); } }, 4000);
+      return;
+    }
+    if (k) sellArmed = null;
+  }
   if (d.sell) { sell(d.sell, false); return after(); }
   if (d.sellall) { sell(d.sellall, true); return after(); }
   if (d.sellkeep) { sell(d.sellkeep, "keep1"); return after(); }
@@ -3354,6 +3656,9 @@ document.addEventListener("click", e => {
   if (d.up) { buyUpgrade(d.boat, d.up); return after(); }
   if (d.goods) { buyGoods(d.goods); return after(); }
   if (d.tboat) { traderBoat = d.tboat; return after(); }
+  if (d.slayer) { if (d.slayer === "fight") { fightTask(); render(); window.scrollTo(0, 0); return after(); } newTask(d.slayer === "skip"); return after(); }
+  if (d.sbuy !== undefined) { buySlayer(+d.sbuy); return after(); }
+  if (d.follow) { state.opts.follow = state.opts.follow === d.follow ? null : d.follow; renderSheet(); return after(); }
   if (t.id === "dismissAway") { $("away").innerHTML = ""; return; }
   if (t.id === "copySave") {
     const ta = $("saveCode");
@@ -3371,9 +3676,9 @@ document.addEventListener("click", e => {
     resetArmed = false; state = fresh(); saveDraft = null; render(); renderNow(); save(); toast("Progress reset"); return;
   }
 });
-document.addEventListener("change", e => { if (e.target.id === "autoChop") { state.opts.autoChop = e.target.checked; save(); } });
-document.addEventListener("input", e => { if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
-document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
+document.addEventListener("change", e => { if (e.target.id === "autoChop") { state.opts.autoChop = e.target.checked; save(); } if (e.target.id === "hsSkill") { hs.skill = e.target.value; hs.rows = null; hsLoad(true); } });
+document.addEventListener("input", e => { if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
+document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
 
 /* ================= CLOUD SAVE (Supabase) =================
    Sign in with an emailed code; the save lives in the `saves` table (one row per player).
@@ -3427,7 +3732,7 @@ async function accessToken() {
   return refreshing;
 }
 function signOutLocal(msg) {
-  cm.s = null; cm.rev = null; cm.synced = null; saveMeta();
+  cm.s = null; cm.rev = null; cm.synced = null; cm.hsName = null; cm.hsXp = null; saveMeta(); hs.rows = null;
   cloud.step = "out"; cloud.codeDraft = ""; cloud.msg = msg || ""; render();
   if (started) showLogin();
 }
@@ -3539,6 +3844,7 @@ async function push(keepalive) {
     }
     cm.rev = rev; cm.synced = last; cm.at = Date.now(); saveMeta();
     if (cloud.msg) cloudSay("");
+    hsSync();
   } catch (e) {
     pushing = false;
     if (e.status === 409) return cloudCheck(false);
@@ -3590,6 +3896,72 @@ function cloudClick(id) {
   return false;
 }
 setInterval(() => { if (!document.hidden) push(); }, 60000);
+
+
+/* ================= HISCORES ================= */
+// Boards live in Supabase (table hiscores + function hiscores_top). Anyone can view; signed-in players with a name are listed.
+const hs = { skill: "overall", rows: null, at: 0, loading: false, err: "", nameDraft: "", nameMsg: "", saving: false };
+const HS_SKILLS = () => ["overall", ...Object.keys(SKILLS)];
+const totalXp = () => Math.floor(Object.keys(SKILLS).reduce((a, k) => a + (state.xp[k] || 0), 0));
+const hsStats = () => ({ total_level: totalLevel(), total_xp: totalXp(), combat_level: combatLevel(), xp: Object.fromEntries(Object.keys(SKILLS).map(k => [k, Math.floor(state.xp[k] || 0)])), updated_at: new Date().toISOString() });
+async function hsLoad(force) {
+  if (!cloudOn || hs.loading) return;
+  if (!force && hs.rows && Date.now() - hs.at < 60000 && hs.rowsFor === hs.skill) return;
+  hs.loading = true; hs.err = ""; hsRender();
+  try {
+    const rows = await api("/rest/v1/rpc/hiscores_top", { method: "POST", body: { p_skill: hs.skill, p_limit: 50 } }, !!cm.s);
+    hs.rows = rows || []; hs.at = Date.now(); hs.rowsFor = hs.skill;
+    const me = hs.rows.find(r => r.is_me); if (me && cm.hsName !== me.name) { cm.hsName = me.name; saveMeta(); }
+  } catch (e) { hs.err = e.status === 0 ? "Can't reach the hiscores right now." : e.msg; }
+  hs.loading = false; hsRender();
+}
+async function hsSaveName() {
+  const name = (hs.nameDraft || "").trim().replace(/\s+/g, " ");
+  if (!/^[A-Za-z0-9][A-Za-z0-9 _-]{1,10}[A-Za-z0-9]$/.test(name)) { hs.nameMsg = "Use 3–12 letters, numbers, spaces, - or _."; return hsRender(); }
+  hs.saving = true; hs.nameMsg = "Saving…"; hsRender();
+  try {
+    const body = { user_id: cm.s.uid, name, ...hsStats() };
+    await api("/rest/v1/hiscores?on_conflict=user_id", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body });
+    cm.hsName = name; cm.hsXp = body.total_xp; saveMeta(); hs.nameMsg = ""; hs.renaming = false; toast(`You're on the hiscores as ${name}`);
+    hsLoad(true);
+  } catch (e) { hs.nameMsg = e.code === "23505" || e.status === 409 ? "That name is taken. Try another." : e.code === "23514" ? "Use 3–12 letters, numbers, spaces, - or _." : e.msg; }
+  hs.saving = false; hsRender();
+}
+// keep your hiscores entry up to date (called after each cloud upload)
+async function hsSync() {
+  if (!cloudOn || !cm.s || !cm.hsName) return;
+  const st = hsStats(); if (st.total_xp === cm.hsXp) return;
+  try { await api(`/rest/v1/hiscores?user_id=eq.${cm.s.uid}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: st }); cm.hsXp = st.total_xp; saveMeta(); } catch (e) {}
+}
+function hsRender() { if (tab === "more" && moreSub === "hiscores" && $("hsBody")) { const f = document.activeElement && document.activeElement.id; $("hsBody").innerHTML = hiscoresBody(); if (f && $(f)) $(f).focus({ preventScroll: true }); } }
+function hiscoresPanel() {
+  setTimeout(() => hsLoad(false), 0);
+  const opts = HS_SKILLS().map(k => `<option value="${k}" ${hs.skill === k ? "selected" : ""}>${k === "overall" ? "Overall" : SKILLS[k].name}</option>`).join("");
+  return `<div class="hshead"><label class="lbl" for="hsSkill">Board</label><select id="hsSkill" class="cin hssel">${opts}</select><button class="btn" id="hsRefresh">Refresh</button></div><div id="hsBody">${hiscoresBody()}</div>`;
+}
+function hiscoresBody() {
+  if (!cloudOn) return `<div class="empty">Hiscores need cloud saves, which aren't switched on in this copy of the game.</div>`;
+  let h = "";
+  // your entry
+  if (!cm.s) h += `<div class="hsme"><span>Sign in to appear on the hiscores.</span><button class="btn solid" id="hsSignIn">Sign in</button></div>`;
+  else if (!cm.hsName || hs.renaming) h += `<div class="hsme col"><b>${hs.renaming ? "Change your hiscores name" : "Pick a hiscores name"}</b><span>3–12 letters or numbers. Everyone can see it.</span>
+      <div class="hsname"><input class="cin" id="hsName" maxlength="12" autocomplete="nickname" placeholder="Name" value="${esc(hs.nameDraft || (hs.renaming ? cm.hsName : ""))}"><button class="btn solid" id="hsSave" ${hs.saving ? "disabled" : ""}>Save</button>${hs.renaming ? `<button class="btn" id="hsCancel">Cancel</button>` : ""}</div>
+      <span class="lmsg">${esc(hs.nameMsg)}</span></div>`;
+  else {
+    const me = hs.rows && hs.rows.find(r => r.is_me);
+    h += `<div class="hsme"><span>You're <b>${esc(cm.hsName)}</b>${me ? ` · rank <b>#${fmt(me.rank)}</b>` : ""}</span><button class="lnk" id="hsRename">Change name</button></div>`;
+  }
+  if (hs.err) return h + `<p class="note lock">${esc(hs.err)}</p>`;
+  if (!hs.rows) return h + `<div class="empty">${hs.loading ? "Loading…" : ""}</div>`;
+  if (!hs.rows.length) return h + `<div class="empty">No one is on this board yet. Be the first!</div>`;
+  const sk = hs.skill, overall = sk === "overall";
+  h += `<table class="hst"><thead><tr><th>#</th><th>Name</th><th>${overall ? "Total" : "Level"}</th><th>XP</th></tr></thead><tbody>` + hs.rows.map((r, i) => {
+    const gap = i > 0 && r.rank > hs.rows[i - 1].rank + 1 && r.is_me ? `<tr class="gap"><td colspan="4">…</td></tr>` : "";
+    const lv = overall ? r.total_level : levelOf(r.xp);
+    return gap + `<tr class="${r.is_me ? "me" : ""}"><td class="num">${fmt(r.rank)}</td><td>${r.rank <= 3 ? ["🥇","🥈","🥉"][r.rank - 1] + " " : ""}${esc(r.name)}</td><td class="num">${fmt(lv)}</td><td class="num">${fmt(r.xp)}</td></tr>`;
+  }).join("") + `</tbody></table><p class="note">${hs.loading ? "Updating…" : `Updated ${ago(hs.at)}.`} Your entry updates when your game syncs, about once a minute.</p>`;
+  return h;
+}
 
 /* ================= LOGIN SCREEN ================= */
 const loginOpen = () => !$("login").hidden;
@@ -3691,7 +4063,7 @@ function begin() {
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
 }
-window.__thornwick = { get state() { return state; }, get started() { return started; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, get started() { return started; }, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
