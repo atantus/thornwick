@@ -465,6 +465,14 @@ body.noscroll{overflow:hidden}
 .paytable div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:.82rem;color:var(--muted)}
 .paytable div b{color:var(--fg);font-size:1rem}
 .paytable div.hit{border-color:var(--ember-dim)} .paytable div.hit b{color:var(--ember)}
+.roofwrap{position:relative;margin-top:12px}
+.roofwrap .roofcv{margin-top:0}
+.roofmaxbtn{position:absolute;right:8px;bottom:8px;z-index:2;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(8,10,20,.6);border:1px solid rgba(255,255,255,.22);color:#e6e9dc;cursor:pointer;padding:0;touch-action:manipulation}
+.roofmaxbtn:hover{border-color:var(--ember);color:var(--ember)}
+.roofwrap.max{position:fixed;inset:0;z-index:8;margin:0;background:#0c1228;height:100vh;height:100dvh}
+.roofwrap.max .roofcv{width:100%;height:100%;max-height:none;aspect-ratio:auto;border:0;border-radius:0}
+.roofwrap.max .roofmaxbtn{right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:52px;height:52px}
+body.roofmax .rail,body.roofmax .dock{visibility:hidden}
 .roofcv{width:100%;aspect-ratio:16/10;max-height:60vh;display:block;border-radius:14px;border:1px solid var(--line);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer;background:#0c1228;margin-top:12px}
 div.act{cursor:default}
 .daily.boss{border-color:#ff7a1a66;background:linear-gradient(135deg,#ff7a1a14,transparent 60%),var(--panel)}
@@ -2767,6 +2775,9 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 29, date: "8 Oct 2026", title: "Full-screen Rooftop run", items: [
+    "Rooftop run has a full-screen button (bottom right of the scene, or press F). Tap anywhere to jump; ✕ or Esc to come back.",
+    "The view always shows at least 15 m of course ahead, and your payout shows on screen when a run ends. On a phone, turn it sideways for the widest view." ] },
   { v: 28, date: "8 Oct 2026", title: "A tidier bank", items: [
     "The bank is sorted into clear categories: Logs, Ores & bars, Gems & essence, Fish & meat, Food, Seeds & crops, Brews, Ammo & runes, Weapons, Armour, Capes & cosmetics, Tools, Jewellery, Charms & keepsakes, Monster drops, Pets and Trophies.",
     "All shows everything grouped under headings; tap a category (or a heading) to see just that group. The category bar stays at the top as you scroll.",
@@ -4383,6 +4394,7 @@ document.addEventListener("click", e => {
   if (d.arena) { arenaMove(d.arena); render(); return after(); }
   if (d.arenafight !== undefined) { arenaStart(+d.arenafight); render(); window.scrollTo(0, 0); return after(); }
   if (d.ashop !== undefined) { buyAshop(+d.ashop); return after(); }
+  if (t.id === "roofMax") { roofSetMax(!roof.max); return; }
   if (t.id === "arenaBack") { arena.fight = null; arena.anim = null; render(); return after(); }
   if (t.id === "arenaRefresh") { arena.refresh++; arenaLoad(); render(); return; }
   if (d.bossgo !== undefined) { dailyGo(0, "boss"); render(); window.scrollTo(0, 0); return after(); }
@@ -5610,9 +5622,26 @@ function roofEnd(R) {
   log(`Rooftop run: <b>${fmt(dist)} m</b>${ranked ? ` (+${fmt(xp)} Agility xp)` : ""}`, newBest ? "r" : "l");
   save();
 }
+// Full-screen play: the canvas wrapper becomes a fixed overlay (works everywhere, including iPhone),
+// and on browsers that allow it the page also goes truly full screen.
+const ROOF_ICON_MAX = `<svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true"><path d="M2 7V2h5M13 2h5v5M18 13v5h-5M7 18H2v-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const ROOF_ICON_MIN = `<svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>`;
+function roofSetMax(on) {
+  roof.max = !!on;
+  document.body.classList.toggle("noscroll", roof.max);
+  document.body.classList.toggle("roofmax", roof.max);
+  const de = document.documentElement;
+  try {
+    if (roof.max && de.requestFullscreen && !document.fullscreenElement) de.requestFullscreen({ navigationUI: "hide" }).catch(() => {});
+    if (!roof.max && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+  } catch (e) {}
+  if (roof.run && !roof.run.dead) roof.lastT = 0;
+  render();
+  const b = $("roofMax"); if (b && b.blur) b.blur();
+}
 function roofPanel() {
   const S = roofState(), L = roof.last;
-  let h = `<canvas id="roofCv" class="roofcv" aria-label="Rooftop run. Tap, click or press space to jump; hold for a higher jump."></canvas>
+  let h = `<div class="roofwrap ${roof.max ? "max" : ""}" id="roofWrap"><canvas id="roofCv" class="roofcv" aria-label="Rooftop run. Tap, click or press space to jump; hold for a higher jump."></canvas><button class="roofmaxbtn" id="roofMax" aria-label="${roof.max ? "Exit full screen" : "Play full screen"}" title="${roof.max ? "Exit full screen (Esc)" : "Play full screen"}">${roof.max ? ROOF_ICON_MIN : ROOF_ICON_MAX}</button></div>
     <p class="note" style="margin-top:8px">Tap the scene or press space to jump. A quick tap is a short hop; hold to jump higher and further. Time your take-off for the chimney stacks, and use a quick tap to slip between a chimney and a washing line. ${roofDouble() ? "Tap again in the air to double jump." : "Agility 40 unlocks a double jump."}</p>`;
   if (L) h += `<div class="arena-res ${L.newBest ? "win" : ""}"><b class="big">${fmt(L.dist)} m${L.newBest ? " · new best!" : ""}</b><span>${esc(L.why || "")} ${L.ranked ? `+${fmt(L.xp)} Agility xp${L.coins ? ` · +${fmt(L.coins)} coins` : ""}${L.fea ? ` · +${L.fea} skyfeathers` : ""}` : `Under ${ROOF_MIN} m: nothing banked${L.got ? ` and ${L.got} skyfeather${L.got > 1 ? "s" : ""} lost` : ""}.`}</span>${L.unlocked.length ? `<span class="ok">Unlocked: ${L.unlocked.map(u => esc(ITEMS[u].name)).join(", ")}</span>` : ""}</div>`;
   h += `<div class="achtop" style="margin-top:12px">${icon("agility")}<div><span class="ar">Best run</span><b class="num">${fmt(S.best)} m</b><span>Unlimited runs · ${fmt(S.runs)} today · paid at ${esc(roofCourse().name)} pace${has("pet_scamp") ? " · Scamp +10%" : ""}</span></div></div>`;
@@ -5626,6 +5655,7 @@ function roofPanel() {
 }
 function drawRoof(now) {
   const R = roof.run;
+  if (roof.max && tab !== "roof") roofSetMax(false);
   if (R && !R.dead && !R.paused) {
     if (tab !== "roof") R.paused = true;
     else { let dt = roof.lastT ? Math.min(0.05, (now - roof.lastT) / 1000) : 0; while (dt > 1e-6 && !R.dead) { const st = Math.min(1 / 120, dt); roofStep(R, st); dt -= st; } if (R.dead) render(); }
@@ -5637,17 +5667,17 @@ function drawRoof(now) {
   const ctx = cv.getContext && cv.getContext("2d"); if (!ctx) return;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.imageSmoothingEnabled = false;
   const G = R || { x: 0, y: 0, segs: [{ x0: -12, x1: 26, h: 0, chim: [], beams: [], kind: "roof" }], feathers: [], got: 0, v: 7, ground: true };
-  const ppm = H / 9;
+  const ppm = Math.min(H / 9, W / 15);
   // follow the height you last landed at (plus a little of a fall), so the next landing stays in view
   const camT = G.y < (G.landH || 0) - 1 ? G.y + 1 : (G.landH || 0);
   G.camY = G.camY == null ? camT : G.camY + (camT - G.camY) * 0.06;
-  const camX = G.x - (W * 0.28) / ppm, sx = x => (x - camX) * ppm, sy = y => H * 0.7 - (y - G.camY) * ppm;
+  const camX = G.x - (W * 0.28) / ppm, sx = x => (x - camX) * ppm, baseY = Math.min(H * 0.7, H / 2 + 3 * ppm), sy = y => baseY - (y - G.camY) * ppm;
   // sky, moon, stars, far skyline
   const sk = ctx.createLinearGradient(0, 0, 0, H); sk.addColorStop(0, "#0c1228"); sk.addColorStop(1, "#28304e"); ctx.fillStyle = sk; ctx.fillRect(0, 0, W, H);
   const st = seeded("stars"); for (let i = 0; i < 40; i++) { ctx.fillStyle = i % 5 ? "#8a94c0" : "#e6e9dc"; ctx.fillRect(Math.floor(st() * W), Math.floor(st() * H * 0.5), 2, 2); }
-  ctx.fillStyle = "#f2efe6"; ctx.beginPath(); ctx.arc(W * 0.82, H * 0.18, H * 0.07, 0, 7); ctx.fill(); ctx.fillStyle = "#0c1228"; ctx.beginPath(); ctx.arc(W * 0.82 + H * 0.03, H * 0.16, H * 0.06, 0, 7); ctx.fill();
+  const mr = Math.min(W, H); ctx.fillStyle = "#f2efe6"; ctx.beginPath(); ctx.arc(W * 0.82, mr * 0.2, mr * 0.07, 0, 7); ctx.fill(); ctx.fillStyle = "#0c1228"; ctx.beginPath(); ctx.arc(W * 0.82 + mr * 0.03, mr * 0.18, mr * 0.06, 0, 7); ctx.fill();
   ctx.fillStyle = "#1a2038";
-  for (let i = -1; i < W / 40 + 2; i++) { const wx = i * 40 - ((camX * ppm * 0.25) % 40), k = Math.floor(i + camX * ppm * 0.25 / 40); const hh = 30 + ((k * 37) % 50 + 50) % 50; ctx.fillRect(wx, H * 0.62 - hh, 34, hh + H); if (((k * 13) % 7 + 7) % 7 === 0) ctx.fillRect(wx + 12, H * 0.62 - hh - 14, 6, 14); }
+  for (let i = -1; i < W / 40 + 2; i++) { const wx = i * 40 - ((camX * ppm * 0.25) % 40), k = Math.floor(i + camX * ppm * 0.25 / 40); const hh = 30 + ((k * 37) % 50 + 50) % 50; ctx.fillRect(wx, (baseY - H * 0.08) - hh, 34, hh + H); if (((k * 13) % 7 + 7) % 7 === 0) ctx.fillRect(wx + 12, (baseY - H * 0.08) - hh - 14, 6, 14); }
   // roofs
   for (const s of G.segs) {
     const x0 = sx(s.x0), x1 = sx(s.x1), top = sy(s.h); if (x1 < -10 || x0 > W + 10) continue;
@@ -5691,16 +5721,22 @@ function drawRoof(now) {
   drawIcon(ctx, "skyfeather", 22, 46, 20); ctx.font = "700 14px 'JetBrains Mono', monospace"; ctx.fillStyle = "#f2efe6"; ctx.fillText("× " + G.got, 36, 51);
   ctx.textAlign = "right"; ctx.fillStyle = "#93a5c0"; ctx.font = "600 12px Karla, sans-serif"; ctx.fillText(`Best ${fmt(roofState().best)} m`, W - 10, 20);
   if (R && !G.dead) { const d = Math.floor(G.x), P = roofPayout(d, G.got); ctx.font = "700 13px 'JetBrains Mono', monospace"; const bt = P.xp ? `Bank: ${fmt(P.xp)} xp${P.coins ? " + " + fmt(P.coins) : ""}` : `Pays from ${ROOF_MIN} m`, bw = ctx.measureText(bt).width; ctx.fillStyle = "rgba(8,10,20,.7)"; ctx.fillRect(W - bw - 16, 26, bw + 12, 18); ctx.fillStyle = P.xp ? "#f0a33a" : "#93a5c0"; ctx.fillText(P.xp ? `Bank: ${fmt(P.xp)} xp${P.coins ? " + " + fmt(P.coins) : ""}` : `Pays from ${ROOF_MIN} m`, W - 10, 38); }
+  const L = roof.last, big = roof.max ? 1.4 : 1;
   const msg = !R ? ["Rooftop run", "Tap or press space to start"] : G.paused ? ["Paused", "Tap to carry on"] : G.dead ? [`${fmt(Math.floor(G.x))} m`, performance.now() - G.deadAt > 700 ? "Tap to run again" : ""] : null;
   if (msg) {
-    ctx.fillStyle = "rgba(8,10,20,.55)"; ctx.fillRect(0, 0, W, H); ctx.textAlign = "center";
-    ctx.font = "30px 'Pirata One', Georgia, serif"; ctx.fillStyle = "#f0a33a"; ctx.fillText(msg[0], W / 2, H / 2 - 4);
-    ctx.font = "600 14px Karla, sans-serif"; ctx.fillStyle = "#e6e9dc"; ctx.fillText(msg[1], W / 2, H / 2 + 20);
+    ctx.fillStyle = "rgba(8,10,20,.72)"; ctx.fillRect(0, 0, W, H); ctx.textAlign = "center";
+    ctx.font = `${Math.round(30 * big)}px 'Pirata One', Georgia, serif`; ctx.fillStyle = "#f0a33a"; ctx.fillText(msg[0], W / 2, H / 2 - 22 * big);
+    if (G.dead && L) { ctx.font = `600 ${Math.round(14 * big)}px Karla, sans-serif`; ctx.fillStyle = L.ranked ? "#8fc27a" : "#e06c5a"; ctx.fillText(L.ranked ? `+${fmt(L.xp)} xp${L.coins ? ` · +${fmt(L.coins)} coins` : ""}${L.fea ? ` · +${L.fea} feathers` : ""}${L.newBest ? " · new best!" : ""}` : `Under ${ROOF_MIN} m: nothing banked`, W / 2, H / 2 + 2 * big); }
+    ctx.font = `600 ${Math.round(14 * big)}px Karla, sans-serif`; ctx.fillStyle = "#e6e9dc"; ctx.fillText(msg[1], W / 2, H / 2 + 24 * big);
+    if (roof.max && H > W * 1.15) { ctx.font = "600 12px Karla, sans-serif"; ctx.fillStyle = "#93a5c0"; ctx.fillText("Tip: turn your phone sideways for a wider view", W / 2, H - 24); }
+    else if (!R && !roof.max) { ctx.font = "600 11px Karla, sans-serif"; ctx.fillStyle = "#93a5c0"; ctx.fillText("Tap ⤢ for full screen", W / 2, H / 2 + 44); }
   }
 }
 document.addEventListener("pointerdown", e => { if (e.target && e.target.id === "roofCv") { e.preventDefault(); roofPress(); } });
 document.addEventListener("pointerup", roofRelease);
 document.addEventListener("pointercancel", roofRelease);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && roof.max) { roofSetMax(false); return; } if ((e.key === "f" || e.key === "F") && tab === "roof" && !(e.target && e.target.matches && e.target.matches("input,textarea"))) { roofSetMax(!roof.max); return; } });
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && roof.max && roof.fsWas) roofSetMax(false); roof.fsWas = !!document.fullscreenElement; });
 document.addEventListener("keydown", e => { if (tab !== "roof" || e.repeat || (e.target && e.target.matches && e.target.matches("input,textarea"))) return; if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w") { e.preventDefault(); roofPress(); } });
 document.addEventListener("keyup", e => { if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w") roofRelease(); });
 
