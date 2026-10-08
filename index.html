@@ -434,6 +434,10 @@ body.noscroll{overflow:hidden}
 .arena-res .ok{color:var(--moss)}
 .rules{display:flex;flex-direction:column;gap:6px;margin-top:12px;padding:12px 14px;border:1px dashed var(--ember-dim);border-radius:12px;font-size:.9rem;color:var(--muted)}
 .rules>b{color:var(--ember);font-size:.75rem;text-transform:uppercase;letter-spacing:.1em} .rules span b{color:var(--fg)}
+.paytable{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.paytable div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:.82rem;color:var(--muted)}
+.paytable div b{color:var(--fg);font-size:1rem}
+.paytable div.hit{border-color:var(--ember-dim)} .paytable div.hit b{color:var(--ember)}
 .roofcv{width:100%;aspect-ratio:16/10;max-height:60vh;display:block;border-radius:14px;border:1px solid var(--line);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer;background:#0c1228;margin-top:12px}
 div.act{cursor:default}
 .daily.boss{border-color:#ff7a1a66;background:linear-gradient(135deg,#ff7a1a14,transparent 60%),var(--panel)}
@@ -2695,6 +2699,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 27, date: "8 Oct 2026", title: "Rooftop run: high risk, high reward", items: [
+    "Unlimited runs: no more daily limit.",
+    "Payouts now grow steeply with distance. Under 100 m you bank nothing (and lose any skyfeathers you grabbed). Past that, every metre is worth more than the last: 500 m pays about 4× what idle training would in that time, 1,000 m about 8×. Coins from 250 m, bonus skyfeathers every 100 m.",
+    "The scene shows what you'd bank if you fell right now, and the page has a payout table.",
+    "Harder course: faster top speed, chimney stacks from early on and in longer runs, narrower stacks and more washing lines." ] },
   { v: 26, date: "8 Oct 2026", title: "A tougher Rooftop run", items: [
     "Rooftop run is now about timing: runs of narrow chimney stacks where jumping too early, too late, too high or too low drops you.",
     "Washing lines strung above chimneys: slip between the two with a quick tap. Hold too long and you'll get tangled.",
@@ -4110,7 +4119,7 @@ function render() {
   else if (tab === "daily") h = `<div class="pagehead"><h2>Challenges</h2><span>${3 - dailyLeft()} / 3 today</span></div>` + dailyPanel();
   else if (tab === "mini") h = `<div class="pagehead"><h2>Minigames</h2><span>Hands-on play</span></div>` + miniPanel();
   else if (tab === "arena") h = miniBack + `<div class="pagehead"><h2>Arena</h2><span>${arenaLeft()} / ${ARENA_DAILY} ranked left</span></div>` + arenaPanel();
-  else if (tab === "roof") h = miniBack + `<div class="pagehead"><h2>Rooftop run</h2><span>${Math.max(0, ROOF_DAILY - roofState().runs)} / ${ROOF_DAILY} rewarded left</span></div>` + roofPanel();
+  else if (tab === "roof") h = miniBack + `<div class="pagehead"><h2>Rooftop run</h2><span>Best ${fmt(roofState().best)} m</span></div>` + roofPanel();
   else if (tab === "dshop") h = `<div class="pagehead"><h2>Daily shop</h2><span>${fmt(qty(TOK))} tokens</span></div>` + dshopPanel();
   else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "ach" ? "Achievements" : logSub === "shop" ? "Point shop" : "Collection log"}</h2><span>${logSub === "ach" ? fmt(achPoints()) + " points" : logSub === "shop" ? fmt(apBalance()) + " to spend" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
 ` + (logSub === "ach" ? achPanel() : logSub === "shop" ? apShopPanel() : clogPanel());
@@ -5159,16 +5168,16 @@ function dshopPanel() {
 /* ================= MINIGAMES HUB ================= */
 const miniBack = `<button class="linkbtn crumb" id="toMini" data-nav="mini:">‹ Minigames</button>`;
 function miniPanel() {
-  const A = arenaState(), S = roofState(), al = arenaLeft(), rl = Math.max(0, ROOF_DAILY - S.runs);
+  const A = arenaState(), S = roofState(), al = arenaLeft(), rl = 0;
   const card = (id, nav, ic, title, blurb, chips, btn) => `<div class="mgcard"><div class="mgtop">${icon(ic)}<div><h3>${title}</h3><p>${blurb}</p></div></div>
     <div class="mgchips">${chips.map(c => `<span class="chip">${c}</span>`).join("")}</div>
     <button class="btn solid" id="${id}" data-nav="${nav}">${btn}</button></div>`;
-  return `<p class="note" style="margin-top:0">Short bursts of active play alongside your idle progress. Each has a daily limit on rewards and its own unlocks.</p>
+  return `<p class="note" style="margin-top:0">Short bursts of active play alongside your idle progress, each with its own rewards and unlocks.</p>
   <div class="mglist">
   ${card("go-arena", "arena:", "arena_helm", "Arena", "Turn-based duels against ghosts of real players. Attack beats Special, Block beats Attack, Special beats Block. Read the tells to win.",
     [al ? `${al} / ${ARENA_DAILY} ranked fights left` : "Practice only until midnight", `${fmt(qty(GLORY))} glory`, `${fmt(A.wins)} wins`].concat(A.streak > 1 ? [`${A.streak}-win streak`] : []), arena.fight && !arena.fight.over ? "Back to your fight" : "Enter the Arena")}
-  ${card("go-roof", "roof:", "agility", "Rooftop run", `Leap across Thornwick's rooftops at night: hop between narrow chimney stacks and slip under washing lines. A quick tap is a short hop, hold to jump further${roofDouble() ? ", tap again to double jump" : ""}. Earn Agility xp and rare skyfeathers.`,
-    [rl ? `${rl} / ${ROOF_DAILY} rewarded runs left` : "Practice only until midnight", `Best ${fmt(S.best)} m`].concat(ROOF_UNLOCKS.filter(u => !ownedEver(u.item)).slice(0, 1).map(u => `Next unlock at ${fmt(u.m)} m`)), roof.run && roof.run.paused && !roof.run.dead ? "Resume your run" : "Start running")}
+  ${card("go-roof", "roof:", "agility", "Rooftop run", `Leap across Thornwick's rooftops at night: hop between narrow chimney stacks and slip under washing lines. A quick tap is a short hop, hold to jump further${roofDouble() ? ", tap again to double jump" : ""}. Long runs pay big; falls under ${ROOF_MIN} m pay nothing.`,
+    ["Unlimited runs", `Best ${fmt(S.best)} m`, "High risk, high reward"].concat(ROOF_UNLOCKS.filter(u => !ownedEver(u.item)).slice(0, 1).map(u => `Next unlock at ${fmt(u.m)} m`)), roof.run && roof.run.paused && !roof.run.dead ? "Resume your run" : "Start running")}
   </div>`;
 }
 
@@ -5404,7 +5413,7 @@ function drawArena(now) {
 
 /* ================= ROOFTOP RUN =================
    One-button runner. Distances in metres; y is height above the starting roof. */
-const ROOF_DAILY = 10, ROOF_G = 28, ROOF_JUMP = 9.5;
+const ROOF_MIN = 100, ROOF_G = 28, ROOF_JUMP = 9.5;
 const ROOF_UNLOCKS = [{ m: 200, item: "roof_hood" }, { m: 500, item: "roof_cape" }, { m: 1000, item: "pet_scamp" }];
 const roof = { run: null, last: null, lastT: 0 };
 function roofState() {
@@ -5415,9 +5424,17 @@ function roofState() {
   return R;
 }
 const roofCourse = () => [...COURSES].reverse().find(c => lvl("agility") >= c.lvl) || COURSES[0];
-const roofXpPerM = () => roofCourse().xp / 20 * (has("pet_scamp") ? 1.1 : 1);
+// seconds to run d metres (speed 7.5 + x/120, capped at 13 from 660 m)
+const roofTime = d => d < 660 ? 120 * Math.log((7.5 + d / 120) / 7.5) : 120 * Math.log(13 / 7.5) + (d - 660) / 13;
+// High risk, high reward: nothing under 100 m (feathers lost too); past that, xp is your best course's idle rate
+// for the time spent × (distance / 125). So 100 m ≈ 0.8× idle, 500 m ≈ 4×, 1,000 m ≈ 8×. Coins from 250 m.
+function roofPayout(d, got) {
+  if (d < ROOF_MIN) return { xp: 0, coins: 0, fea: 0 };
+  const c = roofCourse();
+  return { xp: Math.round(c.xp / c.time * roofTime(d) * d / 125 * (has("pet_scamp") ? 1.1 : 1)), coins: d >= 250 ? Math.floor(d * d / 50) : 0, fea: (got || 0) + Math.floor((d - ROOF_MIN) / 100) };
+}
 const roofDouble = () => lvl("agility") >= 40;
-const roofSpeed = x => Math.min(12, 7 + x / 150);
+const roofSpeed = x => Math.min(13, 7.5 + x / 120);
 function roofNew() {
   const R = { x: 0, y: 0, vy: 0, v: 7, ground: true, air: 0, jumps: 0, hold: false, holdT: 0, run: 0, segs: [{ x0: -12, x1: 22, h: 0, chim: [], beams: [], kind: "roof" }], feathers: [], got: 0, dead: false, paused: false };
   roofGen(R); return R;
@@ -5429,20 +5446,25 @@ function roofGen(R) {
   let last = R.segs[R.segs.length - 1];
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   while (last.x1 < R.x + 45) {
-    const d = last.x1, k = Math.min(1, d / 900), v = roofSpeed(d) + 0.3;
+    const d = last.x1, k = Math.min(1, d / 600), v = roofSpeed(d) + 0.3;
     let s;
     if (R.run > 0) {
       R.run--;
       const h = clamp(last.h - 0.7 + Math.random() * 1.3, -1.5, 3);
-      let g = v * (0.3 + Math.random() * 0.25); if (h - last.h > 0.3) g = Math.min(g, v * 0.42);
-      const w = Math.max(2, 3.4 - 1.4 * k + Math.random() * 0.8);
+      const w = Math.max(1.4, 2.6 - 1.2 * k + Math.random() * 0.5);
+      // space it from real jump lengths: a tap travels speed × air time; a full hold about 25% further.
+      // The gap always leaves some take-off point and hold that lands you on it, but not much slack.
+      const v0 = roofSpeed(d), dh = h - last.h, air = (9.5 + Math.sqrt(Math.max(0, 90.25 - 56 * dh))) / 28;
+      const rT = v0 * air, rH = rT * 1.25, wA = Math.min(4, last.x1 - last.x0);
+      const lo = rT - w / 2 - wA * 0.6, hi = rT + (rH - rT) * 0.7 - w / 2;
+      const g = Math.max(1.5, lo + Math.random() * Math.max(0, hi - lo));
       s = { x0: d + g, x1: d + g + w, h, chim: [], beams: [], kind: "stack" };
       if (Math.random() < 0.12) R.feathers.push({ x: d + g / 2, y: Math.max(last.h, h) + 2.25 });
-    } else if (last.kind === "roof" && d > 40 && Math.random() < 0.3 + 0.35 * k) {
-      R.run = 2 + Math.floor(Math.random() * (2 + 3 * k)); continue;
+    } else if (last.kind === "roof" && d > 25 && Math.random() < 0.4 + 0.4 * k) {
+      R.run = 2 + Math.floor(Math.random() * (3 + 4 * k)); continue;
     } else {
       const h = clamp(last.h - 1.4 + Math.random() * 2.4, -1.5, 3);
-      let maxGap = Math.max(2, Math.min(v * 0.58, 7)); if (h - last.h > 0.5) maxGap *= 0.72;
+      let maxGap = Math.max(2, Math.min(v * 0.6, 7.5)); if (h - last.h > 0.5) maxGap *= 0.72;
       const gap = 1.5 + Math.random() * (maxGap - 1.5), len = Math.max(5, v * 0.75) + Math.random() * (4 + 6 * (1 - k));
       const chim = Math.random() < 0.6;
       s = { x0: d + gap, h, chim: [], beams: [], kind: "roof" }; s.x1 = s.x0 + (chim ? Math.max(len, 4 + 1.6 * v) : len);
@@ -5451,7 +5473,7 @@ function roofGen(R) {
       if (chim && cHi > cLo) {
         const c = cLo + Math.random() * (cHi - cLo); s.chim.push(c);
         // a washing line above it: only a quick tap fits between the two
-        if (d > 60 && Math.random() < 0.3 + 0.4 * k) s.beams.push({ a: c - 1.6, b: c + 2.3, y: s.h + 3.4 });
+        if (d > 40 && Math.random() < 0.45 + 0.45 * k) s.beams.push({ a: c - 1.6, b: c + 2.3, y: s.h + 3.4 });
       }
       if (Math.random() < 0.1) R.feathers.push({ x: d + gap / 2, y: Math.max(last.h, h) + 2.3 });
     }
@@ -5499,29 +5521,33 @@ function roofPress() {
 const roofRelease = () => { if (roof.run) roof.run.hold = false; };
 function roofDie(R, why) { R.dead = true; R.why = why; if (R.sim) return; R.deadAt = performance.now(); roofEnd(R); }
 function roofEnd(R) {
-  const S = roofState(), dist = Math.floor(Math.max(0, R.x)), ranked = S.runs < ROOF_DAILY;
-  S.total++; S.dist += dist; if (ranked) S.runs++;
+  const S = roofState(), dist = Math.floor(Math.max(0, R.x)), P = roofPayout(dist, R.got), ranked = dist >= ROOF_MIN;
+  S.total++; S.runs++; S.dist += dist;
   const newBest = dist > S.best; if (newBest) S.best = dist;
-  let xp = 0, fea = 0;
-  if (ranked && dist > 0) { xp = Math.round(dist * roofXpPerM()); fea = R.got; gainXp("agility", xp); if (fea) add("skyfeather", fea); }
+  const xp = P.xp, fea = P.fea, coins = P.coins;
+  if (xp) gainXp("agility", xp);
+  if (fea) add("skyfeather", fea);
+  if (coins) add("coins", coins);
   const unlocked = [];
   for (const u of ROOF_UNLOCKS) if (S.best >= u.m && !ownedEver(u.item)) { add(u.item, 1); unlocked.push(u.item); if (u.item === "pet_scamp" && !state.opts.follow) state.opts.follow = "pet_scamp"; }
-  roof.last = { t: Date.now(), dist, xp, fea, got: R.got, ranked, newBest, why: R.why, unlocked };
-  toast(`Rooftop run: ${fmt(dist)} m${newBest ? " (new best!)" : ""}${ranked ? `. +${fmt(xp)} Agility xp${fea ? `, +${fea} skyfeathers` : ""}` : " (practice)"}`, newBest);
+  roof.last = { t: Date.now(), dist, xp, fea, coins, got: R.got, ranked, newBest, why: R.why, unlocked };
+  toast(`Rooftop run: ${fmt(dist)} m${newBest ? " (new best!)" : ""}${ranked ? `. +${fmt(xp)} Agility xp${coins ? `, +${fmt(coins)} coins` : ""}${fea ? `, +${fea} skyfeathers` : ""}` : `. Under ${ROOF_MIN} m: nothing banked`}`, newBest || dist >= 500);
   for (const u of unlocked) toast(`Rooftop run unlock: ${ITEMS[u].name}!`, true);
   log(`Rooftop run: <b>${fmt(dist)} m</b>${ranked ? ` (+${fmt(xp)} Agility xp)` : ""}`, newBest ? "r" : "l");
   save();
 }
 function roofPanel() {
-  const S = roofState(), left = Math.max(0, ROOF_DAILY - S.runs), L = roof.last;
+  const S = roofState(), L = roof.last;
   let h = `<canvas id="roofCv" class="roofcv" aria-label="Rooftop run. Tap, click or press space to jump; hold for a higher jump."></canvas>
     <p class="note" style="margin-top:8px">Tap the scene or press space to jump. A quick tap is a short hop; hold to jump higher and further. Time your take-off for the chimney stacks, and use a quick tap to slip between a chimney and a washing line. ${roofDouble() ? "Tap again in the air to double jump." : "Agility 40 unlocks a double jump."}</p>`;
-  if (L) h += `<div class="arena-res ${L.newBest ? "win" : ""}"><b class="big">${fmt(L.dist)} m${L.newBest ? " · new best!" : ""}</b><span>${esc(L.why || "")} ${L.ranked ? `+${fmt(L.xp)} Agility xp${L.fea ? ` · +${L.fea} skyfeathers` : ""}` : "Practice run: no rewards until midnight."}</span>${L.unlocked.length ? `<span class="ok">Unlocked: ${L.unlocked.map(u => esc(ITEMS[u].name)).join(", ")}</span>` : ""}</div>`;
-  h += `<div class="achtop" style="margin-top:12px">${icon("agility")}<div><span class="ar">Best run</span><b class="num">${fmt(S.best)} m</b><span>${left ? `${left} rewarded run${left === 1 ? "" : "s"} left today` : "Practice only until midnight"} · ${roofXpPerM().toFixed(1)} xp per metre (${esc(roofCourse().name)} pace)${has("pet_scamp") ? " · Scamp +10%" : ""}</span></div></div>`;
+  if (L) h += `<div class="arena-res ${L.newBest ? "win" : ""}"><b class="big">${fmt(L.dist)} m${L.newBest ? " · new best!" : ""}</b><span>${esc(L.why || "")} ${L.ranked ? `+${fmt(L.xp)} Agility xp${L.coins ? ` · +${fmt(L.coins)} coins` : ""}${L.fea ? ` · +${L.fea} skyfeathers` : ""}` : `Under ${ROOF_MIN} m: nothing banked${L.got ? ` and ${L.got} skyfeather${L.got > 1 ? "s" : ""} lost` : ""}.`}</span>${L.unlocked.length ? `<span class="ok">Unlocked: ${L.unlocked.map(u => esc(ITEMS[u].name)).join(", ")}</span>` : ""}</div>`;
+  h += `<div class="achtop" style="margin-top:12px">${icon("agility")}<div><span class="ar">Best run</span><b class="num">${fmt(S.best)} m</b><span>Unlimited runs · ${fmt(S.runs)} today · paid at ${esc(roofCourse().name)} pace${has("pet_scamp") ? " · Scamp +10%" : ""}</span></div></div>`;
+  h += `<h3>Payouts <span>nothing under ${ROOF_MIN} m</span></h3><div class="paytable">${[100, 250, 500, 750, 1000, 1500].map(d => { const P = roofPayout(d, 0); return `<div class="${S.best >= d ? "hit" : ""}"><b class="num">${fmt(d)} m</b><span>${fmt(P.xp)} xp</span><span>${P.coins ? fmt(P.coins) + " coins" : "—"}</span><span>+${P.fea} feathers</span></div>`; }).join("")}</div>
+  <p class="note">The further you get, the more each metre is worth: a 1,000 m run pays about ten times a 250 m run. Fall early and you bank nothing.</p>`;
   h += `<h3>Distance unlocks</h3><div class="actions">` + ROOF_UNLOCKS.map(u => {
     const own = ownedEver(u.item), p = Math.min(1, S.best / u.m);
     return `<div class="act ${own ? "" : "locked"}"><span class="nm">${icon(u.item)}${esc(ITEMS[u.item].name)}</span><span class="meta">${own ? `<span class="ok">Unlocked</span> · ` : ""}${esc(ITEMS[u.item].desc.replace(/^Rooftop run: reach [\d,]+ m\. /, ""))}<span class="tbar" style="display:block;margin-top:6px"><i style="width:${p * 100}%"></i></span></span><span class="side"><b>${fmt(u.m)}</b>m</span></div>`;
-  }).join("") + `</div><p class="note">Speed builds the further you go. Xp follows the best course you can run, and ${ROOF_DAILY} runs a day pay out.${S.oldBest ? ` Your best on the old, easier course was ${fmt(S.oldBest)} m.` : ""}</p>`;
+  }).join("") + `</div><p class="note">Speed builds the further you go, and the course gets tighter.${S.oldBest ? ` Your best on the old, easier course was ${fmt(S.oldBest)} m.` : ""}</p>`;
   return h;
 }
 function drawRoof(now) {
@@ -5590,6 +5616,7 @@ function drawRoof(now) {
   ctx.textAlign = "left"; ctx.font = "700 20px 'JetBrains Mono', monospace"; ctx.fillStyle = "#0b0b0d"; ctx.fillText(`${fmt(Math.floor(G.x))} m`, 13, 29); ctx.fillStyle = "#f2efe6"; ctx.fillText(`${fmt(Math.floor(G.x))} m`, 12, 28);
   drawIcon(ctx, "skyfeather", 22, 46, 20); ctx.font = "700 14px 'JetBrains Mono', monospace"; ctx.fillStyle = "#f2efe6"; ctx.fillText("× " + G.got, 36, 51);
   ctx.textAlign = "right"; ctx.fillStyle = "#93a5c0"; ctx.font = "600 12px Karla, sans-serif"; ctx.fillText(`Best ${fmt(roofState().best)} m`, W - 10, 20);
+  if (R && !G.dead) { const d = Math.floor(G.x), P = roofPayout(d, G.got); ctx.font = "700 13px 'JetBrains Mono', monospace"; const bt = P.xp ? `Bank: ${fmt(P.xp)} xp${P.coins ? " + " + fmt(P.coins) : ""}` : `Pays from ${ROOF_MIN} m`, bw = ctx.measureText(bt).width; ctx.fillStyle = "rgba(8,10,20,.7)"; ctx.fillRect(W - bw - 16, 26, bw + 12, 18); ctx.fillStyle = P.xp ? "#f0a33a" : "#93a5c0"; ctx.fillText(P.xp ? `Bank: ${fmt(P.xp)} xp${P.coins ? " + " + fmt(P.coins) : ""}` : `Pays from ${ROOF_MIN} m`, W - 10, 38); }
   const msg = !R ? ["Rooftop run", "Tap or press space to start"] : G.paused ? ["Paused", "Tap to carry on"] : G.dead ? [`${fmt(Math.floor(G.x))} m`, performance.now() - G.deadAt > 700 ? "Tap to run again" : ""] : null;
   if (msg) {
     ctx.fillStyle = "rgba(8,10,20,.55)"; ctx.fillRect(0, 0, W, H); ctx.textAlign = "center";
@@ -5704,7 +5731,7 @@ function begin() {
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
 }
-window.__thornwick = { get state() { return state; }, roofGen, roofJump, roofSpeed, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, roofPayout, roofTime, roofGen, roofJump, roofSpeed, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
