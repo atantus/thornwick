@@ -363,6 +363,7 @@ body.noscroll{overflow:hidden}
 .tiers .tn{text-align:center;font-weight:700}
 .tiers .tr{display:flex;align-items:center;gap:2px;white-space:nowrap}
 .tiers .ico{width:18px;height:18px}
+.lvtag{font-size:.75rem;color:var(--ember);font-weight:700;margin-left:4px}
 .ranks{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .rank{display:flex;flex-direction:column;align-items:center;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 2px;font-size:.7rem;color:var(--muted)}
 .rank b{font-size:.7rem;color:var(--fg)}
@@ -544,6 +545,8 @@ const SKILLS = {
 
 // sell: coins each (omit = can't sell)
 const ITEMS = {
+  laurel_crown:  { name: "Laurel crown",   desc: "Achievement shop. Head, Defence +4. A golden wreath for a true achiever.", rare: true },
+  champion_cape: { name: "Champion's cape", desc: "Achievement shop. Cape, Defence +12, +3% xp in every skill while worn.", rare: true },
   clue_reward_easy:   { name: "Reward casket (easy)",   desc: "From an easy clue scroll. Open it.", rare: true },
   clue_reward_medium: { name: "Reward casket (medium)", desc: "From a medium clue scroll. Open it.", rare: true },
   clue_reward_hard:   { name: "Reward casket (hard)",   desc: "From a hard clue scroll. Open it.", rare: true },
@@ -1188,7 +1191,7 @@ function rollTable(table) {
 const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 /* ================= STATE ================= */
-const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{}, ach:{}, stats:{} });
+const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{}, ach:{}, stats:{}, apSpent:0, apUp:{} });
 let state = fresh();
 let tab = "skills";
 let bankSub = "items", bankFilter = "All", bankSel = null;
@@ -1243,6 +1246,7 @@ function actionTime(skill, a) {
   if (skill === "mining") { const p = PICKAXES.find(([id]) => has(id)); if (p) t *= p[1]; }
   if (skill === "smithing" && a.smelt) t *= 1 - 0.005 * lvl("firemaking");
   if (skill === "agility" && has("golden_feather")) t *= 0.95;
+  t *= 1 - 0.02 * apLvl("swift");
   return t * 1000;
 }
 const burnChance = a => Math.max(0, a.burn - Math.max(0, lvl("cooking") - a.lvl) * 0.02 - lvl("firemaking") * 0.003) * (has("chef_gauntlets") ? 0.5 : 1);
@@ -1273,7 +1277,7 @@ Object.assign(GEAR, {
   wayfarer_hat:{ slot:"head", def:2 }, patchwork_cape:{ slot:"cape", def:2 }, trimmed_shield:{ slot:"shield", req:["defence", 5], def:12 },
   ranger_tricorne:{ slot:"head", def:5 }, explorer_cape:{ slot:"cape", def:4 }, treasure_ring:{ slot:"ring" },
   gilded_helm:{ slot:"head", req:["defence", 55], def:25 }, gilded_platebody:{ slot:"body", req:["defence", 55], def:72 }, gilded_platelegs:{ slot:"legs", req:["defence", 55], def:43 }, gilded_kiteshield:{ slot:"shield", req:["defence", 55], def:36 },
-  starlit_cape:{ slot:"cape", def:8 }, wyrm_mask:{ slot:"head", req:["defence", 60], def:30 },
+  starlit_cape:{ slot:"cape", def:8 }, laurel_crown:{ slot:"head", def:4 }, champion_cape:{ slot:"cape", def:12 }, wyrm_mask:{ slot:"head", req:["defence", 60], def:30 },
   dawnforged_helm:{ slot:"head", req:["defence", 70], def:34 }, dawnforged_platebody:{ slot:"body", req:["defence", 70], def:92 }, dawnforged_platelegs:{ slot:"legs", req:["defence", 70], def:55 },
   dawnforged_kiteshield:{ slot:"shield", req:["defence", 70], def:48 }, dawnforged_cape:{ slot:"cape", def:10 }, dawnforged_amulet:{ slot:"amulet", def:8 },
   gull_cloak:{ slot:"cape" }, windrunner_cape:{ slot:"cape" }, mastery_cape:{ slot:"cape", def:5 },
@@ -1391,7 +1395,7 @@ function fightRound(m, sum) {
     clueTick("combat", m.id, sum); clueFromKill(m, sum);
     const drops = m.always.map(e => ({ item: e.item, qty: randInt(e.min, e.max) }));
     const r = rollTable(m.table); if (r && r.item) { if (r.item === "coins" && worn("bandit_mask")) r.qty = Math.round(r.qty * 1.25); drops.push(r); }
-    for (const u of m.uniques) if (Math.random() < u.chance * (worn("wealth_ring") ? 1.1 : 1)) { drops.push({ item: u.item, qty: 1 }); sum.uniques = (sum.uniques || []).concat(ITEMS[u.item].name); }
+    for (const u of m.uniques) if (Math.random() < u.chance * (worn("wealth_ring") ? 1.1 : 1) * (PETS.includes(u.item) ? 1 + 0.1 * apLvl("kin") : 1 + 0.05 * apLvl("luck"))) { drops.push({ item: u.item, qty: 1 }); sum.uniques = (sum.uniques || []).concat(ITEMS[u.item].name); }
     for (const d of drops) { trackedAdd("mon-" + m.id, d.item, d.qty); sum.items[d.item] = (sum.items[d.item] || 0) + d.qty; if (ITEMS[d.item].rare) sum.rare.push(ITEMS[d.item].name); }
     state.fight.mhp = m.hp; // next one steps up
     return true;
@@ -1411,7 +1415,7 @@ function fightRound(m, sum) {
 const buffOn = id => (state.buffs[id] || 0) > 0;
 const geodeChance = a => a.geode * (has("prospector_charm") ? 2 : 1) * (worn("seam_amulet") ? 1.5 : 1);
 const doubleChance = skill => (worn("plenty_amulet") ? 0.1 : 0) + (skill === "fishing" && has("tide_harpoon") ? 0.1 : 0);
-const growMult = () => worn("roots_ring") ? 0.75 : 1;
+const growMult = () => (worn("roots_ring") ? 0.75 : 1) * (1 - 0.1 * apLvl("green"));
 function gather(item, sum, skill) {
   const n = Math.random() < doubleChance(skill) ? 2 : 1;
   add(item, n); sum.items[item] = (sum.items[item] || 0) + n;
@@ -1453,6 +1457,8 @@ function xpMult(skill) {
   if (has("ancient_tome")) m *= 1.03;
   if (fullDawn()) m *= 1.05;
   m *= achCapeBonus();
+  m *= 1 + 0.02 * apLvl("scholar");
+  if (worn("champion_cape")) m *= 1.03;
   if (skill === "slayer") { if (has("echo_charm")) m *= 1.1; if (has("bone_charm")) m *= 1.05; }
   return m;
 }
@@ -1480,7 +1486,7 @@ function givePet(skill, sum) {
 // chance per action scales with the action's length, and a little with its level
 function petRoll(skill, a, sum) {
   const secs = actionTime(skill, a) / 1000, lv = a.lvl || 1;
-  if (Math.random() < secs / (PET_HOURS * 3600) * (0.6 + 0.8 * lv / 99)) givePet(skill, sum);
+  if (Math.random() < secs / (PET_HOURS * 3600) * (0.6 + 0.8 * lv / 99) * (1 + 0.1 * apLvl("kin"))) givePet(skill, sum);
 }
 
 /* One completed action. Returns false if it cannot run. */
@@ -1550,7 +1556,7 @@ function outOfLogs(sum) {
 
 function advance(ms) {
   const sum = { items:{}, xp:{}, levels:[], rare:[], notes:[], actions:0, saved:0 };
-  ms = Math.min(ms, MAX_OFFLINE_MS);
+  ms = Math.min(ms, MAX_OFFLINE_MS + apLvl("idle") * 4 * 3600000);
   let guard = 0;
   while (ms > 0 && guard++ < 20) {
     const left = Object.values(state.buffs).filter(v => v > 0);
@@ -1593,7 +1599,7 @@ function advanceCore(ms, sum) {
 
 /* ================= CLUE SCROLLS ================= */
 const fullDawn = () => DAWNFORGED.every(worn);
-const clueMult = () => (has("lucky_horseshoe") ? 1.1 : 1) * (has("pet_sniffer") ? 1.2 : 1);
+const clueMult = () => (has("lucky_horseshoe") ? 1.1 : 1) * (has("pet_sniffer") ? 1.2 : 1) * (1 + 0.15 * apLvl("trail"));
 const clueVerb = (skill, a) => skill === "combat" ? `Defeat {n} ${a.name.toLowerCase()}${/s$/.test(a.name) ? "" : "s"}`
   : skill === "woodcutting" ? `Chop {n} ${ITEMS[a.item].name.toLowerCase()}` : skill === "fishing" ? `Catch {n} ${ITEMS[a.item].name.toLowerCase().replace(/^raw /, "")}`
   : skill === "mining" ? `Mine {n} ${ITEMS[a.item].name.toLowerCase()}` : skill === "thieving" ? `${a.name.replace(/^Pickpocket/, "Pickpocket")} {n} times`
@@ -1951,7 +1957,7 @@ function loadObj(o) {
   state.slayer = Object.assign({ task:null, points:0, streak:0, done:0 }, o.slayer);
   state.clues = Object.assign({ held:{}, done:{} }, o.clues);
   state.look = o.look || {};
-  state.ach = o.ach || {}; state.stats = o.stats || {};
+  state.ach = o.ach || {}; state.stats = o.stats || {}; state.apSpent = o.apSpent || 0; state.apUp = o.apUp || {};
   state.xp.slayer = state.xp.slayer || 0;
   state.kills = o.kills || {}; state.buffs = o.buffs || {}; state.boats = o.boats || {}; state.islands = o.islands || {}; state.upgrades = o.upgrades || {};
   state.barrels = Array.isArray(o.barrels) ? o.barrels.concat([null,null,null]).slice(0, 3) : [null,null,null]; if (typeof o.hp !== "number") state.hp = lvl("hitpoints");
@@ -2029,7 +2035,7 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, logSub, tab === "clog" && logSub === "ach" ? JSON.stringify(state.ach) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
@@ -2257,6 +2263,7 @@ function clogTree() {
     ] },
     { id: "other", name: "Other", entries: [
       { id: "trophies", name: "Achievement trophies", sub: "Tier X of each achievement", items: ACH_TRACKS.map(t => ({ item: trophyId(t), unique: true, rate: Array.isArray(t.tiers) ? `${fmt(t.tiers[9])} ${t.unit}` : `${t.name} X` })) },
+      { id: "apshop", name: "Point shop", sub: "Achievement points", items: AP_ITEMS.filter(e => e.once).map(e => ({ item: e.item, rate: `${fmt(e.price)} points` })) },
       { id: "achcapes", name: "Achievement capes", sub: "One per achievement rank", items: ACH_RANKS.map((r, i) => ({ item: capeId(i), unique: true, rate: `${fmt(r.ap)} points` })) },
       { id: "slayershop", name: "Slayer shop", sub: "Slayer points", items: SLAYER_SHOP.map(e => ({ item: e.item, rate: `${e.price} points` })) },
       { id: "eyrie", name: "The Eyrie", sub: "Skyfeather shop", items: EYRIE.filter(e => e.item).map(e => ({ item: e.item, rate: `${e.price} feathers` })) },
@@ -2533,6 +2540,10 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 17, date: "8 Oct 2026", title: "Achievement point shop", items: [
+    "Spend achievement points in Log › Point shop. Spending never lowers your rank.",
+    "Permanent upgrades: Swift hands (up to 8% faster actions), Scholar's focus (up to +8% xp), Long rest (offline progress up to 24 hours), Green season (faster crops and brews), Fortune's favour (more uniques), Trailblazer (more clues) and Kindred spirit (more pets).",
+    "Rewards: reward caskets, the Laurel crown and the Champion's cape." ] },
   { v: 16, date: "8 Oct 2026", title: "Achievements", items: [
     "20 achievements in Log › Achievements, each with 10 tiers, from your first kill all the way to 10,000 boss kills, 1,000,000 logs and a billion coins.",
     "Every tier pays coins and achievement points. Tiers V, VII and IX add clue reward caskets, and tier X gives a trophy.",
@@ -3128,6 +3139,7 @@ const IC = {
 };
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
+  laurel_crown:["crown",["#e8b84a","#8a6a20","#6fbf5a","#6fbf5a"]], champion_cape:["cape",["#7a2a1e","#ffd45a","#000","#000"]],
   clue_easy:["scroll",["#efe6cc", "#8a7044", "#8a7044", "#5aa7e8"]], clue_medium:["scroll",["#efe6cc", "#8a7044", "#8a7044", "#6fbf5a"]], clue_hard:["scroll",["#efe6cc", "#8a7044", "#8a7044", "#d2452f"]], clue_elite:["scroll",["#f7f0d0", "#7a4ad0", "#7a4ad0", "#c79bf2"]], clue_reward_easy:["chest",["#b07a3e", "#4a2e16", "#000", "#5aa7e8"]], clue_reward_medium:["chest",["#b07a3e", "#4a2e16", "#000", "#6fbf5a"]], clue_reward_hard:["chest",["#b07a3e", "#4a2e16", "#000", "#d2452f"]], clue_reward_elite:["chest",["#3a2a5a", "#1e0f3a", "#000", "#ffd45a"]], wayfarer_hat:["hat",["#8a5a2a", "#4a2e16", "#d2452f", "#000"]], patchwork_cape:["cape",["#6fbf5a", "#8e2a1f", "#000", "#000"]], lucky_horseshoe:["horseshoe",["#c8ccd2", "#6a727a", "#3a4048", "#000"]], trimmed_shield:["kite",["#8a8f96", "#4e5359", "#e8b84a", "#000"]], ranger_tricorne:["tricorne",["#2f6a24", "#1a3a14", "#e8b84a", "#000"]], explorer_cape:["cape",["#2f5ea8", "#e8b84a", "#000", "#000"]], pathfinder_compass:["compass",["#e8b84a", "#8a6a20", "#000", "#000"]], treasure_ring:["ring",["#e8b84a", "#8a6a20", "#d2452f", "#d2452f"]], gilded_helm:["helm",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], gilded_platebody:["body",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], gilded_platelegs:["legs",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], gilded_kiteshield:["kite",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], starlit_cape:["cape",["#1e2a5a", "#ffd45a", "#000", "#000"]], wyrm_mask:["wyrm",["#3f8a5a", "#1f4f30", "#e8dcc0", "#f7d35a"]], gilded_scimitar:["sword",["#ffd45a", "#a07a1a", "#000", "#7a2a1e"]], ancient_tome:["tome",["#7a2a1e", "#3a1410", "#ffd45a", "#c79bf2"]], pet_sniffer:["hound",["#b07a3e", "#5a3a1c", "#000", "#f2a0b0"]], dawnforged_helm:["helm",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_platebody:["body",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_platelegs:["legs",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_kiteshield:["kite",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_cape:["cape",["#f7f2e0", "#ffd45a", "#000", "#000"]], dawnforged_amulet:["amulet",["#ffd45a", "#000", "#ffffff", "#f7f2e0"]], dawnforged_blade:["sword",["#fff6d8", "#c9a440", "#000", "#ffd45a"]],
   pet_twiglet:["sapling",["#a0703a", "#5a3a1c", "#6fbf5a", "#3f7a3a"]], pet_cinder:["ember",["#f7d35a", "#8e2a1f", "#d2452f", "#f0a33a"]], pet_burrow:["mole",["#5a4a52", "#2e242a", "#e3b98f", "#f2a0b0"]], pet_puffin:["bird",["#2a2a30", "#111114", "#f0a33a", "#f0a33a"]], pet_crumb:["mouse",["#b8b0a8", "#7a706a", "#f2a0b0", "#f2a0b0"]], pet_pebble:["crab",["#8a8f96", "#4e5359", "#b8c0c8", "#000"]], pet_clinker:["lizard",["#d2452f", "#7a2418", "#000", "#f7d35a"]], pet_quill:["bird",["#9a6a3a", "#5a3a1c", "#f7d35a", "#e8b84a"]], pet_glimmer:["moth",["#c79bf2", "#6b4fa0", "#6b4fa0", "#f2efe6"]], pet_hops:["frog",["#5aa846", "#2f6a24", "#d8e8a0", "#000"]], pet_scamper:["squirrel",["#c0703a", "#7a4a1e", "#d88a4a", "#f2efe6"]], pet_fidget:["ferret",["#d8c8a8", "#7a6a50", "#4a3a2e", "#000"]], pet_grimling:["imp",["#b03a5a", "#5a1a2e", "#e8dcc0", "#000"]], slayer_helm:["helm",["#3a3e44", "#1a1c20", "#d2452f", "#000"]], hunter_satchel:["satchel",["#8a5a2a", "#4a2e16", "#c8ccd2", "#e8b84a"]], bone_charm:["amulet",["#e8dcc0", "#000", "#f2efe6", "#c2a36b"]], echo_charm:["amulet",["#9aa3ad", "#000", "#c79bf2", "#5a3a8a"]], mire_greaves:["legs",["#5a7a2a", "#2f4a14", "#a0c060", "#000"]], gargant_maul:["maul",["#8a8f96", "#5a3a1c", "#c8ccd2", "#3a3e44"]], voidlash:["whip",["#7a4ad0", "#3a1e6a", "#000", "#7dff6a"]], bat_wing:["wing",["#5a3a8a", "#2e1e4a", "#000", "#000"]], bog_moss:["pile",["#5a7a2a", "#2f4a14", "#a0c060", "#000"]], gargant_shard:["gem",["#8a8f96", "#4e5359", "#c8ccd2", "#ff7a1a"]], void_essence:["orb",["#3a1e6a", "#1e0f3a", "#7dff6a", "#000"]],
   logs:["log",IC.wood], oak_logs:["log",IC.oak], willow_logs:["log",IC.willow], maple_logs:["log",IC.maple], ashes:["pile",["#8a8f96","#4e5359","#c8ccd2","#000"]],
@@ -3892,8 +3904,8 @@ function render() {
   if (tab === "skills") h = overviewPanel();
   else if (tab === "bank") h = bankPanel();
   else if (tab === "more") h = morePanel();
-  else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "ach" ? "Achievements" : "Collection log"}</h2><span>${logSub === "ach" ? fmt(achPoints()) + " points" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
-    <div class="seg" role="group" aria-label="Log view" style="grid-template-columns:repeat(2,1fr)">${[["clog","Collection log"],["ach","Achievements"]].map(([k, n]) => `<button id="lsub-${k}" data-logsub="${k}" aria-pressed="${logSub === k}">${n}</button>`).join("")}</div>` + (logSub === "ach" ? achPanel() : clogPanel());
+  else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "ach" ? "Achievements" : logSub === "shop" ? "Point shop" : "Collection log"}</h2><span>${logSub === "ach" ? fmt(achPoints()) + " points" : logSub === "shop" ? fmt(apBalance()) + " to spend" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
+    <div class="seg" role="group" aria-label="Log view" style="grid-template-columns:repeat(3,1fr)">${[["clog","Collection log"],["ach","Achievements"],["shop","Point shop"]].map(([k, n]) => `<button id="lsub-${k}" data-logsub="${k}" aria-pressed="${logSub === k}">${n}</button>`).join("")}</div>` + (logSub === "ach" ? achPanel() : logSub === "shop" ? apShopPanel() : clogPanel());
   else if (tab === "combat") h = combatPanel();
   else if (tab === "seafaring") h = backBtn() + skillHead("seafaring") + `<canvas id="vscene" class="scene" style="height:230px" role="img" aria-label="Your boats at sea"></canvas>` + seafaringPanel();
   else if (tab === "farming") h = backBtn() + skillHead("farming") + farmingPanel();
@@ -4064,6 +4076,8 @@ document.addEventListener("click", e => {
   if (d.slayer) { if (d.slayer === "fight") { fightTask(); render(); window.scrollTo(0, 0); return after(); } newTask(d.slayer === "skip"); return after(); }
   if (d.sbuy !== undefined) { buySlayer(+d.sbuy); return after(); }
   if (d.logsub) { logSub = d.logsub; render(); return; }
+  if (d.apup) { buyApUpgrade(d.apup); return after(); }
+  if (d.apitem !== undefined) { buyApItem(+d.apitem); return after(); }
   if (d.look) { const [k, v] = d.look.split(":"); state.look = Object.assign({}, state.look, { [k]: +v }); return after(); }
   if (d.lookhair) { state.look = Object.assign({}, state.look, { hair: d.lookhair }); return after(); }
   if (t.id === "lookReset") { state.look = {}; return after(); }
@@ -4574,6 +4588,56 @@ function checkAch(force) {
   const rank1 = achRank();
   for (let i = rank0 + 1; i <= rank1; i++) { add(capeId(i), 1); toast(`New achievement rank: ${ACH_RANKS[i].name}! You earned the ${ACH_RANKS[i].name} cape`, true); log(`Achievement rank <b>${ACH_RANKS[i].name}</b> reached. Reward: <b>${ACH_RANKS[i].name} cape</b>`, "r"); }
 }
+
+/* ---- Achievement point shop ----
+   Ranks use points EARNED; the shop spends from a separate balance, so buying never lowers your rank. */
+const AP_UPGRADES = [
+  { id: "swift",   name: "Swift hands",     costs: [150, 400, 900, 1800], desc: l => `Every skill acts ${l * 2}% faster.` },
+  { id: "scholar", name: "Scholar's focus", costs: [200, 500, 1200, 2400], desc: l => `+${l * 2}% xp in every skill.` },
+  { id: "idle",    name: "Long rest",       costs: [300, 700, 1500], desc: l => `Offline progress lasts ${12 + l * 4} hours instead of 12.` },
+  { id: "green",   name: "Green season",    costs: [250, 600], desc: l => `Crops and brews finish ${l * 10}% sooner.` },
+  { id: "luck",    name: "Fortune's favour", costs: [500, 1200, 2500], desc: l => `Monster uniques are ${l * 5}% more likely.` },
+  { id: "trail",   name: "Trailblazer",     costs: [300, 800], desc: l => `Clue scrolls turn up ${l * 15}% more often.` },
+  { id: "kin",     name: "Kindred spirit",  costs: [400, 1000], desc: l => `Pets are ${l * 10}% more likely.` },
+];
+const AP_ITEMS = [
+  { item: "clue_reward_medium", price: 25 },
+  { item: "clue_reward_hard", price: 60 },
+  { item: "clue_reward_elite", price: 150 },
+  { item: "laurel_crown", price: 1000, once: true },
+  { item: "champion_cape", price: 2500, once: true },
+];
+const apEarned = () => achPoints();
+const apBalance = () => Math.max(0, apEarned() - (state.apSpent || 0));
+const apLvl = id => (state.apUp && state.apUp[id]) || 0;
+function buyApUpgrade(id) {
+  const u = AP_UPGRADES.find(x => x.id === id), l = apLvl(id); if (!u || l >= u.costs.length) return;
+  const c = u.costs[l]; if (apBalance() < c) return;
+  state.apSpent = (state.apSpent || 0) + c; state.apUp = Object.assign({}, state.apUp, { [id]: l + 1 });
+  toast(`${u.name} ${ROMAN[l]}: ${u.desc(l + 1)}`, true); log(`Bought <b>${u.name} ${ROMAN[l]}</b> for ${fmt(c)} achievement points`, "l");
+}
+function buyApItem(i) {
+  const e = AP_ITEMS[i]; if (!e || apBalance() < e.price || (e.once && (has(e.item) || state.clog[e.item] > 0))) return;
+  state.apSpent = (state.apSpent || 0) + e.price; add(e.item, 1);
+  if (GEAR[e.item] && e.once) equipItem(e.item, true);
+  toast(`Bought ${ITEMS[e.item].name.toLowerCase()} for ${fmt(e.price)} points`);
+}
+function apShopPanel() {
+  checkAch(true);
+  const bal = apBalance();
+  let h = `<div class="achtop">${icon("skills")}<div><span class="ar">Points to spend</span><b class="num">${fmt(bal)}</b><span>${fmt(apEarned())} earned in total. Spending never lowers your rank.</span></div></div>`;
+  h += `<h3>Permanent upgrades</h3><div class="actions">` + AP_UPGRADES.map(u => {
+    const l = apLvl(u.id), maxed = l >= u.costs.length, c = u.costs[l];
+    return `<button class="act" id="apup-${u.id}" data-apup="${u.id}" ${maxed || bal < c ? "disabled" : ""}><span class="nm">${esc(u.name)} <span class="lvtag">${l ? ROMAN[l - 1] : "–"} / ${ROMAN[u.costs.length - 1]}</span></span>
+      <span class="meta">${l ? `Now: ${esc(u.desc(l))}` : "Not bought yet."}${maxed ? ` <span class="ok">Maxed</span>` : `<br>Next: ${esc(u.desc(l + 1))}`}</span>
+      <span class="side">${maxed ? "<b>✓</b>" : `<b>${fmt(c)}</b>points`}</span></button>`;
+  }).join("") + `</div>`;
+  h += `<h3>Rewards</h3><div class="actions">` + AP_ITEMS.map((e, i) => {
+    const owned = e.once && (has(e.item) || state.clog[e.item] > 0);
+    return `<button class="act" id="apitem-${e.item}" data-apitem="${i}" ${owned || bal < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${esc(ITEMS[e.item].name)}</span><span class="meta">${owned ? `<span class="ok">Owned</span> · ` : ""}${esc(ITEMS[e.item].desc)}</span><span class="side"><b>${fmt(e.price)}</b>points</span></button>`;
+  }).join("") + `</div><p class="note">Earn more points by finishing achievement tiers. Prices may be rebalanced in future updates.</p>`;
+  return h;
+}
 let achOpen = {};
 function achPanel() {
   checkAch(true);
@@ -4581,7 +4645,7 @@ function achPanel() {
   const done = ACH_TRACKS.reduce((n, t) => n + (state.ach[t.id] || 0), 0), all = ACH_TRACKS.length * 10;
   let h = `<div class="achtop">${rk >= 0 ? icon(capeId(rk)) : icon("skills")}<div><span class="ar">${rk >= 0 ? ACH_RANKS[rk].name : "Unranked"}</span><b class="num">${fmt(ap)} points</b><span>${done} / ${all} tiers complete</span></div></div>
     <div class="tbar"><i style="width:${next ? Math.min(100, (ap - prevAp) / (next.ap - prevAp) * 100) : 100}%"></i></div>
-    <p class="note" style="margin-top:0">${next ? `Next rank: <b>${next.name}</b> at ${fmt(next.ap)} points. Reward: the ${next.name} cape (+${((rk + 2) * 0.5).toFixed(1)}% xp while worn).` : "You've reached the highest rank. Mythic!"}</p>`;
+    <p class="note" style="margin-top:0"><b>${fmt(apBalance())} points to spend</b> in the <button class="linkbtn" id="toApShop" data-logsub="shop">Point shop</button>. ${next ? `Next rank: <b>${next.name}</b> at ${fmt(next.ap)} points. Reward: the ${next.name} cape (+${((rk + 2) * 0.5).toFixed(1)}% xp while worn).` : "You've reached the highest rank. Mythic!"}</p>`;
   for (const g of ACH_GROUPS) {
     h += `<h3>${g}</h3><div class="achs">`;
     for (const t of ACH_TRACKS.filter(x => x.group === g)) {
