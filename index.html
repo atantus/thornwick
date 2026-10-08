@@ -338,6 +338,17 @@ body.noscroll{overflow:hidden}
 .hst th:first-child,.hst td:first-child{width:3em;color:var(--muted)}
 .hst tr.me td{background:rgba(240,163,58,.12);color:var(--fg);font-weight:700}
 .hst tr.gap td{text-align:center;color:var(--muted);padding:2px}
+.lookwrap .scene{height:180px}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.sw{width:40px;height:40px;border-radius:10px;border:2px solid #0b0b0d;cursor:pointer;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
+.sw.on{outline:3px solid var(--ember);outline-offset:2px}
+.toggle{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+.toggle input{width:22px;height:22px;accent-color:var(--ember)}
+.cosm{display:grid;gap:8px;margin-bottom:12px}
+.cs{display:grid;grid-template-columns:7.5em 1fr;align-items:center;gap:8px}
+.cs span{display:flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.cs .ico{width:24px;height:24px}
+.cs .cin{margin:0}
 .upd{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
 .upd.new{border-color:var(--ember)}
 .upd .uh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
@@ -1146,7 +1157,7 @@ function rollTable(table) {
 const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 /* ================= STATE ================= */
-const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} } });
+const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{} });
 let state = fresh();
 let tab = "skills";
 let bankSub = "items", bankFilter = "All", bankSel = null;
@@ -1906,6 +1917,7 @@ function loadObj(o) {
   }
   state.slayer = Object.assign({ task:null, points:0, streak:0, done:0 }, o.slayer);
   state.clues = Object.assign({ held:{}, done:{} }, o.clues);
+  state.look = o.look || {};
   state.xp.slayer = state.xp.slayer || 0;
   state.kills = o.kills || {}; state.buffs = o.buffs || {}; state.boats = o.boats || {}; state.islands = o.islands || {}; state.upgrades = o.upgrades || {};
   state.barrels = Array.isArray(o.barrels) ? o.barrels.concat([null,null,null]).slice(0, 3) : [null,null,null]; if (typeof o.hp !== "number") state.hp = lvl("hitpoints");
@@ -1983,7 +1995,7 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
@@ -2430,9 +2442,10 @@ function gearPanel() {
 }
 function combatPanel() {
   const w = weapon(), ar = armour();
-  const sub = `<div class="seg" role="group" aria-label="Combat view" style="grid-template-columns:repeat(2,1fr)">${[["fight","Fight"],["gear","Equipment"]].map(([k, n]) => `<button id="csub-${k}" data-csub="${k}" aria-pressed="${combatSub === k}">${n}</button>`).join("")}</div>`;
+  const sub = `<div class="seg" role="group" aria-label="Combat view" style="grid-template-columns:repeat(3,1fr)">${[["fight","Fight"],["gear","Equipment"],["look","Look"]].map(([k, n]) => `<button id="csub-${k}" data-csub="${k}" aria-pressed="${combatSub === k}">${n}</button>`).join("")}</div>`;
   const head = `<div class="pagehead"><h2>Combat</h2><span>${fmt(Object.values(state.kills).reduce((a, b) => a + b, 0))} kills</span></div>` + sub;
   if (combatSub === "gear") return head + gearPanel();
+  if (combatSub === "look") return head + lookPanel();
   let h = head + `<canvas id="scene" class="scene" role="img" aria-label="Battle scene"></canvas><div class="cmbtop"><div class="lvl">${combatLevel()}</div><h2>Combat level</h2>
     <div class="hpline"><span>Hitpoints</span><span class="num" data-hp></span></div>
     <div class="hpbar"><i data-hpbar></i></div></div>`;
@@ -2484,6 +2497,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 14, date: "8 Oct 2026", title: "Character customisation", items: [
+    "Make your adventurer your own: Combat › Look. Pick skin tone, five hairstyles, hair colour, and colours for your top, trousers and boots.",
+    "Your gear now shows on your character: helmets, hats, hoods, capes, body armour, legs, shields and weapons, in their own colours.",
+    "Cosmetics: show any item you own in a slot (like the Gilded set or a Wayfarer's hat) whatever you're actually wearing. Stats still come from your real gear.",
+    "Your character appears in the battle scene and every skilling scene." ] },
   { v: 13, date: "8 Oct 2026", title: "What's new", items: [
     "This page! Every update is listed here, newest first.",
     "Ideas for what could come next are at the bottom. Tell Claude which ones you want." ] },
@@ -2516,7 +2534,7 @@ const UPDATES = [
 ];
 // Ideas Claude suggests for future updates. Move one into UPDATES when it's built.
 const IDEAS = [
-  { t: "Character customisation", d: "Pick your adventurer's skin, hair and outfit colours, and show off clue cosmetics on your character." },
+  { t: "Emotes", d: "Unlockable emotes (wave, dance, flex) from quests and clues, played on the Look screen and in scenes." },
   { t: "Prayer", d: "Monsters drop bones. Bury or offer them to level Prayer and unlock prayers that boost combat." },
   { t: "Daily challenges", d: "Three small goals each day for bonus rewards, with a streak counter." },
   { t: "Friends list", d: "Add friends by hiscores name and compare your levels side by side." },
@@ -3467,11 +3485,10 @@ function drawScene(now) {
   let pdx = 0; const pl = active("lunge", "p"); if (pl) pdx = Math.sin(prog(pl) * Math.PI) * 22;
   const pf = active("flinch", "p"); if (pf) pdx -= Math.sin(prog(pf) * Math.PI * 3) * 3;
   const resting = fighting && state.fight.resting;
-  const t = ctype(), hero = t === "ranged" ? SPRITES.archer : t === "magic" ? SPRITES.wizard : SPRITES.warrior;
-  if (t === "magic") hero.pal.o = SPELL_COLOURS[spellOf().id];
+  const t = ctype();
   drawAura(ctx, pX, ground, 60, now, still);
   drawFollower(ctx, pX - 52, ground, now, still);
-  const ps = drawSprite(ctx, hero, pX + pdx, ground + bob, 5, false, 1);
+  const ps = drawHero(ctx, "combat", pX + pdx, ground + bob, 8, false, 1);
   hpBar(ctx, pX, ground - ps.h - 12, 34, state.hp / maxHp());
   if (resting) { ctx.fillStyle = "#93a597"; ctx.font = "700 13px Karla, sans-serif"; ctx.textAlign = "left"; const z = (now / 600) % 3; ctx.fillText("z".repeat(1 + Math.floor(z)), pX + 14, ground - ps.h - 18); }
 
@@ -3727,7 +3744,7 @@ function drawSkillScene(now) {
   }
   drawAura(ctx, px2 + pdx, ground + pdy, WORKER.grid.length * s, now, still);
   drawFollower(ctx, px2 - WORKER.grid[0].length * s / 2 - 22, ground, now, still);
-  const pr = drawGrid(ctx, "worker", WORKER.grid, WORKER.pal, px2 + pdx, ground + bob + pdy, s);
+  const pr = drawHero(ctx, "skill", px2 + pdx, ground + bob + pdy, s);
   const hx = px2 + pdx + 4.5 * s, hy = ground + bob + pdy - 2.8 * s;
   const tool = { woodcutting: "axe", mining: "pickaxe", smithing: "hammer", fletching: "knife" }[skill];
   if (tool) { const pose = TOOLS[tool][swingDown ? 1 : 0]; drawGrid(ctx, "tool:" + tool + (swingDown ? 1 : 0), pose, TOOL_PAL, hx + 10, hy + 6, 5); }
@@ -4015,6 +4032,9 @@ document.addEventListener("click", e => {
   if (d.tboat) { traderBoat = d.tboat; return after(); }
   if (d.slayer) { if (d.slayer === "fight") { fightTask(); render(); window.scrollTo(0, 0); return after(); } newTask(d.slayer === "skip"); return after(); }
   if (d.sbuy !== undefined) { buySlayer(+d.sbuy); return after(); }
+  if (d.look) { const [k, v] = d.look.split(":"); state.look = Object.assign({}, state.look, { [k]: +v }); return after(); }
+  if (d.lookhair) { state.look = Object.assign({}, state.look, { hair: d.lookhair }); return after(); }
+  if (t.id === "lookReset") { state.look = {}; return after(); }
   if (d.ccopen) { openClueCasket(d.ccopen, d.all === "1"); return after(); }
   if (d.cluego) { clueGo(d.cluego); render(); window.scrollTo(0, 0); return after(); }
   if (d.follow) { state.opts.follow = state.opts.follow === d.follow ? null : d.follow; renderSheet(); return after(); }
@@ -4035,7 +4055,9 @@ document.addEventListener("click", e => {
     resetArmed = false; state = fresh(); saveDraft = null; render(); renderNow(); save(); toast("Progress reset"); return;
   }
 });
-document.addEventListener("change", e => { if (e.target.id === "autoChop") { state.opts.autoChop = e.target.checked; save(); } if (e.target.id === "hsSkill") { hs.skill = e.target.value; hs.rows = null; hsLoad(true); } });
+document.addEventListener("change", e => { if (e.target.id === "autoChop") { state.opts.autoChop = e.target.checked; save(); } if (e.target.id === "hsSkill") { hs.skill = e.target.value; hs.rows = null; hsLoad(true); }
+  if (e.target.id === "lookGear") { state.look = Object.assign({}, state.look, { gear: e.target.checked }); after(); }
+  if (e.target.dataset && e.target.dataset.lookslot) { const sl = e.target.dataset.lookslot, L = Object.assign({}, state.look); L.show = Object.assign({}, L.show); if (e.target.value) L.show[sl] = e.target.value; else delete L.show[sl]; state.look = L; after(); } });
 document.addEventListener("input", e => { if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
 document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
 
@@ -4322,6 +4344,113 @@ function hiscoresBody() {
   return h;
 }
 
+
+/* ================= CHARACTER LOOK =================
+   Your adventurer is built from layers: body (skin, hair, clothes) + what you wear (or a cosmetic override).
+   Every piece of gear tints the sprite with its own icon colours, so new items show up automatically. */
+const LOOK_SKIN = ["#f2c08e", "#f6d8c0", "#e0a878", "#c68a5a", "#9a6440", "#6e4428"];
+const LOOK_HAIR = ["#3a2614", "#6b4a2a", "#c0703a", "#e8c060", "#1a1a1a", "#d8dce4", "#d2452f", "#5aa7e8"];
+const LOOK_CLOTH = ["#2f6fd0", "#3fae4a", "#d2452f", "#8a4fd8", "#f0a33a", "#2ab8b0", "#c03a7a", "#e6e9dc", "#6b4a2a", "#3a3a44", "#1a1a1a", "#3a2614"];
+const HAIR_STYLES = {
+  short:    { name: "Short",    rows: ["..HHHH....", ".HHHHHH...", ".H........", ".........."] },
+  long:     { name: "Long",     rows: ["..HHHH....", ".HHHHHH...", "HH........", "H.........", "H........."] },
+  spiky:    { name: "Spiky",    rows: [".H.HH.H...", ".HHHHHH...", ".H........", ".........."] },
+  ponytail: { name: "Ponytail", rows: ["..HHHH....", "HHHHHHH...", "HH........", "H........."] },
+  bald:     { name: "Bald",     rows: [".........."  , "..ssss....", ".s........", ".........."] },
+};
+// what each kind of headgear covers (by icon template)
+const HEADGEAR = {
+  helm:     ["..hhhh....", ".hHHHHh...", ".h....h..."],
+  hood:     ["..hhhh....", ".hhhhhh...", ".h....h...", ".h....h..."],
+  hat:      ["...hhh....", "hhhhhhhh..", ".........."],
+  tricorne: ["h.hhhh.h..", ".hhhhhh...", ".........."],
+  mask:     ["..........", "..........", "..hhh.h..."],
+  wyrm:     [".h.hh.h...", ".hHHHHh...", ".h....h..."],
+  crown:    [".h.h.h....", ".hhhhh....", ".........."],
+};
+const LOOK_DEFAULT = { skin: 0, hair: "short", hairCol: 1, top: 0, legs: 8, boots: 11, gear: true, show: {} };
+const look = () => { const l = Object.assign({}, LOOK_DEFAULT, state.look || {}); l.show = Object.assign({}, (state.look || {}).show); return l; };
+const iconCols = id => (ITEM_ICON[id] || [null, null])[1];
+const iconTpl = id => (ITEM_ICON[id] || [null])[0];
+// the item shown in a slot: a cosmetic override you own, "none" to hide, or what you're wearing
+function shownIn(slot) {
+  const L = look(), o = L.show[slot];
+  if (o === "none") return null;
+  if (o && has(o) && GEAR[o] && GEAR[o].slot === slot) return o;
+  return L.gear ? eq(slot) : null;
+}
+// kind: "combat" draws your weapon and shield; "skill" leaves your hands free for tools
+function heroModel(kind) {
+  const L = look();
+  const rows = ["..........", "..........", "..ssess...", "..ssss....", ".TTTTTT...", "sTttttTs..", ".LL..LL...", ".BB..BB..."].map(r => r.split(""));
+  const put = (over, y0) => over.forEach((r, i) => r.split("").forEach((c, x) => { if (c !== ".") rows[y0 + i][x] = c; }));
+  const pal = { s: LOOK_SKIN[L.skin] || LOOK_SKIN[0], e: "#1a1a1a", H: LOOK_HAIR[L.hairCol] || LOOK_HAIR[0], T: LOOK_CLOTH[L.top], t: shade(LOOK_CLOTH[L.top], 0.7), L: LOOK_CLOTH[L.legs], B: LOOK_CLOTH[L.boots] };
+  const head = shownIn("head"), body = shownIn("body"), legs = shownIn("legs"), cape = shownIn("cape");
+  // hair, unless a full helmet hides it
+  const hg = head ? (HEADGEAR[iconTpl(head)] || HEADGEAR.helm) : null;
+  if (!hg || hg === HEADGEAR.hat || hg === HEADGEAR.mask || hg === HEADGEAR.tricorne || hg === HEADGEAR.crown) put((HAIR_STYLES[L.hair] || HAIR_STYLES.short).rows, 0);
+  if (hg) { put(hg, 0); const c = iconCols(head) || ["#8a939d", "#5a626a"]; pal.h = c[0]; pal.H2 = c[1]; }
+  if (body) { const c = iconCols(body); if (c) { pal.T = c[0]; pal.t = c[1]; } }
+  if (legs) { const c = iconCols(legs); if (c) pal.L = c[0]; }
+  if (cape) { const c = iconCols(cape); pal.C = c ? c[0] : "#8a4fd8"; rows[4][0] = "C"; rows[6][0] = "C"; rows[7][0] = "C"; }
+  let wkey = "";
+  if (kind === "combat") {
+    const shield = shownIn("shield"), weap = shownIn("weapon"), g = weap && GEAR[weap];
+    if (shield && !(g && g.twoH)) { const c = iconCols(shield) || ["#8a939d"]; pal.D = c[0]; rows[4][0] = "D"; rows[5][0] = "D"; rows[6][0] = "D"; }
+    const type = g ? g.type : null, c = weap ? (iconCols(weap) || []) : [];
+    if (type === "melee") { pal.w = c[0] || "#eef2f6"; pal.g = c[3] && c[3] !== "#000" ? c[3] : "#f2c230"; rows[1][9] = "w"; rows[2][8] = "w"; rows[3][7] = "w"; rows[4][7] = "g"; }
+    else if (type === "ranged") { pal.w = c[0] || "#a0682a"; pal.S = "#d4d8de"; [[8,0],[9,1],[9,2],[9,3],[9,4],[9,5],[8,6]].forEach(([x, y]) => rows[y][x] = "w"); rows[3][7] = "S"; rows[3][8] = "S"; }
+    else if (type === "magic") { pal.l = "#a0682a"; pal.o = SPELL_COLOURS[spellOf().id] || c[2] || "#c79bf2"; rows[0][9] = "o"; for (let y = 1; y < 8; y++) rows[y][9] = "l"; rows[5][8] = "s"; }
+    wkey = (weap || "") + (shield || "") + (type === "magic" ? pal.o : "");
+  }
+  // helmet second colour
+  if (hg) for (const r of rows) for (let x = 0; x < r.length; x++) if (r[x] === "H" && (hg === HEADGEAR.helm || hg === HEADGEAR.wyrm) ) r[x] = "J";
+  if (hg) pal.J = pal.H2;
+  const grid = rows.map(r => r.join(""));
+  return { grid, pal, key: "hero:" + kind + ":" + grid.join("") + JSON.stringify(pal) + wkey };
+}
+function shade(hex, f) { const n = parseInt((hex || "#888888").slice(1), 16); const c = k => Math.max(0, Math.min(255, Math.round(((n >> k) & 255) * f))); return "#" + [16, 8, 0].map(k => c(k).toString(16).padStart(2, "0")).join(""); }
+function drawHero(ctx, kind, cx, by, s, flip, alpha) { const m = heroModel(kind); return drawGrid(ctx, m.key, m.grid, m.pal, cx, by, s, flip, alpha); }
+
+// ---- Look screen (Combat › Look) ----
+function lookPanel() {
+  const L = look();
+  const sw = (key, list, cur) => `<div class="swatches">${list.map((c, i) => `<button class="sw ${cur === i ? "on" : ""}" id="look-${key}-${i}" data-look="${key}:${i}" style="background:${c}" aria-label="${key} colour ${i + 1}" aria-pressed="${cur === i}"></button>`).join("")}</div>`;
+  let h = `<div class="lookwrap"><canvas id="lookScene" class="scene" role="img" aria-label="Your character"></canvas></div>`;
+  h += `<h3>Skin</h3>${sw("skin", LOOK_SKIN, L.skin)}`;
+  h += `<h3>Hair</h3><div class="seg" role="group" aria-label="Hair style" style="grid-template-columns:repeat(5,1fr);margin-bottom:8px">${Object.entries(HAIR_STYLES).map(([k, v]) => `<button id="look-hair-${k}" data-lookhair="${k}" aria-pressed="${L.hair === k}">${v.name}</button>`).join("")}</div>${sw("hairCol", LOOK_HAIR, L.hairCol)}`;
+  h += `<h3>Top</h3>${sw("top", LOOK_CLOTH, L.top)}<h3>Trousers</h3>${sw("legs", LOOK_CLOTH, L.legs)}<h3>Boots</h3>${sw("boots", LOOK_CLOTH, L.boots)}`;
+  h += `<h3>Equipment</h3><label class="toggle"><input type="checkbox" id="lookGear" ${L.gear ? "checked" : ""}> Show what I'm wearing on my character</label>`;
+  h += `<p class="note">Cosmetics: show any item you own in a slot, whatever you're actually wearing. Stats always come from your real equipment.</p><div class="cosm">`;
+  for (const slot of ["head", "cape", "body", "legs", "shield", "weapon"]) {
+    const owned = Object.keys(GEAR).filter(id => GEAR[id].slot === slot && has(id) && ITEM_ICON[id]).sort((a, b) => ITEMS[a].name.localeCompare(ITEMS[b].name));
+    const cur = L.show[slot] || "";
+    h += `<label class="cs"><span>${icon(shownIn(slot) || "")}${SLOT_NAMES[slot]}</span><select id="look-show-${slot}" data-lookslot="${slot}" class="cin">
+      <option value="" ${!cur ? "selected" : ""}>What I'm wearing</option><option value="none" ${cur === "none" ? "selected" : ""}>Nothing</option>
+      ${owned.map(id => `<option value="${id}" ${cur === id ? "selected" : ""}>${esc(ITEMS[id].name)}</option>`).join("")}</select></label>`;
+  }
+  h += `</div><button class="btn" id="lookReset">Reset to default look</button>`;
+  return h;
+}
+function drawLookScene(now) {
+  const cv = $("lookScene"); if (!cv) return;
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+  if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext && cv.getContext("2d"); if (!ctx) return;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.imageSmoothingEnabled = false;
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#0b1410"); g.addColorStop(1, "#16241d"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  const ground = H - 24;
+  for (let x = 0, i = 0; x < W; x += 16, i++) for (let y = ground, j = 0; y < H; y += 16, j++) { ctx.fillStyle = (i + j) % 2 ? "#24402e" : "#2c4c36"; ctx.fillRect(x, y, 16, 16); }
+  ctx.fillStyle = "#0b0b0d"; ctx.fillRect(0, ground, W, 2);
+  const still = reduceMotion(), bob = still ? 0 : Math.sin(now / 420) * 1.5, s = Math.min(11, Math.floor(H / 13));
+  drawAura(ctx, W * 0.36, ground, 12 * s, now, still);
+  drawFollower(ctx, W * 0.36 - 9 * s, ground, now, still);
+  drawHero(ctx, "combat", W * 0.36, ground + bob, s, false);
+  drawHero(ctx, "skill", W * 0.74, ground + bob * 0.5, s * 0.75, true);
+  ctx.fillStyle = "#93a597"; ctx.font = "600 11px Karla, sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("In combat", W * 0.36, 16); ctx.fillText("Skilling", W * 0.74, 16);
+}
+
 /* ================= LOGIN SCREEN ================= */
 const loginOpen = () => !$("login").hidden;
 function showLogin() {
@@ -4389,7 +4518,7 @@ function frame(now) {
   if (now - lastQuestCheck > 1000) { lastQuestCheck = now; checkQuests(); }
   if (now - lastSigCheck > 250 || sum.notes.length) { lastSigCheck = now; if (signature() !== lastSig) render(); }
   if (dt > 5000) { fxq = []; skq = []; }
-  update(); renderNow(); drawScene(now); drawSkillScene(now); drawVoyageScene(now);
+  update(); renderNow(); drawScene(now); drawSkillScene(now); drawVoyageScene(now); drawLookScene(now);
   if (Date.now() - lastSave > 5000) { save(); lastSave = Date.now(); }
   requestAnimationFrame(frame);
 }
