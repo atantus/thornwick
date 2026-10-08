@@ -405,6 +405,27 @@ body.noscroll{overflow:hidden}
 .perk.got{border-color:var(--ember-dim)}
 .perk.got .ico{filter:none}
 .perk.got em{color:var(--moss)}
+.arena-hp{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0 8px}
+.arena-hp .r{text-align:right}
+.hpbar{height:9px;border-radius:5px;background:#0b0b0d;overflow:hidden;margin:4px 0;border:1px solid var(--line)}
+.hpbar i{display:block;height:100%;background:var(--moss);transition:width .3s}
+.hpbar.them i{margin-left:auto;background:var(--danger)}
+.pips{font-size:.75rem;color:var(--muted)} .pips b{color:var(--ember)}
+.arenacv{width:100%;height:170px;display:block;border-radius:12px;border:1px solid var(--line);background:#1a1210}
+.tell{font-style:italic;color:var(--fg);margin:12px 2px;min-height:1.4em;text-align:center}
+.arena-moves{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.arena-moves .btn{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.95rem}
+.arena-moves .btn small{font-size:.68rem;font-weight:500;opacity:.8}
+.arena-log{margin-top:12px;font-size:.84rem;color:var(--muted)} .arena-log p{margin:5px 0} .arena-log .ok{color:var(--moss)} .arena-log .bad{color:var(--danger)}
+.arena-res{display:flex;flex-direction:column;gap:4px;text-align:center;padding:14px;border-radius:12px;background:var(--panel);border:1px solid var(--line);margin-top:12px}
+.arena-res.win{border-color:var(--ember);background:linear-gradient(135deg,#f0a33a1c,transparent 70%),var(--panel)}
+.arena-res .big{font-family:var(--f-display);font-size:1.7rem;font-weight:400;color:var(--ember)}
+.arena-res.loss .big{color:var(--danger)}
+.arena-res .ok{color:var(--moss)}
+.rules{display:flex;flex-direction:column;gap:6px;margin-top:12px;padding:12px 14px;border:1px dashed var(--ember-dim);border-radius:12px;font-size:.9rem;color:var(--muted)}
+.rules>b{color:var(--ember);font-size:.75rem;text-transform:uppercase;letter-spacing:.1em} .rules span b{color:var(--fg)}
+.roofcv{width:100%;aspect-ratio:16/10;max-height:60vh;display:block;border-radius:14px;border:1px solid var(--line);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer;background:#0c1228;margin-top:12px}
+div.act{cursor:default}
 .daily.boss{border-color:#ff7a1a66;background:linear-gradient(135deg,#ff7a1a14,transparent 60%),var(--panel)}
 .daily.boss .tbar i{background:#ff7a1a}
 .special{border:1px solid var(--ember);border-radius:14px;padding:12px;margin:12px 0;background:linear-gradient(135deg,#f0a33a1c,transparent 70%)}
@@ -614,6 +635,13 @@ const ITEMS = {
   streak_saver:  { name: "Streak saver",  desc: "Keeps your daily streak alive if you miss a day. Used automatically. Hold up to 3." },
   daybreak_hood: { name: "Daybreak hood", desc: "Daily shop. Head, Defence +3. Warm as the first light.", rare: true },
   sunrise_cape:  { name: "Sunrise cape",  desc: "Daily shop. Cape, Defence +6. Glows orange at the hem.", rare: true },
+  glory:         { name: "Glory", desc: "Won in the Arena. Spend it in the Glory shop." },
+  arena_helm:    { name: "Gladiator's helm", desc: "Glory shop. Head, Defence +5. Dented, proudly.", rare: true },
+  arena_cape:    { name: "Champion's mantle", desc: "Glory shop. Cape, Defence +8. Crimson and gold, for the crowd's favourite.", rare: true },
+  pet_brawler:   { name: "Brawler", desc: "Arena pet. A scarred pit hound with a soft heart. +10% glory from ranked fights.", rare: true },
+  roof_hood:     { name: "Runner's hood", desc: "Rooftop run: reach 300 m. Head, Defence +2. Dark as a moonless night.", rare: true },
+  roof_cape:     { name: "Skyrunner cape", desc: "Rooftop run: reach 750 m. Cape, Defence +5. Snaps in the wind as you leap.", rare: true },
+  pet_scamp:     { name: "Scamp", desc: "Rooftop run: reach 1,500 m. A rooftop cat who never misses a jump. +10% rooftop run xp.", rare: true },
   moonlit_hood:  { name: "Moonlit hood",  desc: "Daily special only. Head, Defence +4. Silver thread that catches the moon.", rare: true },
   dusk_cape:     { name: "Duskwoven cape", desc: "Daily special only. Cape, Defence +7. The colour of the sky just after sunset.", rare: true },
   pet_lumen:   { name: "Lumen",       desc: "Daily special pet. A lantern moth that glows near a bargain. Daily specials cost 10% less.", rare: true },
@@ -1265,7 +1293,7 @@ function rollTable(table) {
 const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 /* ================= STATE ================= */
-const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{}, ach:{}, stats:{}, apSpent:0, apUp:{}, apBonus:0, daily:{}, weekly:{}, dspecial:{} });
+const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{}, ach:{}, stats:{}, apSpent:0, apUp:{}, apBonus:0, daily:{}, weekly:{}, dspecial:{}, arena:{}, roof:{} });
 let state = fresh();
 let tab = "skills";
 let bankSub = "items", bankFilter = "All", bankSel = null;
@@ -1351,7 +1379,7 @@ Object.assign(GEAR, {
   wayfarer_hat:{ slot:"head", def:2 }, patchwork_cape:{ slot:"cape", def:2 }, trimmed_shield:{ slot:"shield", req:["defence", 5], def:12 },
   ranger_tricorne:{ slot:"head", def:5 }, explorer_cape:{ slot:"cape", def:4 }, treasure_ring:{ slot:"ring" },
   gilded_helm:{ slot:"head", req:["defence", 55], def:25 }, gilded_platebody:{ slot:"body", req:["defence", 55], def:72 }, gilded_platelegs:{ slot:"legs", req:["defence", 55], def:43 }, gilded_kiteshield:{ slot:"shield", req:["defence", 55], def:36 },
-  starlit_cape:{ slot:"cape", def:8 }, laurel_crown:{ slot:"head", def:4 }, champion_cape:{ slot:"cape", def:12 }, daybreak_hood:{ slot:"head", def:3 }, sunrise_cape:{ slot:"cape", def:6 }, moonlit_hood:{ slot:"head", def:4 }, dusk_cape:{ slot:"cape", def:7 }, wyrm_mask:{ slot:"head", req:["defence", 60], def:30 },
+  starlit_cape:{ slot:"cape", def:8 }, laurel_crown:{ slot:"head", def:4 }, champion_cape:{ slot:"cape", def:12 }, daybreak_hood:{ slot:"head", def:3 }, sunrise_cape:{ slot:"cape", def:6 }, moonlit_hood:{ slot:"head", def:4 }, arena_helm:{ slot:"head", def:5 }, arena_cape:{ slot:"cape", def:8 }, roof_hood:{ slot:"head", def:2 }, roof_cape:{ slot:"cape", def:5 }, dusk_cape:{ slot:"cape", def:7 }, wyrm_mask:{ slot:"head", req:["defence", 60], def:30 },
   dawnforged_helm:{ slot:"head", req:["defence", 70], def:34 }, dawnforged_platebody:{ slot:"body", req:["defence", 70], def:92 }, dawnforged_platelegs:{ slot:"legs", req:["defence", 70], def:55 },
   dawnforged_kiteshield:{ slot:"shield", req:["defence", 70], def:48 }, dawnforged_cape:{ slot:"cape", def:10 }, dawnforged_amulet:{ slot:"amulet", def:8 },
   gull_cloak:{ slot:"cape" }, windrunner_cape:{ slot:"cape" }, mastery_cape:{ slot:"cape", def:5 },
@@ -1549,7 +1577,7 @@ function gainXp(skill, x, sum) {
 }
 
 /* ================= PETS ================= */
-const allPets = () => [...PETS, ...Object.values(SKILL_PETS), "pet_sniffer", "pet_tock", "pet_lumen"];
+const allPets = () => [...PETS, ...Object.values(SKILL_PETS), "pet_sniffer", "pet_tock", "pet_lumen", "pet_brawler", "pet_scamp"];
 function givePet(skill, sum) {
   const pet = SKILL_PETS[skill]; if (!pet || has(pet)) return;
   add(pet, 1); sum.items[pet] = (sum.items[pet] || 0) + 1;
@@ -2038,7 +2066,7 @@ function loadObj(o) {
   state.ach = o.ach || {}; state.stats = o.stats || {}; state.apSpent = o.apSpent || 0; state.apUp = Object.assign({}, o.apUp);
   for (const u of AP_UPGRADES) if (u.rank !== undefined && state.apUp[u.id]) { state.apSpent = Math.max(0, state.apSpent - u.costs[0]); delete state.apUp[u.id]; }
   curRank = achRank();
-  state.daily = o.daily || {}; state.weekly = o.weekly || {}; state.dspecial = o.dspecial || {};
+  state.daily = o.daily || {}; state.weekly = o.weekly || {}; state.dspecial = o.dspecial || {}; state.arena = o.arena || {}; state.roof = o.roof || {};
   if (o.apBonus) { state.bank.daily_token = (state.bank.daily_token || 0) + o.apBonus; } state.apBonus = 0;
   state.xp.slayer = state.xp.slayer || 0;
   state.kills = o.kills || {}; state.buffs = o.buffs || {}; state.boats = o.boats || {}; state.islands = o.islands || {}; state.upgrades = o.upgrades || {};
@@ -2117,7 +2145,7 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, state.daily && state.daily.day, state.daily && state.daily.list ? state.daily.list.map(c => c.done).join() : "", state.weekly && state.weekly.list ? state.weekly.list.map(c => c.done).join() + state.weekly.week + !!(state.weekly.boss && state.weekly.boss.done) : "", state.dspecial && state.dspecial.day + state.dspecial.bought, tab === "dshop" || tab === "daily" ? qty(TOK) : 0, railKey(), logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, state.daily && state.daily.day, state.daily && state.daily.list ? state.daily.list.map(c => c.done).join() : "", state.weekly && state.weekly.list ? state.weekly.list.map(c => c.done).join() + state.weekly.week + !!(state.weekly.boss && state.weekly.boss.done) : "", state.dspecial && state.dspecial.day + state.dspecial.bought, tab === "dshop" || tab === "daily" ? qty(TOK) : 0, railKey(), tab === "arena" ? [qty(GLORY), arena.opps ? arena.opps.map(o => o.name).join() : "", arena.fight ? [arena.fight.round, arena.fight.over] : 0, arenaState().fights] : 0, tab === "roof" ? [roof.last && roof.last.t, roofState().runs] : 0, logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
@@ -2127,7 +2155,7 @@ const SKILL_GROUPS = [
 ];
 const SECTIONS = [["skills","Skills","✦"],["combat","Combat","⚔"],["clog","Log","▤"],["bank","Bank","◫"],["more","More","≡"]];
 const NAV_ICON = { skills:"skills", combat:"attack", clog:"more", bank:"bank", more:"cog" };
-const sectionOf = t => ["combat","clog","bank","more","daily","dshop"].includes(t) ? t : "skills";
+const sectionOf = t => ["combat","clog","bank","more","daily","dshop","arena","roof"].includes(t) ? t : "skills";
 function badges() {
   const now = Date.now();
   return {
@@ -2143,6 +2171,8 @@ const RAIL = [
   ["nav-skills", "Skills", "skills", "skills", "", "Play"],
   ["nav-daily", "Challenges", "lucky_horseshoe", "daily", "", "Play"],
   ["nav-dshop", "Daily shop", "daily_token", "dshop", "", "Play"],
+  ["nav-arena", "Arena", "arena_helm", "arena", "", "Play"],
+  ["nav-roof", "Rooftop run", "agility", "roof", "", "Play"],
   ["nav-combat", "Fight", "attack", "combat", "fight", "Combat"],
   ["csub-gear", "Equipment", "defence", "combat", "gear", "Combat"],
   ["csub-look", "Look", "wayfarer_hat", "combat", "look", "Combat"],
@@ -2157,7 +2187,7 @@ const RAIL = [
   ["msub-activity", "Activity", "captain_compass", "more", "activity", "More"],
   ["msub-help", "Help & save", "cog", "more", "help", "More"],
 ];
-const railKey = () => tab === "daily" ? "daily:" : tab === "dshop" ? "dshop:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
+const railKey = () => tab === "daily" ? "daily:" : tab === "dshop" ? "dshop:" : tab === "arena" ? "arena:" : tab === "roof" ? "roof:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
 function renderRail() {
   const b = badges(), cur = railKey(); let h = "", g = "";
   const badge = { "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
@@ -2372,11 +2402,13 @@ function clogTree() {
     { id: "petsg", name: "Pets", entries: [
       { id: "pets", name: "Monster pets", sub: "Each gives +2% combat xp", items: PETS.filter(p => MONSTERS.some(m => m.uniques.some(u => u.item === p))).map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }) },
       { id: "pets-voy", name: "Voyage pets", sub: "Each gives +2% combat xp", items: PETS.filter(p => !MONSTERS.some(m => m.uniques.some(u => u.item === p))).map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }) },
-      { id: "pets-other", name: "Treasure and shop pets", sub: "Sniffer, Tock and Lumen", items: [{ item: "pet_sniffer", unique: true, rate: "1/750 per elite casket" }, { item: "pet_lumen", unique: true, rate: "Daily special" }, { item: "pet_tock", unique: true, rate: "400 Daily tokens" }] },
+      { id: "pets-other", name: "Treasure, shop and minigame pets", sub: "Sniffer, Tock, Lumen, Brawler and Scamp", items: [{ item: "pet_brawler", unique: true, rate: "600 glory" }, { item: "pet_scamp", unique: true, rate: "1,500 m rooftop run" }, { item: "pet_sniffer", unique: true, rate: "1/750 per elite casket" }, { item: "pet_lumen", unique: true, rate: "Daily special" }, { item: "pet_tock", unique: true, rate: "400 Daily tokens" }] },
       { id: "pets-skill", name: "Skilling pets", sub: "Each gives +3% xp in its skill", items: Object.entries(SKILL_PETS).map(([sk, p]) => ({ item: p, unique: true, rate: sk === "farming" ? "1/300 per harvest" : sk === "brewing" ? "1/150 per barrel" : sk === "slayer" ? "1/60 per Slayer task" : `${SKILLS[sk].name}, about ${PET_HOURS}h` })) },
     ] },
     { id: "other", name: "Other", entries: [
       { id: "trophies", name: "Achievement trophies", sub: "Tier X of each achievement", items: ACH_TRACKS.map(t => ({ item: trophyId(t), unique: true, rate: Array.isArray(t.tiers) ? `${fmt(t.tiers[9])} ${t.unit}` : `${t.name} X` })) },
+      { id: "arena", name: "Arena", sub: "Glory shop", items: ASHOP.filter(e => e.once).map(e => ({ item: e.item, rate: `${fmt(e.price)} glory` })) },
+      { id: "roofrun", name: "Rooftop run", sub: "Distance unlocks", items: ROOF_UNLOCKS.map(u => ({ item: u.item, rate: `${fmt(u.m)} m run` })) },
       { id: "dshop", name: "Daily shop", sub: "Daily tokens", items: [...DSHOP.filter(e => e.once).map(e => ({ item: e.item, rate: `${fmt(e.price)} tokens` })), { item: "moonlit_hood", rate: "Daily special" }, { item: "dusk_cape", rate: "Daily special" }, { item: "boss_trophy", rate: "Boss of the week" }] },
       { id: "apshop", name: "Point shop", sub: "Achievement points", items: AP_ITEMS.filter(e => e.once).map(e => ({ item: e.item, rate: `${fmt(e.price)} points` })) },
       { id: "achcapes", name: "Achievement capes", sub: "One per achievement rank", items: ACH_RANKS.map((r, i) => ({ item: capeId(i), unique: true, rate: `${fmt(r.ap)} points` })) },
@@ -2654,6 +2686,13 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 24, date: "8 Oct 2026", title: "The Arena and Rooftop run", items: [
+    "The Arena: turn-based duels in the new Arena page. Each round pick Attack, Block or Special. Attack beats Special, Block beats Attack, Special beats Block (and needs 2 focus). Watch for your opponent's tells.",
+    "Fight ghosts of real hiscores players near your combat level, plus the arena's own gladiators. 10 ranked fights a day earn glory and coins; win streaks pay extra.",
+    "Glory shop: Gladiator's helm, Champion's mantle, and Brawler the pit hound pet (+10% glory).",
+    "Rooftop run: a one-button runner across Thornwick's rooftops at night. Tap or press space to jump, hold to jump higher, and grab skyfeathers. Agility 40 unlocks a double jump.",
+    "Runs pay Agility xp at your best course's pace (10 a day). Reach 300 m for the Runner's hood, 750 m for the Skyrunner cape and 1,500 m for Scamp the rooftop cat.",
+    "New achievements: Gladiator and Roof runner." ] },
   { v: 23, date: "8 Oct 2026", title: "Boss of the week and Today's special", items: [
     "Boss of the week: a new card in Challenges. Each Monday you get the toughest monster you can fight (the Ashen Colossus once you can reach it). Beat the kill count for 12× the daily coins, 15 tokens, a casket (elite for a real boss) and a Boss of the week trophy.",
     "Today's special in the Daily shop: one offer a day, one purchase. Usually a bulk deal at up to 40% off, sometimes something you can't get anywhere else.",
@@ -3203,7 +3242,7 @@ const ITEM_TPL = {
   sapling: ["....3333....", "...333333...", "..33343333..", "...333333...", "....1111....", "...1k11k1...", "...111111...", "..21111112..", "....1111....", "....2..2....", "...22..22...", "............"],
   ember: [".....3......", "....33..3...", "...3443.33..", "..3444433...", "..34114433..", ".3411111443.", ".3k1111k143.", ".3411111143.", "..34111143..", "...333333...", "............", "............"],
   mole: ["............", "............", "...111111...", "..11111111..", ".1111111111.", "441k1111111.", "4411111111..", ".1111111111.", ".1111111111.", "33.33..33...", "............", "............"],
-  moth: ["............", ".11......11.", "1221.33.1221", "122213312221", "122223322221", ".1222332221.", "..11.33.11..", ".1221331221.", ".122.44.221.", "..1..44..1..", "....4444....", "............"],
+  cat: ["............", "...1...1....", "...11.11....", "...11111....", "...1k1k1....", "...11211....", "....111.....", "....1111.3..", "...111111.3.", "...1111111.3", "...11111111.", "....4..4...."],
   bird: ["............", "....1111....", "...111111...", "..1W11W111..", "..1k11k111..", "..133311....", "..11WW111...", ".11WWWW11...", ".11WWWW11...", "..1WWWW1....", "...44.44....", "............"],
   mouse: ["....WWWW....", "...WWWWWW...", "....WWWW....", ".11.1111.11.", ".1311111131.", "..1k1111k1..", "..11111111..", "....1441....", "..11111111..", ".1111111111.", "..2.2..2.22.", "..........2."],
   crab: ["............", "..3......3..", ".33......33.", ".3.k....k.3.", "..11111111..", ".1121111211.", "111111111111", ".1112112111.", "..11111111..", ".2.2....2.2.", "2..2....2..2", "............"],
@@ -3282,6 +3321,8 @@ const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
   daily_token:["coin",["#f0a33a","#8e5a1a","#fff1c8","#000"]], streak_saver:["horseshoe",["#f0a33a","#8e5a1a","#3a4048","#000"]],
   daybreak_hood:["hood",["#f0a33a","#d2452f","#000","#000"]], sunrise_cape:["cape",["#f0a33a","#d2452f","#000","#000"]], pet_tock:["bird",["#c9a440","#6b4a2a","#5aa7e8","#c8ccd2"]],
+  glory:["coin",["#d2452f","#7a1a14","#ffd45a","#000"]], arena_helm:["helm",["#c08a3a","#6b4a1a","#d2452f","#000"]], arena_cape:["cape",["#a8282a","#f2c230","#000","#000"]], pet_brawler:["hound",["#8a6a4a","#4a3220","#d2452f","#f2efe6"]],
+  roof_hood:["hood",["#4a5a7a","#1e2638","#000","#000"]], roof_cape:["cape",["#5aa7e8","#f2efe6","#000","#000"]], pet_scamp:["cat",["#e08a3a","#f2a0a0","#a0582a","#f2efe6"]],
   moonlit_hood:["hood",["#9fb4d8","#2f3f6a","#000","#000"]], dusk_cape:["cape",["#7a4fb0","#e07a4a","#000","#000"]], pet_lumen:["moth",["#6b4fa0","#c79bf2","#3a2a1a","#ffd45a"]], boss_trophy:["trophy",["#ff7a1a","#9a3a10","#ffd45a","#fff6c8"]],
   laurel_crown:["crown",["#e8b84a","#8a6a20","#6fbf5a","#6fbf5a"]], champion_cape:["cape",["#7a2a1e","#ffd45a","#000","#000"]],
   clue_easy:["scroll",["#efe6cc", "#8a7044", "#8a7044", "#5aa7e8"]], clue_medium:["scroll",["#efe6cc", "#8a7044", "#8a7044", "#6fbf5a"]], clue_hard:["scroll",["#efe6cc", "#8a7044", "#8a7044", "#d2452f"]], clue_elite:["scroll",["#f7f0d0", "#7a4ad0", "#7a4ad0", "#c79bf2"]], clue_reward_easy:["chest",["#b07a3e", "#4a2e16", "#000", "#5aa7e8"]], clue_reward_medium:["chest",["#b07a3e", "#4a2e16", "#000", "#6fbf5a"]], clue_reward_hard:["chest",["#b07a3e", "#4a2e16", "#000", "#d2452f"]], clue_reward_elite:["chest",["#3a2a5a", "#1e0f3a", "#000", "#ffd45a"]], wayfarer_hat:["hat",["#8a5a2a", "#4a2e16", "#d2452f", "#000"]], patchwork_cape:["cape",["#6fbf5a", "#8e2a1f", "#000", "#000"]], lucky_horseshoe:["horseshoe",["#c8ccd2", "#6a727a", "#3a4048", "#000"]], trimmed_shield:["kite",["#8a8f96", "#4e5359", "#e8b84a", "#000"]], ranger_tricorne:["tricorne",["#2f6a24", "#1a3a14", "#e8b84a", "#000"]], explorer_cape:["cape",["#2f5ea8", "#e8b84a", "#000", "#000"]], pathfinder_compass:["compass",["#e8b84a", "#8a6a20", "#000", "#000"]], treasure_ring:["ring",["#e8b84a", "#8a6a20", "#d2452f", "#d2452f"]], gilded_helm:["helm",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], gilded_platebody:["body",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], gilded_platelegs:["legs",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], gilded_kiteshield:["kite",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], starlit_cape:["cape",["#1e2a5a", "#ffd45a", "#000", "#000"]], wyrm_mask:["wyrm",["#3f8a5a", "#1f4f30", "#e8dcc0", "#f7d35a"]], gilded_scimitar:["sword",["#ffd45a", "#a07a1a", "#000", "#7a2a1e"]], ancient_tome:["tome",["#7a2a1e", "#3a1410", "#ffd45a", "#c79bf2"]], pet_sniffer:["hound",["#b07a3e", "#5a3a1c", "#000", "#f2a0b0"]], dawnforged_helm:["helm",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_platebody:["body",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_platelegs:["legs",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_kiteshield:["kite",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_cape:["cape",["#f7f2e0", "#ffd45a", "#000", "#000"]], dawnforged_amulet:["amulet",["#ffd45a", "#000", "#ffffff", "#f7f2e0"]], dawnforged_blade:["sword",["#fff6d8", "#c9a440", "#000", "#ffd45a"]],
@@ -4049,6 +4090,8 @@ function render() {
   else if (tab === "bank") h = bankPanel();
   else if (tab === "more") h = morePanel();
   else if (tab === "daily") h = `<div class="pagehead"><h2>Challenges</h2><span>${3 - dailyLeft()} / 3 today</span></div>` + dailyPanel();
+  else if (tab === "arena") h = `<div class="pagehead"><h2>Arena</h2><span>${arenaLeft()} / ${ARENA_DAILY} ranked left</span></div>` + arenaPanel();
+  else if (tab === "roof") h = `<div class="pagehead"><h2>Rooftop run</h2><span>${Math.max(0, ROOF_DAILY - roofState().runs)} / ${ROOF_DAILY} rewarded left</span></div>` + roofPanel();
   else if (tab === "dshop") h = `<div class="pagehead"><h2>Daily shop</h2><span>${fmt(qty(TOK))} tokens</span></div>` + dshopPanel();
   else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "ach" ? "Achievements" : logSub === "shop" ? "Point shop" : "Collection log"}</h2><span>${logSub === "ach" ? fmt(achPoints()) + " points" : logSub === "shop" ? fmt(apBalance()) + " to spend" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
 ` + (logSub === "ach" ? achPanel() : logSub === "shop" ? apShopPanel() : clogPanel());
@@ -4235,6 +4278,11 @@ document.addEventListener("click", e => {
   if (d.reroll !== undefined) { rerollDaily(+d.reroll); render(); return after(); }
   if (d.dshop !== undefined) { buyDshop(+d.dshop); return after(); }
   if (d.dspecial !== undefined) { buySpecial(); return after(); }
+  if (d.arena) { arenaMove(d.arena); render(); return after(); }
+  if (d.arenafight !== undefined) { arenaStart(+d.arenafight); render(); window.scrollTo(0, 0); return after(); }
+  if (d.ashop !== undefined) { buyAshop(+d.ashop); return after(); }
+  if (t.id === "arenaBack") { arena.fight = null; arena.anim = null; render(); return after(); }
+  if (t.id === "arenaRefresh") { arena.refresh++; arenaLoad(); render(); return; }
   if (d.bossgo !== undefined) { dailyGo(0, "boss"); render(); window.scrollTo(0, 0); return after(); }
   if (d.logsub) { logSub = d.logsub; render(); return; }
   if (d.apup) { buyApUpgrade(d.apup); return after(); }
@@ -4685,6 +4733,8 @@ const ACH_TRACKS = [
   { id: "pockets", group: "Adventure", name: "Pickpocket", unit: "successful pickpockets", stat: () => state.stats.thieving || 0, tiers: [25, 100, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000] },
   { id: "laps",    group: "Adventure", name: "Free runner", unit: "agility laps", stat: () => state.stats.agility || 0, tiers: [10, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000] },
   { id: "voyages", group: "Adventure", name: "Seafarer", unit: "voyages", stat: () => sumOf(state.islands), tiers: [1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000] },
+  { id: "arena", group: "Combat", name: "Gladiator", unit: "arena wins", stat: () => (state.arena && state.arena.wins) || 0, tiers: [1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000] },
+  { id: "roofbest", group: "Adventure", name: "Roof runner", unit: "metres in one rooftop run", stat: () => (state.roof && state.roof.best) || 0, tiers: [100, 250, 500, 750, 1000, 1500, 2000, 2500, 3000, 4000] },
   { id: "bossweeks", group: "Combat", name: "Boss of the week", unit: "weekly bosses beaten", stat: () => (state.weekly && state.weekly.bossWins) || 0, tiers: [1, 3, 6, 10, 20, 30, 52, 78, 104, 156] },
   { id: "weeklies", group: "Adventure", name: "Week in, week out", unit: "weeks of weekly challenges", stat: () => (state.weekly && state.weekly.sets) || 0, tiers: [1, 4, 8, 13, 26, 39, 52, 78, 104, 156] },
   { id: "dailies", group: "Adventure", name: "Daily devotee", unit: "days of daily challenges", stat: () => (state.daily && state.daily.sets) || 0, tiers: [1, 7, 30, 60, 100, 180, 365, 500, 730, 1000] },
@@ -5087,6 +5137,383 @@ function dshopPanel() {
   return h;
 }
 
+/* ================= ARENA =================
+   Turn-based duels. Attack beats Special, Block beats Attack, Special beats Block.
+   Opponents are ghosts built from real hiscores players near your combat level, topped up with arena gladiators. */
+const GLORY = "glory", ARENA_DAILY = 10;
+const ARENA_NAMES = ["Bruna", "Kael", "Orrin", "Sable", "Tamsin", "Varn", "Wren", "Iska", "Dorran", "Mirel", "Fenna", "Hask", "Lio", "Rook", "Thea", "Ulric", "Marro", "Quill"];
+const ARENA_TITLES = ["the Bold", "Ironjaw", "the Quick", "of Thornwick", "the Grey", "Stormhand", "the Patient", "Redcloak", "Two-Blades", "the Wall"];
+const ARENA_STYLES = { aggressive: "Aggressive", defensive: "Defensive", tricky: "Tricky" };
+const arena = { opps: null, loading: false, src: "", fight: null, anim: null, refresh: 0 };
+function arenaState() {
+  const A = state.arena || (state.arena = {});
+  for (const k of ["fights", "wins", "losses", "streak", "best"]) A[k] = A[k] || 0;
+  if (A.day !== todayKey()) { A.day = todayKey(); A.fights = 0; }
+  return A;
+}
+const arenaLeft = () => Math.max(0, ARENA_DAILY - arenaState().fights);
+// L = { off, def, hp, cb }: offence level (best of strength/ranged/magic), defence and hitpoints levels
+function ghostFighter(name, L, seed, ghost) {
+  const r = seeded("ghost|" + seed), gear = Math.min(70, L.off * 0.6);
+  const max = 1 + Math.max(1, Math.floor(0.5 + (L.off + 8) * (gear + 64) / 640));
+  const style = Object.keys(ARENA_STYLES)[Math.floor(r() * 3)];
+  return { name, cb: L.cb, max, def: L.def + Math.min(99, L.def) * 0.06, hpMax: Math.max(10, L.hp) + 10, seed: String(seed), style, ghost };
+}
+const meFighter = () => ({ name: cm.hsName || "You", cb: combatLevel(), max: playerMax(), def: lvl("defence") + defBonus() / 10, hpMax: lvl("hitpoints") + 10 });
+function arenaNpcs(n, seedKey) {
+  const my = combatLevel(), r = seeded("npc|" + seedKey), out = [], offs = [-6, -3, -1, 0, 2, 4, 7];
+  for (let tries = 0; out.length < n && tries < 40; tries++) {
+    const cb = Math.max(3, my + offs[Math.floor(r() * offs.length)]), L = Math.max(1, Math.round(cb / 1.15));
+    const name = ARENA_NAMES[Math.floor(r() * ARENA_NAMES.length)] + " " + ARENA_TITLES[Math.floor(r() * ARENA_TITLES.length)];
+    if (out.some(o => o.name === name)) continue;
+    out.push(ghostFighter(name, { off: L, def: L, hp: L, cb }, name + seedKey, false));
+  }
+  return out.sort((a, b) => a.cb - b.cb);
+}
+async function arenaLoad() {
+  const key = todayKey() + "#" + arena.refresh;
+  arena.opps = arenaNpcs(5, key); arena.src = "npc";
+  if (!cloudOn || arena.loading) return;
+  arena.loading = true;
+  try {
+    const my = combatLevel(), lo = Math.max(3, Math.floor(my * 0.8) - 3), hi = Math.ceil(my * 1.2) + 3;
+    const rows = await api(`/rest/v1/hiscores?select=name,combat_level,xp&combat_level=gte.${lo}&combat_level=lte.${hi}&order=updated_at.desc&limit=40`, {}, !!cm.s);
+    const r = seeded("pick|" + key), pool = (rows || []).filter(x => x.name && x.name !== cm.hsName);
+    const ghosts = [];
+    while (pool.length && ghosts.length < 3) {
+      const row = pool.splice(Math.floor(r() * pool.length), 1)[0], x = row.xp || {}, L = k => levelOf(x[k] || 0);
+      ghosts.push(ghostFighter(row.name, { off: Math.max(L("strength"), L("ranged"), L("magic"), 1), def: L("defence"), hp: L("hitpoints"), cb: row.combat_level }, row.name, true));
+    }
+    if (ghosts.length && arena.opps) { arena.opps = [...ghosts, ...arena.opps.slice(0, 5 - ghosts.length)].sort((a, b) => a.cb - b.cb); arena.src = "mixed"; }
+  } catch (e) {}
+  arena.loading = false;
+  if (tab === "arena" && !arena.fight) render();
+}
+// opponents get their own randomly dressed body
+function ghostModel(f) {
+  const r = seeded("look|" + f.seed), pk = a => a[Math.floor(r() * a.length)];
+  const rows = ["..........", "..........", "..ssess...", "..ssss....", ".TTTTTT...", "sTttttTs..", ".LL..LL...", ".BB..BB..."].map(x => x.split(""));
+  const put = (over, y0) => over.forEach((row, i) => row.split("").forEach((c, x) => { if (c !== ".") rows[y0 + i][x] = c; }));
+  const top = pk(LOOK_CLOTH);
+  const pal = { s: pk(LOOK_SKIN), e: "#1a1a1a", H: pk(LOOK_HAIR), T: top, t: shade(top, 0.7), L: pk(LOOK_CLOTH), B: pk(LOOK_CLOTH.slice(8)), w: "#eef2f6", g: "#f2c230" };
+  if (r() < 0.45) { put(HEADGEAR.helm, 0); pal.h = pk(["#8a939d", "#c08a3a", "#5aa7e8", "#d2452f", "#3a3a44"]); pal.J = shade(pal.h, 0.6); for (const row of rows) for (let x = 0; x < row.length; x++) if (row[x] === "H") row[x] = "J"; }
+  else put(HAIR_STYLES[pk(Object.keys(HAIR_STYLES))].rows, 0);
+  if (r() < 0.5) { pal.C = pk(LOOK_CLOTH); rows[4][0] = "C"; rows[6][0] = "C"; rows[7][0] = "C"; }
+  rows[1][9] = "w"; rows[2][8] = "w"; rows[3][7] = "w"; rows[4][7] = "g";
+  return { grid: rows.map(x => x.join("")), pal, key: "ghost:" + f.seed };
+}
+const MOVE_NAMES = { A: "Attack", B: "Block", S: "Special" };
+const TELLS = {
+  A: ["{n} tightens their grip.", "{n} edges forward, eyes fixed on you.", "{n} rolls their shoulders, itching to swing."],
+  B: ["{n} raises their guard.", "{n} plants their feet and waits.", "{n} watches your hands closely."],
+  S: ["{n} gathers their focus…", "{n}'s weapon starts to glow.", "{n} takes a long, slow breath."],
+};
+function arenaAi(F) {
+  const o = F.opp, w = { A: 4, B: 3, S: F.focus[1] >= 2 ? 4 : 0 };
+  if (o.style === "aggressive") w.A += 3;
+  if (o.style === "defensive") w.B += 3;
+  if (o.style === "tricky" && w.S) w.S += 3;
+  if (F.hp[1] < o.hpMax * 0.3) w.B += 2;
+  if (F.focus[0] >= 2) w.A += 2;
+  // it learns: counter what you've been doing lately
+  const last = F.hist.slice(-3), cnt = k => last.filter(x => x === k).length;
+  if (cnt("A") >= 2) w.B += 3;
+  if (cnt("B") >= 2) { if (w.S) w.S += 3; else w.A += 1; }
+  if (cnt("S") >= 2) w.A += 3;
+  let r = Math.random() * (w.A + w.B + w.S);
+  for (const k of ["A", "B", "S"]) if ((r -= w[k]) < 0) return k;
+  return "A";
+}
+// a hint about their next move, right about two times in three
+function arenaTell(F) {
+  F.next = arenaAi(F);
+  let k = F.next;
+  if (Math.random() > 0.65) { const alt = ["A", "B", "S"].filter(x => x !== k && (x !== "S" || F.focus[1] >= 2)); k = alt[Math.floor(Math.random() * alt.length)]; }
+  const opts = TELLS[k]; F.tell = opts[Math.floor(Math.random() * opts.length)].replace("{n}", F.opp.name);
+}
+function arenaStart(i) {
+  const opp = arena.opps && arena.opps[i]; if (!opp || arena.fight) return;
+  const A = arenaState(), ranked = A.fights < ARENA_DAILY; if (ranked) A.fights++;
+  const me = meFighter();
+  arena.fight = { opp, me, hp: [me.hpMax, opp.hpMax], focus: [0, 0], round: 1, hist: [], log: [], ranked, over: false, model: ghostModel(opp) };
+  arena.anim = null; arenaTell(arena.fight);
+}
+const arenaHit = (a, d, mult) => Math.max(1, Math.round(randInt(Math.ceil(a.max * 0.5), a.max) * mult * (1 - 0.35 * Math.min(1, d.def / 110))));
+function arenaMove(my) {
+  const F = arena.fight; if (!F || F.over || !MOVE_NAMES[my]) return;
+  if (my === "S" && F.focus[0] < 2) return;
+  const op = F.next, P = [F.me, F.opp], dmg = [0, 0], n = F.opp.name;
+  const hit = (i, m) => { dmg[i] = arenaHit(P[i], P[1 - i], m); };
+  if (my === "S") F.focus[0] -= 2;
+  if (op === "S") F.focus[1] -= 2;
+  let txt = "";
+  switch (my + op) {
+    case "AA": hit(0, 1); hit(1, 1); txt = "You trade blows."; break;
+    case "AB": hit(1, 0.6); txt = `${n} blocks and counters.`; break;
+    case "BA": hit(0, 0.6); txt = "You block and counter!"; break;
+    case "AS": hit(0, 1.3); txt = `You interrupt ${n}'s special!`; break;
+    case "SA": hit(1, 1.3); txt = `${n} interrupts your special.`; break;
+    case "BB": F.focus[0]++; F.focus[1]++; txt = "You both hold your guard and gather focus."; break;
+    case "BS": hit(1, 1.8); txt = `${n}'s special smashes through your guard.`; break;
+    case "SB": hit(0, 1.8); txt = `Your special smashes through ${n}'s guard!`; break;
+    case "SS": hit(0, 1.5); hit(1, 1.5); txt = "Both specials collide!"; break;
+  }
+  F.hp[1] = Math.max(0, F.hp[1] - dmg[0]); F.hp[0] = Math.max(0, F.hp[0] - dmg[1]);
+  F.focus = F.focus.map(f => Math.min(3, f + 1));
+  F.hist.push(my); F.log.unshift({ r: F.round, txt, my, op, dmg }); F.round++;
+  arena.anim = { t0: performance.now(), m: [my, op], d: dmg };
+  if (F.hp[0] <= 0 || F.hp[1] <= 0) arenaEnd(); else arenaTell(F);
+}
+function arenaEnd() {
+  const F = arena.fight, A = arenaState(); F.over = true;
+  const win = F.hp[1] <= 0 && F.hp[0] > 0, draw = F.hp[0] <= 0 && F.hp[1] <= 0;
+  F.result = win ? "win" : draw ? "draw" : "loss";
+  if (win) { A.wins++; A.streak++; A.best = Math.max(A.best, A.streak); }
+  else { A.streak = 0; if (!draw) A.losses++; }
+  F.glory = 0; F.coins = 0;
+  if (F.ranked) {
+    let g = win ? 10 + Math.round(F.opp.cb / 5) + (F.opp.cb > F.me.cb ? 5 : 0) + Math.min(10, (A.streak - 1) * 2) : draw ? 5 : 3;
+    if (has("pet_brawler")) g = Math.round(g * 1.1);
+    F.glory = g; add(GLORY, g);
+    if (win) { F.coins = 40 * F.opp.cb; add("coins", F.coins); }
+  }
+  const what = win ? `You beat ${F.opp.name}` : draw ? `You and ${F.opp.name} fell together` : `${F.opp.name} beat you`;
+  toast(`${what}${F.ranked ? `. +${F.glory} glory${F.coins ? `, +${fmt(F.coins)} coins` : ""}` : " (practice)"}`, win);
+  log(`Arena: <b>${esc(what)}</b>${F.ranked ? ` (+${F.glory} glory)` : ""}`, win ? "r" : "l");
+}
+const ASHOP = [
+  { item: "brew_giant", price: 20, qty: 5 },
+  { item: "clue_reward_hard", price: 45 },
+  { item: "arena_helm", price: 150, once: true },
+  { item: "arena_cape", price: 300, once: true },
+  { item: "pet_brawler", price: 600, once: true },
+];
+function buyAshop(i) {
+  const e = ASHOP[i]; if (!e || qty(GLORY) < e.price || (e.once && ownedEver(e.item))) return;
+  add(GLORY, -e.price); add(e.item, e.qty || 1);
+  if (e.item === "pet_brawler" && !state.opts.follow) state.opts.follow = "pet_brawler";
+  toast(`Bought ${e.qty > 1 ? e.qty + " " : ""}${ITEMS[e.item].name.toLowerCase()}`);
+}
+const pips = n => `Focus ${[0, 1, 2].map(i => i < n ? "<b>◆</b>" : "◇").join("")}`;
+function arenaPanel() {
+  const A = arenaState(), F = arena.fight;
+  if (!arena.opps) arenaLoad();
+  let h = `<div class="achtop">${icon(GLORY)}<div><span class="ar">Glory</span><b class="num">${fmt(qty(GLORY))}</b><span>${fmt(A.wins)} wins · ${fmt(A.losses)} losses · best streak ${A.best}${A.streak > 1 ? ` · on a ${A.streak}-win streak` : ""}</span></div></div>`;
+  if (F) {
+    const side = (i, f, cls) => `<div class="${cls}"><b>${esc(f.name)}</b> <span class="num">${F.hp[i]}/${f.hpMax}</span><div class="hpbar ${i ? "them" : ""}"><i style="width:${F.hp[i] / f.hpMax * 100}%"></i></div><span class="pips">${pips(F.focus[i])}</span></div>`;
+    h += `<div class="arena-hp">${side(0, F.me, "")}${side(1, F.opp, "r")}</div>
+      <canvas id="arenaCv" class="arenacv" aria-label="${esc(F.me.name)} against ${esc(F.opp.name)}"></canvas>`;
+    if (F.over) {
+      const head = F.result === "win" ? "Victory!" : F.result === "draw" ? "Double knockout" : "Defeat";
+      h += `<div class="arena-res ${F.result}"><b class="big">${head}</b><span>${F.ranked ? `+${F.glory} glory${F.coins ? ` · +${fmt(F.coins)} coins` : ""}` : "Practice fight: no rewards. Ranked fights reset at midnight."}</span>
+        <div class="row" style="justify-content:center;margin-top:10px"><button class="btn solid" id="arenaBack">Back to opponents</button></div></div>`;
+    } else {
+      h += `<p class="tell">${esc(F.tell)}</p>
+      <div class="arena-moves">${["A", "B", "S"].map(k => `<button class="btn ${k === "A" ? "solid" : ""}" id="arena-${k}" data-arena="${k}" ${k === "S" && F.focus[0] < 2 ? "disabled" : ""}><b>${MOVE_NAMES[k]}</b><small>${{ A: "beats Special", B: "beats Attack", S: F.focus[0] < 2 ? "needs 2 focus" : "beats Block" }[k]}</small></button>`).join("")}</div>`;
+    }
+    h += `<div class="arena-log">${F.log.slice(0, 4).map(l => `<p><span class="num">R${l.r}</span> You: ${MOVE_NAMES[l.my]} · ${esc(F.opp.name)}: ${MOVE_NAMES[l.op]}. ${esc(l.txt)}${l.dmg[0] ? ` <span class="ok">You hit ${l.dmg[0]}.</span>` : ""}${l.dmg[1] ? ` <span class="bad">You take ${l.dmg[1]}.</span>` : ""}</p>`).join("")}</div>`;
+    return h;
+  }
+  h += `<div class="rules"><b>How to fight</b><span><b>Attack</b> beats Special (you interrupt it). <b>Block</b> beats Attack (you parry and counter). <b>Special</b> beats Block (it smashes through) but needs 2 focus. You both gain 1 focus every round.</span><span>Watch your opponent: the line above the buttons hints at their next move, and it's right about two times in three. Your gear and levels set how hard you hit.</span></div>`;
+  const left = arenaLeft();
+  h += `<h3>Opponents <span>${left ? `${left} ranked fight${left === 1 ? "" : "s"} left today` : "Practice only until midnight"}</span></h3><div class="actions">`;
+  h += (arena.opps || []).map((o, i) => `<button class="act" id="arena-opp-${i}" data-arenafight="${i}"><span class="nm">${icon(o.ghost ? "skills" : "attack")}${esc(o.name)}${o.ghost ? ` <span class="chip" style="padding:0 7px;margin-left:6px">Real player</span>` : ""}</span><span class="meta">Combat ${o.cb} · ${ARENA_STYLES[o.style]} · hits up to ${o.max} · ${o.hpMax} hp${o.cb > combatLevel() ? ` · <span class="ok">+5 glory</span>` : ""}</span><span class="side"><b>Fight</b>${left ? "ranked" : "practice"}</span></button>`).join("");
+  h += `</div><div class="row" style="margin-top:8px"><button class="btn" id="arenaRefresh">Find new opponents</button></div>
+    <p class="note">${arena.src === "mixed" ? "Real players are ghosts built from their hiscores stats; they don't need to be online." : cloudOn ? "Looking for real players near your combat level…" : "Sign in to meet ghosts of real players. Until then you face the arena's gladiators."}</p>`;
+  h += `<h3>Glory shop</h3><div class="actions">` + ASHOP.map((e, i) => {
+    const owned = e.once && ownedEver(e.item);
+    return `<button class="act" id="ashop-${e.item}" data-ashop="${i}" ${owned || qty(GLORY) < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${e.qty > 1 ? e.qty + "× " : ""}${esc(ITEMS[e.item].name)}</span><span class="meta">${owned ? `<span class="ok">Owned</span> · ` : ""}${esc(ITEMS[e.item].desc)}</span><span class="side"><b>${fmt(e.price)}</b>glory</span></button>`;
+  }).join("") + `</div><p class="note">Win: 10 glory plus a fifth of their combat level, +5 against a stronger opponent, up to +10 more on a win streak. Loss: 3 glory. ${ARENA_DAILY} ranked fights a day.</p>`;
+  return h;
+}
+function drawArena(now) {
+  const cv = $("arenaCv"), F = arena.fight; if (!cv || !F) return;
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+  if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext && cv.getContext("2d"); if (!ctx) return;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.imageSmoothingEnabled = false;
+  const still = reduceMotion(), ground = H - 20;
+  // stands and crowd
+  ctx.fillStyle = "#1a1210"; ctx.fillRect(0, 0, W, H);
+  const cr = seeded("crowd");
+  for (let row = 0; row < 3; row++) for (let x = 4 + row * 5; x < W; x += 11) {
+    const bob = still ? 0 : (Math.sin(now / 180 + x * 0.7 + row) > 0.6 ? -2 : 0);
+    ctx.fillStyle = ["#d2452f", "#2f6fd0", "#f0a33a", "#3fae4a", "#8a4fd8", "#e6e9dc"][Math.floor(cr() * 6)];
+    ctx.fillRect(x, 10 + row * 12 + bob, 6, 7); ctx.fillStyle = "#f2c08e"; ctx.fillRect(x + 1, 5 + row * 12 + bob, 4, 4);
+  }
+  ctx.fillStyle = "#0b0b0d"; ctx.fillRect(0, 46, W, 3);
+  ctx.fillStyle = "#6b2a1e"; ctx.fillRect(0, 49, W, 8);
+  for (let x = 0; x < W; x += 28) { ctx.fillStyle = "#f0a33a"; ctx.fillRect(x + 10, 50, 8, 6); }
+  const g = ctx.createLinearGradient(0, 57, 0, H); g.addColorStop(0, "#8a6a42"); g.addColorStop(1, "#b08a58"); ctx.fillStyle = g; ctx.fillRect(0, 57, W, H - 57);
+  for (let i = 0; i < 40; i++) { const x = (i * 97) % W, y = 62 + (i * 53) % (H - 64); ctx.fillStyle = "#9a7a4c"; ctx.fillRect(x, y, 3, 2); }
+  const s = Math.max(4, Math.min(8, Math.floor(H / 17)));
+  let lx = 0, rx = 0, k = 2;
+  const an = arena.anim;
+  if (an && !still) { k = (now - an.t0) / 700; if (k < 1) { const l = Math.sin(Math.min(1, k * 1.6) * Math.PI) * W * 0.14; if (an.m[0] !== "B") lx = l; if (an.m[1] !== "B") rx = -l; } }
+  const px = W * 0.3 + lx, ox = W * 0.7 + rx;
+  const glow = (x, m, col, left) => { if (k >= 1 || !an) return; if (m === "B") { const c = left ? Math.PI : 0; ctx.strokeStyle = "#9fd0ff"; ctx.lineWidth = 3; ctx.globalAlpha = 1 - k; ctx.beginPath(); ctx.arc(x, ground - 6 * s, 7 * s, c - 0.9, c + 0.9); ctx.stroke(); ctx.globalAlpha = 1; } if (m === "S") { ctx.globalAlpha = 0.45 * (1 - k); ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x, ground - 6 * s, 8 * s, 8 * s, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; } };
+  if (an) { glow(px, an.m[0], "#f0a33a", false); glow(ox, an.m[1], "#c79bf2", true); }
+  ctx.fillStyle = "rgba(0,0,0,.25)"; ctx.beginPath(); ctx.ellipse(px, ground + 2, 5 * s, s, 0, 0, 7); ctx.ellipse(ox, ground + 2, 5 * s, s, 0, 0, 7); ctx.fill();
+  drawHero(ctx, "combat", px, ground, s, false, F.over && F.hp[0] <= 0 ? 0.4 : 1);
+  drawGrid(ctx, F.model.key, F.model.grid, F.model.pal, ox, ground, s, true, F.over && F.hp[1] <= 0 ? 0.4 : 1);
+  // damage numbers
+  if (an && k < 1.6) {
+    ctx.font = "700 18px 'JetBrains Mono', monospace"; ctx.textAlign = "center"; ctx.globalAlpha = Math.max(0, 1 - k / 1.6);
+    const rise = k * 18; ctx.font = "700 22px 'JetBrains Mono', monospace";
+    if (an.d[0]) { ctx.fillStyle = "#0b0b0d"; ctx.fillText("-" + an.d[0], W * 0.7 + 2, ground - 10 * s - rise + 2); ctx.fillStyle = "#f7d35a"; ctx.fillText("-" + an.d[0], W * 0.7, ground - 10 * s - rise); }
+    if (an.d[1]) { ctx.fillStyle = "#0b0b0d"; ctx.fillText("-" + an.d[1], W * 0.3 + 2, ground - 10 * s - rise + 2); ctx.fillStyle = "#ff6a5a"; ctx.fillText("-" + an.d[1], W * 0.3, ground - 10 * s - rise); }
+    if (!an.d[0] && !an.d[1]) { ctx.fillStyle = "#9fd0ff"; ctx.fillText("Clang!", W / 2, ground - 10 * s - rise); }
+    ctx.globalAlpha = 1;
+  }
+}
+
+/* ================= ROOFTOP RUN =================
+   One-button runner. Distances in metres; y is height above the starting roof. */
+const ROOF_DAILY = 10, ROOF_G = 28, ROOF_JUMP = 9.5;
+const ROOF_UNLOCKS = [{ m: 300, item: "roof_hood" }, { m: 750, item: "roof_cape" }, { m: 1500, item: "pet_scamp" }];
+const roof = { run: null, last: null, lastT: 0 };
+function roofState() {
+  const R = state.roof || (state.roof = {});
+  for (const k of ["runs", "best", "total", "dist"]) R[k] = R[k] || 0;
+  if (R.day !== todayKey()) { R.day = todayKey(); R.runs = 0; }
+  return R;
+}
+const roofCourse = () => [...COURSES].reverse().find(c => lvl("agility") >= c.lvl) || COURSES[0];
+const roofXpPerM = () => roofCourse().xp / 40 * (has("pet_scamp") ? 1.1 : 1);
+const roofDouble = () => lvl("agility") >= 40;
+function roofNew() {
+  const R = { x: 0, y: 0, vy: 0, v: 7, ground: true, air: 0, jumps: 0, hold: false, holdT: 0, segs: [{ x0: -12, x1: 26, h: 0, chim: [] }], feathers: [], got: 0, dead: false, paused: false, seed: Math.random() };
+  roofGen(R); return R;
+}
+function roofGen(R) {
+  let last = R.segs[R.segs.length - 1];
+  while (last.x1 < R.x + 45) {
+    const v = Math.min(14, 7 + last.x1 / 120) + 0.5;
+    const dh = Math.max(-1.6, Math.min(1.1, -1.6 + Math.random() * 2.7));
+    const h = Math.max(-1.5, Math.min(3, last.h + dh));
+    let maxGap = Math.max(2, Math.min(v * 0.58, 7.5)); if (h - last.h > 0.5) maxGap *= 0.72;
+    const gap = 1.5 + Math.random() * (maxGap - 1.5), len = Math.max(5, v * 0.8) + Math.random() * (6 + Math.min(14, last.x1 / 100));
+    const s = { x0: last.x1 + gap, h, chim: [] }; s.x1 = s.x0 + len;
+    // chimneys leave room to land before them and to take off again after them
+    const cLo = s.x0 + 2 + v * 0.8, cHi = s.x1 - (v * 0.95 + 1.2);
+    if (cHi > cLo && Math.random() < 0.55) s.chim.push(cLo + Math.random() * (cHi - cLo));
+    if (Math.random() < 0.5) R.feathers.push({ x: last.x1 + gap / 2, y: Math.max(last.h, h) + 1.3 });
+    else if (s.chim.length && Math.random() < 0.6) R.feathers.push({ x: s.chim[0] + 0.35, y: h + 2.1 });
+    R.segs.push(s); last = s;
+  }
+  while (R.segs.length > 2 && R.segs[0].x1 < R.x - 20) R.segs.shift();
+  R.feathers = R.feathers.filter(f => !f.got && f.x > R.x - 20);
+}
+function roofStep(R, dt) {
+  R.v = Math.min(14, 7 + R.x / 120);
+  R.x += R.v * dt;
+  const holding = R.hold && R.vy > 0 && R.holdT < 0.25; if (holding) R.holdT += dt;
+  const py = R.y; R.vy -= ROOF_G * (holding ? 0.5 : 1) * dt; R.y += R.vy * dt;
+  roofGen(R);
+  const under = R.segs.find(s => R.x + 0.25 > s.x0 && R.x - 0.25 < s.x1);
+  const was = R.ground; R.ground = false;
+  if (under && R.vy <= 0 && R.y <= under.h && py >= under.h - 0.25) { R.y = under.h; R.vy = 0; R.ground = true; R.jumps = 0; R.air = 0; }
+  if (!R.ground) R.air += dt;
+  if (was && !R.ground && R.jumps === 0) R.air = 0.0001;
+  const front = R.segs.find(s => R.x + 0.25 > s.x0 && R.x + 0.25 < s.x1);
+  if (front && R.y < front.h - 0.25) return roofDie(R, "You ran into a wall.");
+  for (const s of R.segs) for (const c of s.chim) if (R.x + 0.25 > c && R.x - 0.25 < c + 0.7 && R.y < s.h + 0.85) return roofDie(R, "You clipped a chimney.");
+  if (R.y < -7) return roofDie(R, "You fell between the roofs.");
+  for (const f of R.feathers) if (!f.got && Math.abs(f.x - R.x) < 0.6 && R.y < f.y + 0.4 && R.y + 1.7 > f.y) { f.got = true; R.got++; }
+}
+function roofPress() {
+  if (tab !== "roof") return false;
+  const R = roof.run;
+  if (!R || (R.dead && performance.now() - R.deadAt > 700)) { roof.run = roofNew(); roof.lastT = 0; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return true; }
+  if (R.dead) return true;
+  if (R.paused) { R.paused = false; roof.lastT = 0; return true; }
+  if (R.ground || (R.jumps === 0 && R.air < 0.09)) { R.vy = ROOF_JUMP; R.ground = false; R.jumps = 1; R.hold = true; R.holdT = 0; R.air = 0.1; }
+  else if (roofDouble() && R.jumps < 2) { R.vy = ROOF_JUMP * 0.85; R.jumps = 2; R.hold = true; R.holdT = 0; }
+  return true;
+}
+const roofRelease = () => { if (roof.run) roof.run.hold = false; };
+function roofDie(R, why) { R.dead = true; R.deadAt = performance.now(); R.why = why; roofEnd(R); }
+function roofEnd(R) {
+  const S = roofState(), dist = Math.floor(Math.max(0, R.x)), ranked = S.runs < ROOF_DAILY;
+  S.total++; S.dist += dist; if (ranked) S.runs++;
+  const newBest = dist > S.best; if (newBest) S.best = dist;
+  let xp = 0, fea = 0;
+  if (ranked && dist > 0) { xp = Math.round(dist * roofXpPerM()); fea = R.got; gainXp("agility", xp); if (fea) add("skyfeather", fea); }
+  const unlocked = [];
+  for (const u of ROOF_UNLOCKS) if (S.best >= u.m && !ownedEver(u.item)) { add(u.item, 1); unlocked.push(u.item); if (u.item === "pet_scamp" && !state.opts.follow) state.opts.follow = "pet_scamp"; }
+  roof.last = { t: Date.now(), dist, xp, fea, got: R.got, ranked, newBest, why: R.why, unlocked };
+  toast(`Rooftop run: ${fmt(dist)} m${newBest ? " (new best!)" : ""}${ranked ? `. +${fmt(xp)} Agility xp${fea ? `, +${fea} skyfeathers` : ""}` : " (practice)"}`, newBest);
+  for (const u of unlocked) toast(`Rooftop run unlock: ${ITEMS[u].name}!`, true);
+  log(`Rooftop run: <b>${fmt(dist)} m</b>${ranked ? ` (+${fmt(xp)} Agility xp)` : ""}`, newBest ? "r" : "l");
+  save();
+}
+function roofPanel() {
+  const S = roofState(), left = Math.max(0, ROOF_DAILY - S.runs), L = roof.last;
+  let h = `<canvas id="roofCv" class="roofcv" aria-label="Rooftop run. Tap, click or press space to jump; hold for a higher jump."></canvas>
+    <p class="note" style="margin-top:8px">Tap the scene or press space to jump; hold for a higher jump. ${roofDouble() ? "Tap again in the air to double jump." : "Agility 40 unlocks a double jump."} Grab skyfeathers on the way.</p>`;
+  if (L) h += `<div class="arena-res ${L.newBest ? "win" : ""}"><b class="big">${fmt(L.dist)} m${L.newBest ? " · new best!" : ""}</b><span>${esc(L.why || "")} ${L.ranked ? `+${fmt(L.xp)} Agility xp${L.fea ? ` · +${L.fea} skyfeathers` : ""}` : "Practice run: no rewards until midnight."}</span>${L.unlocked.length ? `<span class="ok">Unlocked: ${L.unlocked.map(u => esc(ITEMS[u].name)).join(", ")}</span>` : ""}</div>`;
+  h += `<div class="achtop" style="margin-top:12px">${icon("agility")}<div><span class="ar">Best run</span><b class="num">${fmt(S.best)} m</b><span>${left ? `${left} rewarded run${left === 1 ? "" : "s"} left today` : "Practice only until midnight"} · ${roofXpPerM().toFixed(1)} xp per metre (${esc(roofCourse().name)} pace)${has("pet_scamp") ? " · Scamp +10%" : ""}</span></div></div>`;
+  h += `<h3>Distance unlocks</h3><div class="actions">` + ROOF_UNLOCKS.map(u => {
+    const own = ownedEver(u.item), p = Math.min(1, S.best / u.m);
+    return `<div class="act ${own ? "" : "locked"}"><span class="nm">${icon(u.item)}${esc(ITEMS[u.item].name)}</span><span class="meta">${own ? `<span class="ok">Unlocked</span> · ` : ""}${esc(ITEMS[u.item].desc.replace(/^Rooftop run: reach [\d,]+ m\. /, ""))}<span class="tbar" style="display:block;margin-top:6px"><i style="width:${p * 100}%"></i></span></span><span class="side"><b>${fmt(u.m)}</b>m</span></div>`;
+  }).join("") + `</div><p class="note">Speed builds the further you go. Xp follows the best course you can run, and ${ROOF_DAILY} runs a day pay out.</p>`;
+  return h;
+}
+function drawRoof(now) {
+  const R = roof.run;
+  if (R && !R.dead && !R.paused) {
+    if (tab !== "roof") R.paused = true;
+    else { let dt = roof.lastT ? Math.min(0.05, (now - roof.lastT) / 1000) : 0; while (dt > 1e-6 && !R.dead) { const st = Math.min(1 / 120, dt); roofStep(R, st); dt -= st; } if (R.dead) render(); }
+  }
+  roof.lastT = now;
+  const cv = $("roofCv"); if (!cv) return;
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+  if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext && cv.getContext("2d"); if (!ctx) return;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.imageSmoothingEnabled = false;
+  const G = R || { x: 0, y: 0, segs: [{ x0: -12, x1: 26, h: 0, chim: [] }], feathers: [], got: 0, v: 7, ground: true };
+  const ppm = H / 9;
+  G.camY = G.camY == null ? G.y : G.camY + (Math.max(-1.5, G.y) - G.camY) * 0.08;
+  const camX = G.x - (W * 0.28) / ppm, sx = x => (x - camX) * ppm, sy = y => H * 0.7 - (y - G.camY) * ppm;
+  // sky, moon, stars, far skyline
+  const sk = ctx.createLinearGradient(0, 0, 0, H); sk.addColorStop(0, "#0c1228"); sk.addColorStop(1, "#28304e"); ctx.fillStyle = sk; ctx.fillRect(0, 0, W, H);
+  const st = seeded("stars"); for (let i = 0; i < 40; i++) { ctx.fillStyle = i % 5 ? "#8a94c0" : "#e6e9dc"; ctx.fillRect(Math.floor(st() * W), Math.floor(st() * H * 0.5), 2, 2); }
+  ctx.fillStyle = "#f2efe6"; ctx.beginPath(); ctx.arc(W * 0.82, H * 0.18, H * 0.07, 0, 7); ctx.fill(); ctx.fillStyle = "#0c1228"; ctx.beginPath(); ctx.arc(W * 0.82 + H * 0.03, H * 0.16, H * 0.06, 0, 7); ctx.fill();
+  ctx.fillStyle = "#1a2038";
+  for (let i = -1; i < W / 40 + 2; i++) { const wx = i * 40 - ((camX * ppm * 0.25) % 40), k = Math.floor(i + camX * ppm * 0.25 / 40); const hh = 30 + ((k * 37) % 50 + 50) % 50; ctx.fillRect(wx, H * 0.62 - hh, 34, hh + H); if (((k * 13) % 7 + 7) % 7 === 0) ctx.fillRect(wx + 12, H * 0.62 - hh - 14, 6, 14); }
+  // roofs
+  for (const s of G.segs) {
+    const x0 = sx(s.x0), x1 = sx(s.x1), top = sy(s.h); if (x1 < -10 || x0 > W + 10) continue;
+    ctx.fillStyle = "#0b0b0d"; ctx.fillRect(x0 - 2, top - 2, x1 - x0 + 4, H - top + 2);
+    ctx.fillStyle = "#3a2c44"; ctx.fillRect(x0, top + 6, x1 - x0, H - top);
+    ctx.fillStyle = "#4a3a56"; for (let yy = top + 14; yy < H; yy += 12) for (let xx = x0 + ((yy / 12) % 2 ? 0 : 8); xx < x1 - 4; xx += 16) ctx.fillRect(xx, yy, 12, 2);
+    const wr = seeded("win" + s.x0.toFixed(2)); for (let xx = x0 + 10; xx < x1 - 16; xx += 26) for (let yy = top + 24; yy < H - 8; yy += 30) if (wr() < 0.45) { ctx.fillStyle = "#0b0b0d"; ctx.fillRect(xx - 1, yy - 1, 12, 14); ctx.fillStyle = wr() < 0.7 ? "#f7d35a" : "#5a4a2a"; ctx.fillRect(xx, yy, 10, 12); }
+    ctx.fillStyle = "#a0402c"; ctx.fillRect(x0, top, x1 - x0, 7); ctx.fillStyle = "#7a2c1e"; for (let xx = x0 + 4; xx < x1; xx += 10) ctx.fillRect(xx, top + 2, 2, 5);
+    for (const c of s.chim) { const cx = sx(c), ct = sy(s.h + 0.9), cw = 0.7 * ppm; ctx.fillStyle = "#0b0b0d"; ctx.fillRect(cx - 2, ct - 4, cw + 4, top - ct + 4); ctx.fillStyle = "#8a4a3a"; ctx.fillRect(cx, ct, cw, top - ct); ctx.fillStyle = "#5a2a1a"; ctx.fillRect(cx - 1, ct - 2, cw + 2, 5); ctx.fillStyle = "#6a3a2a"; for (let yy = ct + 6; yy < top; yy += 7) ctx.fillRect(cx + 2, yy, cw - 4, 1); }
+  }
+  // feathers
+  for (const f of G.feathers) if (!f.got) { const fx = sx(f.x); if (fx > -20 && fx < W + 20) drawIcon(ctx, "skyfeather", fx, sy(f.y) + Math.sin(now / 200 + f.x) * 3, Math.round(ppm * 0.9)); }
+  // runner
+  const s = Math.max(3, Math.floor(ppm * 1.7 / 12)), bob = R && G.ground && !G.dead && !G.paused && !reduceMotion() ? Math.round(Math.abs(Math.sin(now / 70)) * -2) : 0;
+  const alpha = G.dead ? (Math.floor(now / 120) % 2 ? 0.35 : 0.8) : 1;
+  drawHero(ctx, "skill", W * 0.28, sy(G.y) + bob, s, false, alpha);
+  // hud
+  ctx.textAlign = "left"; ctx.font = "700 20px 'JetBrains Mono', monospace"; ctx.fillStyle = "#0b0b0d"; ctx.fillText(`${fmt(Math.floor(G.x))} m`, 13, 29); ctx.fillStyle = "#f2efe6"; ctx.fillText(`${fmt(Math.floor(G.x))} m`, 12, 28);
+  drawIcon(ctx, "skyfeather", 22, 46, 20); ctx.font = "700 14px 'JetBrains Mono', monospace"; ctx.fillStyle = "#f2efe6"; ctx.fillText("× " + G.got, 36, 51);
+  ctx.textAlign = "right"; ctx.fillStyle = "#93a5c0"; ctx.font = "600 12px Karla, sans-serif"; ctx.fillText(`Best ${fmt(roofState().best)} m`, W - 10, 20);
+  const msg = !R ? ["Rooftop run", "Tap or press space to start"] : G.paused ? ["Paused", "Tap to carry on"] : G.dead ? [`${fmt(Math.floor(G.x))} m`, performance.now() - G.deadAt > 700 ? "Tap to run again" : ""] : null;
+  if (msg) {
+    ctx.fillStyle = "rgba(8,10,20,.55)"; ctx.fillRect(0, 0, W, H); ctx.textAlign = "center";
+    ctx.font = "30px 'Pirata One', Georgia, serif"; ctx.fillStyle = "#f0a33a"; ctx.fillText(msg[0], W / 2, H / 2 - 4);
+    ctx.font = "600 14px Karla, sans-serif"; ctx.fillStyle = "#e6e9dc"; ctx.fillText(msg[1], W / 2, H / 2 + 20);
+  }
+}
+document.addEventListener("pointerdown", e => { if (e.target && e.target.id === "roofCv") { e.preventDefault(); roofPress(); } });
+document.addEventListener("pointerup", roofRelease);
+document.addEventListener("pointercancel", roofRelease);
+document.addEventListener("keydown", e => { if (tab !== "roof" || e.repeat || (e.target && e.target.matches && e.target.matches("input,textarea"))) return; if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w") { e.preventDefault(); roofPress(); } });
+document.addEventListener("keyup", e => { if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w") roofRelease(); });
+
 /* ================= LOGIN SCREEN ================= */
 const loginOpen = () => !$("login").hidden;
 function showLogin() {
@@ -5154,7 +5581,7 @@ function frame(now) {
   if (now - lastQuestCheck > 1000) { lastQuestCheck = now; checkQuests(); checkAch(); checkDaily(); }
   if (now - lastSigCheck > 250 || sum.notes.length) { lastSigCheck = now; if (signature() !== lastSig) render(); }
   if (dt > 5000) { fxq = []; skq = []; }
-  update(); renderNow(); drawScene(now); drawSkillScene(now); drawVoyageScene(now); drawLookScene(now);
+  update(); renderNow(); drawScene(now); drawSkillScene(now); drawVoyageScene(now); drawLookScene(now); drawArena(now); drawRoof(now);
   if (Date.now() - lastSave > 5000) { save(); lastSave = Date.now(); }
   requestAnimationFrame(frame);
 }
@@ -5188,7 +5615,7 @@ function begin() {
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
 }
-window.__thornwick = { get state() { return state; }, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
