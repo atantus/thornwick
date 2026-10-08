@@ -338,6 +338,37 @@ body.noscroll{overflow:hidden}
 .hst th:first-child,.hst td:first-child{width:3em;color:var(--muted)}
 .hst tr.me td{background:rgba(240,163,58,.12);color:var(--fg);font-weight:700}
 .hst tr.gap td{text-align:center;color:var(--muted);padding:2px}
+.achtop{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.achtop .ico{width:52px;height:52px}
+.achtop div{display:flex;flex-direction:column}
+.achtop .ar{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ember);font-weight:700}
+.achtop b{font-size:1.3rem}
+.achtop span:last-child{color:var(--muted);font-size:.82rem}
+.achs{display:grid;gap:8px}
+.ach{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.ach.max{border-color:#ffd45a}
+.ach summary{display:grid;grid-template-columns:2.6em 1fr auto;align-items:center;gap:10px;cursor:pointer;list-style:none;min-height:40px}
+.ach summary::-webkit-details-marker{display:none}
+.ach .tier{font-family:var(--f-display);font-size:1.3rem;color:var(--ember);text-align:center;border:1px solid var(--ember-dim);border-radius:8px;padding:2px 0}
+.ach.max .tier{color:#ffd45a;border-color:#ffd45a}
+.ach .an{display:flex;flex-direction:column}
+.ach .an span{font-size:.82rem;color:var(--muted)}
+.ach .ap{font-weight:700;color:var(--moss);font-size:.9rem}
+.ach .ap .ico{width:30px;height:30px}
+.ach .tbar{margin:8px 0 2px}
+.tiers{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:2px}
+.tiers li{display:grid;grid-template-columns:2.6em 1fr auto;gap:8px;font-size:.82rem;color:var(--muted);padding:4px 0;border-top:1px solid var(--line);align-items:center}
+.tiers li.got{color:var(--fg)}
+.tiers li.got .tn{color:var(--moss)}
+.tiers .tn{text-align:center;font-weight:700}
+.tiers .tr{display:flex;align-items:center;gap:2px;white-space:nowrap}
+.tiers .ico{width:18px;height:18px}
+.ranks{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.rank{display:flex;flex-direction:column;align-items:center;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 2px;font-size:.7rem;color:var(--muted)}
+.rank b{font-size:.7rem;color:var(--fg)}
+.rank .ico{width:30px;height:30px;filter:grayscale(1) brightness(.4)}
+.rank.got{border-color:var(--ember-dim)}
+.rank.got .ico{filter:none}
 .lookwrap .scene{height:180px}
 .swatches{display:flex;flex-wrap:wrap;gap:8px}
 .sw{width:40px;height:40px;border-radius:10px;border:2px solid #0b0b0d;cursor:pointer;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
@@ -1157,7 +1188,7 @@ function rollTable(table) {
 const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 /* ================= STATE ================= */
-const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{} });
+const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{}, ach:{}, stats:{} });
 let state = fresh();
 let tab = "skills";
 let bankSub = "items", bankFilter = "All", bankSel = null;
@@ -1421,6 +1452,7 @@ function xpMult(skill) {
   if (SKILL_PETS[skill] && has(SKILL_PETS[skill])) m *= 1.03;
   if (has("ancient_tome")) m *= 1.03;
   if (fullDawn()) m *= 1.05;
+  m *= achCapeBonus();
   if (skill === "slayer") { if (has("echo_charm")) m *= 1.1; if (has("bone_charm")) m *= 1.05; }
   return m;
 }
@@ -1496,6 +1528,7 @@ function complete(sum) {
     add("ashes", 1); sum.items.ashes = (sum.items.ashes || 0) + 1;
   }
   gainXp(skill, a.xp * (skill === "firemaking" && has("ember_lantern") ? 1.1 : 1), sum); sum.actions++;
+  state.stats[skill] = (state.stats[skill] || 0) + 1;
   petRoll(skill, a, sum);
   clueTick(skill, a.id, sum); clueFromSkill(skill, a, sum);
   return true;
@@ -1918,6 +1951,7 @@ function loadObj(o) {
   state.slayer = Object.assign({ task:null, points:0, streak:0, done:0 }, o.slayer);
   state.clues = Object.assign({ held:{}, done:{} }, o.clues);
   state.look = o.look || {};
+  state.ach = o.ach || {}; state.stats = o.stats || {};
   state.xp.slayer = state.xp.slayer || 0;
   state.kills = o.kills || {}; state.buffs = o.buffs || {}; state.boats = o.boats || {}; state.islands = o.islands || {}; state.upgrades = o.upgrades || {};
   state.barrels = Array.isArray(o.barrels) ? o.barrels.concat([null,null,null]).slice(0, 3) : [null,null,null]; if (typeof o.hp !== "number") state.hp = lvl("hitpoints");
@@ -1995,7 +2029,7 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, logSub, tab === "clog" && logSub === "ach" ? JSON.stringify(state.ach) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
@@ -2222,6 +2256,8 @@ function clogTree() {
       { id: "pets-skill", name: "Skilling pets", sub: "Each gives +3% xp in its skill", items: Object.entries(SKILL_PETS).map(([sk, p]) => ({ item: p, unique: true, rate: sk === "farming" ? "1/300 per harvest" : sk === "brewing" ? "1/150 per barrel" : sk === "slayer" ? "1/60 per Slayer task" : `${SKILLS[sk].name}, about ${PET_HOURS}h` })) },
     ] },
     { id: "other", name: "Other", entries: [
+      { id: "trophies", name: "Achievement trophies", sub: "Tier X of each achievement", items: ACH_TRACKS.map(t => ({ item: trophyId(t), unique: true, rate: Array.isArray(t.tiers) ? `${fmt(t.tiers[9])} ${t.unit}` : `${t.name} X` })) },
+      { id: "achcapes", name: "Achievement capes", sub: "One per achievement rank", items: ACH_RANKS.map((r, i) => ({ item: capeId(i), unique: true, rate: `${fmt(r.ap)} points` })) },
       { id: "slayershop", name: "Slayer shop", sub: "Slayer points", items: SLAYER_SHOP.map(e => ({ item: e.item, rate: `${e.price} points` })) },
       { id: "eyrie", name: "The Eyrie", sub: "Skyfeather shop", items: EYRIE.filter(e => e.item).map(e => ({ item: e.item, rate: `${e.price} feathers` })) },
     ] },
@@ -2328,7 +2364,7 @@ function questsPanel() {
   return h;
 }
 
-let moreSub = "quests", clogPath = [];
+let moreSub = "quests", clogPath = [], logSub = "clog";
 function crumbs(parts) {
   return `<p class="crumbs">${parts.map(([label, path], i) => i < parts.length - 1 ? `<button class="linkbtn" id="crumb-${i}" data-clog="${path}">${esc(label)}</button> › ` : `<b>${esc(label)}</b>`).join("")}</p>`;
 }
@@ -2497,6 +2533,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 16, date: "8 Oct 2026", title: "Achievements", items: [
+    "20 achievements in Log › Achievements, each with 10 tiers, from your first kill all the way to 10,000 boss kills, 1,000,000 logs and a billion coins.",
+    "Every tier pays coins and achievement points. Tiers V, VII and IX add clue reward caskets, and tier X gives a trophy.",
+    "Achievement points raise your rank, from Novice to Mythic. Each rank unlocks a cape that gives up to +5% xp in every skill while worn.",
+    "Progress you'd already made counts straight away." ] },
   { v: 15, date: "8 Oct 2026", title: "Tidier What's new", items: [ "What's new now just lists the updates." ] },
   { v: 14, date: "8 Oct 2026", title: "Character customisation", items: [
     "Make your adventurer your own: Combat › Look. Pick skin tone, five hairstyles, hair colour, and colours for your top, trousers and boots.",
@@ -3000,6 +3041,7 @@ const ICONS = {
 };
 // Item icons: templates use role digits 1-4 (recoloured per item) plus shared palette letters.
 const ITEM_TPL = {
+  trophy: ["............",".1111111111.","1.11111111.1","1.11111111.1",".1.111111.1.","..11111111..","...111111...",".....11.....",".....11.....","....2222....","...222222...","............"],
   scroll: ["............", "..22222222..", ".2111111112.", ".2133331112.", ".2111111112.", ".2133311112.", ".2111111112.", ".2131333112.", ".2111111112.", "..22222222..", "...4....4...", "............"],
   hat: ["............", "............", "............", "....1111....", "...111111...", "...133331...", "...111111...", ".1111111111.", "122222222221", "............", "............", "............"],
   tricorne: ["............", "............", "............", "............", "1....11....1", "11.111111.11", "111131131111", ".1111111111.", "..22222222..", "............", "............", "............"],
@@ -3850,7 +3892,8 @@ function render() {
   if (tab === "skills") h = overviewPanel();
   else if (tab === "bank") h = bankPanel();
   else if (tab === "more") h = morePanel();
-  else if (tab === "clog") h = `<div class="pagehead"><h2>Collection log</h2><span>${clogCounts()[0]} / ${clogCounts()[1]}</span></div>` + clogPanel();
+  else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "ach" ? "Achievements" : "Collection log"}</h2><span>${logSub === "ach" ? fmt(achPoints()) + " points" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
+    <div class="seg" role="group" aria-label="Log view" style="grid-template-columns:repeat(2,1fr)">${[["clog","Collection log"],["ach","Achievements"]].map(([k, n]) => `<button id="lsub-${k}" data-logsub="${k}" aria-pressed="${logSub === k}">${n}</button>`).join("")}</div>` + (logSub === "ach" ? achPanel() : clogPanel());
   else if (tab === "combat") h = combatPanel();
   else if (tab === "seafaring") h = backBtn() + skillHead("seafaring") + `<canvas id="vscene" class="scene" style="height:230px" role="img" aria-label="Your boats at sea"></canvas>` + seafaringPanel();
   else if (tab === "farming") h = backBtn() + skillHead("farming") + farmingPanel();
@@ -4020,6 +4063,7 @@ document.addEventListener("click", e => {
   if (d.tboat) { traderBoat = d.tboat; return after(); }
   if (d.slayer) { if (d.slayer === "fight") { fightTask(); render(); window.scrollTo(0, 0); return after(); } newTask(d.slayer === "skip"); return after(); }
   if (d.sbuy !== undefined) { buySlayer(+d.sbuy); return after(); }
+  if (d.logsub) { logSub = d.logsub; render(); return; }
   if (d.look) { const [k, v] = d.look.split(":"); state.look = Object.assign({}, state.look, { [k]: +v }); return after(); }
   if (d.lookhair) { state.look = Object.assign({}, state.look, { hair: d.lookhair }); return after(); }
   if (t.id === "lookReset") { state.look = {}; return after(); }
@@ -4043,6 +4087,7 @@ document.addEventListener("click", e => {
     resetArmed = false; state = fresh(); saveDraft = null; render(); renderNow(); save(); toast("Progress reset"); return;
   }
 });
+document.addEventListener("toggle", e => { const el = e.target; if (el.classList && el.classList.contains("ach")) achOpen[el.id.slice(4)] = el.open; }, true);
 document.addEventListener("change", e => { if (e.target.id === "autoChop") { state.opts.autoChop = e.target.checked; save(); } if (e.target.id === "hsSkill") { hs.skill = e.target.value; hs.rows = null; hsLoad(true); }
   if (e.target.id === "lookGear") { state.look = Object.assign({}, state.look, { gear: e.target.checked }); after(); }
   if (e.target.dataset && e.target.dataset.lookslot) { const sl = e.target.dataset.lookslot, L = Object.assign({}, state.look); L.show = Object.assign({}, L.show); if (e.target.value) L.show[sl] = e.target.value; else delete L.show[sl]; state.look = L; after(); } });
@@ -4439,6 +4484,123 @@ function drawLookScene(now) {
   ctx.fillText("In combat", W * 0.36, 16); ctx.fillText("Skilling", W * 0.74, 16);
 }
 
+
+/* ================= ACHIEVEMENTS =================
+   Long-term goals in 10 tiers each. Everything here is data: change thresholds, rewards or ranks freely.
+   stat() returns the player's current number for the track. */
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+const sumOf = obj => Object.values(obj || {}).reduce((a, b) => a + b, 0);
+const lifeOf = ids => [...new Set(ids)].reduce((n, i) => n + (state.life[i] || 0), 0);
+const BIG = [100, 500, 1000, 5000, 10000, 25000, 50000, 100000, 250000, 1000000];
+const ACH_GROUPS = ["Combat", "Skills", "Gathering", "Production", "Adventure", "Treasure"];
+const ACH_TRACKS = [
+  { id: "kills",   group: "Combat", name: "Monster hunter", unit: "kills", stat: () => sumOf(state.kills), tiers: [25, 100, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000] },
+  { id: "bosses",  group: "Combat", name: "Boss slayer", unit: "boss kills", stat: () => MONSTERS.filter(m => m.boss).reduce((n, m) => n + (state.kills[m.id] || 0), 0), tiers: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 10000] },
+  { id: "tasks",   group: "Combat", name: "Slayer master", unit: "Slayer tasks", stat: () => state.slayer.done, tiers: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500] },
+  { id: "total",   group: "Skills", name: "Well rounded", unit: "total level", stat: () => totalLevel(), tiers: () => [50, 100, 200, 300, 500, 750, 1000, 1250, 1500, Object.keys(SKILLS).length * 99] },
+  { id: "xp",      group: "Skills", name: "Experienced", unit: "total xp", stat: () => totalXp(), tiers: [1e4, 1e5, 5e5, 1e6, 5e6, 1e7, 5e7, 1e8, 2.5e8, 5e8] },
+  { id: "max",     group: "Skills", name: "Ninety-nine", unit: "skills at 99", stat: () => Object.keys(SKILLS).filter(k => lvl(k) >= 99).length, tiers: () => [1, 2, 3, 5, 7, 10, 13, 16, 18, Object.keys(SKILLS).length] },
+  { id: "logs",    group: "Gathering", name: "Lumberjack", unit: "logs chopped", stat: () => lifeOf(TREES.map(t => t.item)), tiers: BIG },
+  { id: "fish",    group: "Gathering", name: "Angler", unit: "fish caught", stat: () => lifeOf(SPOTS.map(t => t.item)), tiers: BIG },
+  { id: "ore",     group: "Gathering", name: "Prospector", unit: "ores mined", stat: () => lifeOf(ROCKS.map(t => t.item)), tiers: BIG },
+  { id: "crops",   group: "Gathering", name: "Green thumb", unit: "crops grown", stat: () => lifeOf(CROPS.map(c => c.out)), tiers: [50, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000] },
+  { id: "cooked",  group: "Production", name: "Head chef", unit: "meals cooked", stat: () => lifeOf(RECIPES.map(r => r.out)), tiers: [50, 250, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000] },
+  { id: "crafted", group: "Production", name: "Artisan", unit: "items smithed, fletched and enchanted", stat: () => (state.stats.smithing || 0) + (state.stats.fletching || 0) + (state.stats.enchanting || 0), tiers: [50, 250, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000] },
+  { id: "fires",   group: "Production", name: "Firestarter", unit: "fires lit", stat: () => state.stats.firemaking || 0, tiers: [50, 250, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000] },
+  { id: "pockets", group: "Adventure", name: "Pickpocket", unit: "successful pickpockets", stat: () => state.stats.thieving || 0, tiers: [25, 100, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000] },
+  { id: "laps",    group: "Adventure", name: "Free runner", unit: "agility laps", stat: () => state.stats.agility || 0, tiers: [10, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000] },
+  { id: "voyages", group: "Adventure", name: "Seafarer", unit: "voyages", stat: () => sumOf(state.islands), tiers: [1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000] },
+  { id: "clues",   group: "Treasure", name: "Treasure hunter", unit: "clues completed", stat: () => sumOf(state.clues.done), tiers: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500] },
+  { id: "clog",    group: "Treasure", name: "Collector", unit: "collection log slots", stat: () => clogCounts()[0], tiers: () => { const t = clogCounts()[1]; return [0.02, 0.05, 0.1, 0.2, 0.3, 0.45, 0.6, 0.75, 0.9, 1].map((f, i) => Math.max(i + 1, Math.round(t * f))); } },
+  { id: "pets",    group: "Treasure", name: "Pet keeper", unit: "pets", stat: () => allPets().filter(p => state.clog[p] > 0 || has(p)).length, tiers: () => [1, 2, 3, 5, 7, 10, 14, 18, 22, allPets().length] },
+  { id: "coins",   group: "Treasure", name: "Tycoon", unit: "coins earned (not counting achievement rewards)", stat: () => Math.max(0, (state.life.coins || 0) - (state.stats.achCoins || 0)), tiers: [1e4, 1e5, 5e5, 1e6, 5e6, 1e7, 5e7, 1e8, 5e8, 1e9] },
+];
+// what every tier pays out (index 0 = tier I)
+const ACH_REWARDS = [
+  { ap: 5,   coins: 1000 },
+  { ap: 10,  coins: 5000 },
+  { ap: 15,  coins: 15000 },
+  { ap: 20,  coins: 40000 },
+  { ap: 30,  coins: 100000, items: { clue_reward_medium: 1 } },
+  { ap: 40,  coins: 250000 },
+  { ap: 60,  coins: 500000, items: { clue_reward_hard: 1 } },
+  { ap: 80,  coins: 1000000 },
+  { ap: 120, coins: 2500000, items: { clue_reward_elite: 1 } },
+  { ap: 200, coins: 10000000, items: { clue_reward_elite: 3 }, trophy: true },
+];
+// Achievement ranks: earn points, unlock a cape for each rank (+0.5% xp per rank while worn)
+const ACH_RANKS = [
+  { name: "Novice",      ap: 50,    col: ["#b07a3e", "#6b4a2a"] },
+  { name: "Apprentice",  ap: 150,   col: ["#8a8f96", "#4e5359"] },
+  { name: "Adept",       ap: 400,   col: ["#b8c0c8", "#6a727a"] },
+  { name: "Expert",      ap: 800,   col: ["#5a6fb8", "#2f3e7a"] },
+  { name: "Veteran",     ap: 1400,  col: ["#3f8a5a", "#1f4f30"] },
+  { name: "Elite",       ap: 2200,  col: ["#2ab8b0", "#13706a"] },
+  { name: "Master",      ap: 3300,  col: ["#d2452f", "#7a2418"] },
+  { name: "Grandmaster", ap: 4800,  col: ["#e8b84a", "#8a6a20"] },
+  { name: "Legend",      ap: 7000,  col: ["#f7f2e0", "#c9a440"] },
+  { name: "Mythic",      ap: 10000, col: ["#8a4fd8", "#ffd45a"] },
+];
+const tiersOf = t => typeof t.tiers === "function" ? t.tiers() : t.tiers;
+const achPoints = () => ACH_TRACKS.reduce((n, t) => n + ACH_REWARDS.slice(0, state.ach[t.id] || 0).reduce((a, r) => a + r.ap, 0), 0);
+const achRank = () => { const ap = achPoints(); let r = -1; ACH_RANKS.forEach((x, i) => { if (ap >= x.ap) r = i; }); return r; };
+const capeId = i => "ach_cape_" + (i + 1);
+const trophyId = t => "trophy_" + t.id;
+// items made from the data above: one trophy per track, one cape per rank
+for (const t of ACH_TRACKS) ITEMS[trophyId(t)] = { name: `${t.name} trophy`, desc: `Tier X of ${t.name}${Array.isArray(t.tiers) ? `: ${fmt(t.tiers[9])} ${t.unit}` : ""}. A true legend.`, rare: true };
+{ const GROUP_GEM = { Combat: "#d2452f", Skills: "#5aa7e8", Gathering: "#6fbf5a", Production: "#f0a33a", Adventure: "#2ab8b0", Treasure: "#c79bf2" };
+  for (const t of ACH_TRACKS) ITEM_ICON[trophyId(t)] = ["trophy", ["#e8b84a", "#6b4a2a", "#fff6c8", GROUP_GEM[t.group]]];
+  ACH_RANKS.forEach((r, i) => { ITEM_ICON[capeId(i)] = ["cape", [r.col[0], r.col[1], "#000", "#000"]]; }); }
+ACH_RANKS.forEach((r, i) => { ITEMS[capeId(i)] = { name: `${r.name} cape`, desc: `Achievement rank ${i + 1}: ${r.name}. Cape. +${((i + 1) * 0.5).toFixed(1)}% xp in every skill while worn.`, rare: true }; GEAR[capeId(i)] = { slot: "cape", def: i + 1 }; });
+const achCapeBonus = () => { for (let i = ACH_RANKS.length - 1; i >= 0; i--) if (worn(capeId(i))) return 1 + (i + 1) * 0.005; return 1; };
+let achChecked = 0;
+function checkAch(force) {
+  if (!force && Date.now() - achChecked < 4000) return; achChecked = Date.now();
+  const got = [], rank0 = achRank();
+  for (const t of ACH_TRACKS) {
+    const tiers = tiersOf(t), v = t.stat(); let cur = state.ach[t.id] || 0;
+    while (cur < 10 && v >= tiers[cur]) {
+      const r = ACH_REWARDS[cur]; cur++; state.ach[t.id] = cur;
+      if (r.coins) { add("coins", r.coins); state.stats.achCoins = (state.stats.achCoins || 0) + r.coins; }
+      for (const [k, q] of Object.entries(r.items || {})) add(k, q);
+      if (r.trophy) add(trophyId(t), 1);
+      got.push({ t, tier: cur, r });
+      log(`Achievement: <b>${t.name} ${ROMAN[cur - 1]}</b> (${fmt(tiers[cur - 1])} ${t.unit}). +${r.ap} points, ${fmt(r.coins)} coins${r.trophy ? `, <b>${ITEMS[trophyId(t)].name}</b>` : ""}`, cur >= 9 ? "r" : "l");
+    }
+  }
+  if (!got.length) return;
+  if (got.length > 3) toast(`${got.length} achievement tiers unlocked! +${fmt(got.reduce((n, g) => n + g.r.coins, 0))} coins. See Log › Achievements`, true);
+  else for (const g of got) toast(`Achievement: ${g.t.name} ${ROMAN[g.tier - 1]}! +${g.r.ap} points`, g.tier >= 9);
+  const rank1 = achRank();
+  for (let i = rank0 + 1; i <= rank1; i++) { add(capeId(i), 1); toast(`New achievement rank: ${ACH_RANKS[i].name}! You earned the ${ACH_RANKS[i].name} cape`, true); log(`Achievement rank <b>${ACH_RANKS[i].name}</b> reached. Reward: <b>${ACH_RANKS[i].name} cape</b>`, "r"); }
+}
+let achOpen = {};
+function achPanel() {
+  checkAch(true);
+  const ap = achPoints(), rk = achRank(), next = ACH_RANKS[rk + 1], prevAp = rk >= 0 ? ACH_RANKS[rk].ap : 0;
+  const done = ACH_TRACKS.reduce((n, t) => n + (state.ach[t.id] || 0), 0), all = ACH_TRACKS.length * 10;
+  let h = `<div class="achtop">${rk >= 0 ? icon(capeId(rk)) : icon("skills")}<div><span class="ar">${rk >= 0 ? ACH_RANKS[rk].name : "Unranked"}</span><b class="num">${fmt(ap)} points</b><span>${done} / ${all} tiers complete</span></div></div>
+    <div class="tbar"><i style="width:${next ? Math.min(100, (ap - prevAp) / (next.ap - prevAp) * 100) : 100}%"></i></div>
+    <p class="note" style="margin-top:0">${next ? `Next rank: <b>${next.name}</b> at ${fmt(next.ap)} points. Reward: the ${next.name} cape (+${((rk + 2) * 0.5).toFixed(1)}% xp while worn).` : "You've reached the highest rank. Mythic!"}</p>`;
+  for (const g of ACH_GROUPS) {
+    h += `<h3>${g}</h3><div class="achs">`;
+    for (const t of ACH_TRACKS.filter(x => x.group === g)) {
+      const tiers = tiersOf(t), cur = state.ach[t.id] || 0, v = t.stat(), goal = tiers[Math.min(cur, 9)], prev = cur ? tiers[cur - 1] : 0;
+      const pct = cur >= 10 ? 100 : Math.max(0, Math.min(100, (v - prev) / (goal - prev) * 100));
+      const r = ACH_REWARDS[Math.min(cur, 9)];
+      h += `<details class="ach ${cur >= 10 ? "max" : ""}" id="ach-${t.id}" ${achOpen[t.id] ? "open" : ""}><summary>
+        <span class="tier">${cur ? ROMAN[cur - 1] : "–"}</span><span class="an"><b>${esc(t.name)}</b><span>${cur >= 10 ? `Complete! ${fmt(v)} ${t.unit}` : `${fmt(v)} / ${fmt(goal)} ${t.unit}`}</span></span>
+        <span class="ap">${cur >= 10 ? icon(trophyId(t)) : `+${r.ap}`}</span></summary>
+        <div class="tbar"><i style="width:${pct}%"></i></div>
+        <ol class="tiers">${tiers.map((n, i) => { const rw = ACH_REWARDS[i]; return `<li class="${i < cur ? "got" : ""}"><span class="tn">${ROMAN[i]}</span><span class="tg">${fmt(n)} ${t.unit}</span><span class="tr">${rw.ap} pts · ${fmt(rw.coins)}c${Object.keys(rw.items || {}).map(k => ` · ${icon(k)}`).join("")}${rw.trophy ? ` · ${icon(trophyId(t))}` : ""}</span></li>`; }).join("")}</ol></details>`;
+    }
+    h += `</div>`;
+  }
+  h += `<h3>Ranks</h3><div class="ranks">${ACH_RANKS.map((r, i) => `<div class="rank ${i <= rk ? "got" : ""}">${icon(capeId(i))}<b>${r.name}</b><span>${fmt(r.ap)} pts</span></div>`).join("")}</div>
+    <p class="note">Every tier pays coins and points; tier V, VII and IX add reward caskets, and tier X gives a trophy. These goals may be rebalanced in future updates.</p>`;
+  return h;
+}
+
 /* ================= LOGIN SCREEN ================= */
 const loginOpen = () => !$("login").hidden;
 function showLogin() {
@@ -4503,7 +4665,7 @@ function frame(now) {
   const dt = Math.max(0, now - lastFrame); lastFrame = now;
   const sum = advance(dt);
   if (sum.actions || sum.notes.length) report(sum, dt > 60000);
-  if (now - lastQuestCheck > 1000) { lastQuestCheck = now; checkQuests(); }
+  if (now - lastQuestCheck > 1000) { lastQuestCheck = now; checkQuests(); checkAch(); }
   if (now - lastSigCheck > 250 || sum.notes.length) { lastSigCheck = now; if (signature() !== lastSig) render(); }
   if (dt > 5000) { fxq = []; skq = []; }
   update(); renderNow(); drawScene(now); drawSkillScene(now); drawVoyageScene(now); drawLookScene(now);
