@@ -43,8 +43,27 @@ img{max-width:100%}
 }
 *{box-sizing:border-box}
 html,body{background:var(--bg);color:var(--fg)}
-body{font-family:var(--f-body);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:0 150px}
-.wrap{max-width:560px;margin:0 auto}
+body{font-family:var(--f-body);font-size:15px;line-height:1.45;padding-inline:calc(var(--rail-w) + 12px) 12px;padding-block:0 110px}
+:root{--rail-w:76px}
+@media (min-width:760px){:root{--rail-w:208px} body{padding-right:24px}}
+.rail{position:fixed;left:0;top:0;bottom:var(--dock-h,70px);width:var(--rail-w);z-index:4;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:calc(8px + env(safe-area-inset-top,0px)) 6px 10px calc(6px + env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:2px}
+.rail::-webkit-scrollbar{display:none}
+.rail h4{display:none}
+.rail .sep{flex:none;height:1px;background:var(--line);margin:4px 8px}
+.rail button{position:relative;flex:none;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:0;border-radius:10px;color:var(--muted);font-size:.6rem;font-weight:700;line-height:1.1;padding:6px 2px;min-height:50px;cursor:pointer;text-align:center}
+.rail button .ico{width:24px;height:24px;opacity:.75;flex:none}
+.rail button[aria-current="page"]{background:var(--panel-2);color:var(--ember);box-shadow:inset 3px 0 0 var(--ember)}
+.rail button[aria-current="page"] .ico{opacity:1}
+.rail .badge{top:3px;left:auto;right:6px}
+.rail .badge.dotb{min-width:9px;width:9px;height:9px;padding:0;background:var(--ember)}
+@media (min-width:760px){
+  .rail{padding-inline:10px}
+  .rail h4{display:block;margin:12px 12px 4px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+  .rail .sep{display:none}
+  .rail button{flex-direction:row;justify-content:flex-start;gap:12px;font-size:.9rem;font-weight:600;padding:8px 12px;min-height:42px;text-align:left}
+  .rail .badge{position:static;margin-left:auto}
+}
+.wrap{max-width:640px;margin:0 auto}
 .brandline{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .sync{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.72rem;color:var(--muted);background:none;border:0;padding:2px 0;cursor:pointer;min-height:24px}
 .sync i{width:7px;height:7px;border-radius:50%;background:var(--moss);box-shadow:0 0 6px var(--moss)}
@@ -101,7 +120,7 @@ h1 span{color:var(--ember)}
 .bslot .ico{width:34px;height:34px}
 .bslot .qn{position:absolute;top:2px;left:4px;font-family:var(--f-num);font-size:.68rem;line-height:1;color:#f7d35a;text-shadow:1px 1px 0 #000}
 .bslot .qn.k{color:#f2efe6}.bslot .qn.m{color:#8fc27a}
-.sheet{position:fixed;left:0;right:0;bottom:calc(var(--dock-h, 112px));z-index:6;padding-inline:16px;pointer-events:none}
+.sheet{position:fixed;left:var(--rail-w);right:0;bottom:calc(var(--dock-h, 112px));z-index:6;padding-inline:16px;pointer-events:none}
 .sheet .in{max-width:560px;margin:0 auto;background:var(--panel-2);border:1px solid var(--ember-dim);border-radius:14px 14px 10px 10px;padding:12px 14px;box-shadow:0 -10px 30px rgba(0,0,0,.45);pointer-events:auto;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center}
 .sheet .ico{width:44px;height:44px;grid-row:span 2}
 .sheet .nm{font-weight:700;font-size:1rem}
@@ -124,6 +143,20 @@ h1 span{color:var(--ember)}
 .ovcard .st.go{color:var(--ember)}
 .ovcard .st.ok{color:var(--moss)}
 .ovcard.on{border-color:var(--ember)}
+@media (max-width:480px){
+  .ovgrid{gap:6px}
+  .ovcard{padding:8px 9px;gap:3px 4px}
+  .ovcard .nm{font-size:.8rem;gap:5px}
+  .ovcard .nm .ico{width:16px;height:16px}
+  .ovcard .lv{font-size:1.2rem}
+  .ovcard .st{font-size:.68rem}
+  h1{font-size:1.75rem}
+  .total{gap:10px}
+  .total b{font-size:1.05rem}
+  .rail button{min-height:44px;padding:4px 1px;font-size:.58rem;gap:2px}
+  .rail button .ico{width:22px;height:22px}
+  .rail .sep{margin:2px 8px}
+}
 .back{font:inherit;font-size:.9rem;font-weight:600;color:var(--muted);background:none;border:0;padding:10px 0;cursor:pointer}
 .back:hover{color:var(--fg)}
 details.more{margin-top:8px;font-size:.8rem;color:var(--muted)}
@@ -493,6 +526,7 @@ body.noscroll{overflow:hidden}
 <body>
 
 
+<nav class="rail" id="rail" aria-label="Main menu"></nav>
 <div class="wrap">
   <header>
     <div class="brandline"><h1>Thorn<span>wick</span></h1><button class="sync" id="syncInd" data-tab="more" data-moresub="help" hidden aria-label="Cloud save status"><i></i><span id="syncTxt"></span></button></div>
@@ -510,7 +544,7 @@ body.noscroll{overflow:hidden}
     <div class="bar"><i id="nowBar"></i></div>
   </div>
 </div>
-<nav class="bnav" id="bnav" aria-label="Sections"></nav>
+<nav class="bnav" id="bnav" aria-label="Sections" hidden></nav>
 </div>
 <div class="sheet" id="sheet" hidden></div>
 <div class="lvlpop" id="lvlpop" hidden></div>
@@ -2048,7 +2082,7 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, railKey(), logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
@@ -2068,9 +2102,39 @@ function badges() {
     combat: 0, more: claimable() + (newsUnseen() ? 1 : 0),
   };
 }
+// Every place in the game, shown down the left side. [id, label, icon, tab, sub, group]
+const MORE_NAMES = { quests: "Quests", clues: "Clues", hiscores: "Hiscores", news: "What's new", activity: "Activity", help: "Help & save" };
+const RAIL = [
+  ["nav-skills", "Skills", "skills", "skills", "", "Play"],
+  ["nav-combat", "Fight", "attack", "combat", "fight", "Combat"],
+  ["csub-gear", "Equipment", "defence", "combat", "gear", "Combat"],
+  ["csub-look", "Look", "wayfarer_hat", "combat", "look", "Combat"],
+  ["nav-bank", "Bank", "bank", "bank", "", "Items"],
+  ["nav-clog", "Collection log", "more", "clog", "clog", "Log"],
+  ["lsub-ach", "Achievements", "trophy_kills", "clog", "ach", "Log"],
+  ["lsub-shop", "Point shop", "coins", "clog", "shop", "Log"],
+  ["nav-more", "Quests", "treasure_map", "more", "quests", "More"],
+  ["msub-clues", "Clues", "clue_elite", "more", "clues", "More"],
+  ["msub-hiscores", "Hiscores", "drowned_crown", "more", "hiscores", "More"],
+  ["msub-news", "What's new", "ancient_tome", "more", "news", "More"],
+  ["msub-activity", "Activity", "captain_compass", "more", "activity", "More"],
+  ["msub-help", "Help & save", "cog", "more", "help", "More"],
+];
+const railKey = () => tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
+function renderRail() {
+  const b = badges(), cur = railKey(); let h = "", g = "";
+  const badge = { "skills:": b.skills, "bank:": b.bank, "more:quests": claimable() };
+  for (const [id, label, ic, tb, sub, grp] of RAIL) {
+    if (grp !== g) { h += `${g ? '<span class="sep"></span>' : ""}<h4>${grp}</h4>`; g = grp; }
+    const key = tb + ":" + sub, n = badge[key], dot = key === "more:news" && newsUnseen();
+    h += `<button id="${id}" data-nav="${key}" ${tb === "more" ? `data-moresub="${sub}"` : ""} ${cur === key ? 'aria-current="page"' : ""} title="${esc(label)}">${icon(ic)}<span>${esc(label)}</span>${n ? `<span class="badge">${n > 99 ? "99+" : n}</span>` : dot ? '<span class="badge dotb"></span>' : ""}</button>`;
+  }
+  $("rail").innerHTML = h;
+}
 function renderTabs() {
+  renderRail();
   const b = badges(), cur = sectionOf(tab);
-  $("bnav").innerHTML = SECTIONS.map(([id, n, g]) => `<button id="nav-${id}" data-tab="${id}" ${cur === id ? 'aria-current="page"' : ""}>${iconURL(NAV_ICON[id]) ? icon(NAV_ICON[id]) : `<b aria-hidden="true">${g}</b>`}${n}${b[id] ? `<span class="badge">${b[id] > 99 ? "99+" : b[id]}</span>` : ""}</button>`).join("");
+  // the old bottom bar is replaced by the left rail
   $("total").textContent = totalLevel();
 }
 function skillStatus(k) {
@@ -2411,8 +2475,7 @@ function clogPanel() {
 }
 
 function morePanel() {
-  let h = `<div class="pagehead"><h2>More</h2><span>Total level ${totalLevel()}</span></div>
-    <div class="seg" role="group" aria-label="More" style="grid-template-columns:repeat(3,1fr)">${[["quests","Quests"],["clues","Clues"],["hiscores","Hiscores"],["news",`What's new${newsUnseen() ? ' <span class="dot"></span>' : ""}`],["activity","Activity"],["help","Help & save"]].map(([k, n]) => `<button id="msub-${k}" data-moresub="${k}" aria-pressed="${moreSub === k}">${n}</button>`).join("")}</div>`;
+  let h = `<div class="pagehead"><h2>${esc(MORE_NAMES[moreSub] || "More")}</h2><span>Total level ${totalLevel()}</span></div>`;
   if (moreSub === "quests") return h + questsPanel();
   if (moreSub === "hiscores") return h + hiscoresPanel();
   if (moreSub === "clues") return h + cluesPanel();
@@ -2498,8 +2561,8 @@ function gearPanel() {
 }
 function combatPanel() {
   const w = weapon(), ar = armour();
-  const sub = `<div class="seg" role="group" aria-label="Combat view" style="grid-template-columns:repeat(3,1fr)">${[["fight","Fight"],["gear","Equipment"],["look","Look"]].map(([k, n]) => `<button id="csub-${k}" data-csub="${k}" aria-pressed="${combatSub === k}">${n}</button>`).join("")}</div>`;
-  const head = `<div class="pagehead"><h2>Combat</h2><span>${fmt(Object.values(state.kills).reduce((a, b) => a + b, 0))} kills</span></div>` + sub;
+  const sub = "";
+  const head = `<div class="pagehead"><h2>${combatSub === "gear" ? "Equipment" : combatSub === "look" ? "Look" : "Combat"}</h2><span>${fmt(Object.values(state.kills).reduce((a, b) => a + b, 0))} kills</span></div>` + sub;
   if (combatSub === "gear") return head + gearPanel();
   if (combatSub === "look") return head + lookPanel();
   let h = head + `<canvas id="scene" class="scene" role="img" aria-label="Battle scene"></canvas><div class="cmbtop"><div class="lvl">${combatLevel()}</div><h2>Combat level</h2>
@@ -2553,6 +2616,9 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 20, date: "8 Oct 2026", title: "New side menu", items: [
+    "Everything now lives in a menu down the left side: Skills, Fight, Equipment, Look, Bank, Collection log, Achievements, Point shop, Quests, Clues, Hiscores, What's new, Activity and Help & save.",
+    "One tap to any page, with badges for things that need you. On a bigger screen the menu shows full names in groups." ] },
   { v: 19, date: "8 Oct 2026", title: "Free rank perks", items: [
     "Rank perks no longer cost points. Each one switches on for good as soon as you reach its achievement rank.",
     "See them all under Log › Achievements, below the ranks. Any points you'd spent on perks have been refunded." ] },
@@ -3925,7 +3991,7 @@ function render() {
   else if (tab === "bank") h = bankPanel();
   else if (tab === "more") h = morePanel();
   else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "ach" ? "Achievements" : logSub === "shop" ? "Point shop" : "Collection log"}</h2><span>${logSub === "ach" ? fmt(achPoints()) + " points" : logSub === "shop" ? fmt(apBalance()) + " to spend" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
-    <div class="seg" role="group" aria-label="Log view" style="grid-template-columns:repeat(3,1fr)">${[["clog","Collection log"],["ach","Achievements"],["shop","Point shop"]].map(([k, n]) => `<button id="lsub-${k}" data-logsub="${k}" aria-pressed="${logSub === k}">${n}</button>`).join("")}</div>` + (logSub === "ach" ? achPanel() : logSub === "shop" ? apShopPanel() : clogPanel());
+` + (logSub === "ach" ? achPanel() : logSub === "shop" ? apShopPanel() : clogPanel());
   else if (tab === "combat") h = combatPanel();
   else if (tab === "seafaring") h = backBtn() + skillHead("seafaring") + `<canvas id="vscene" class="scene" style="height:230px" role="img" aria-label="Your boats at sea"></canvas>` + seafaringPanel();
   else if (tab === "farming") h = backBtn() + skillHead("farming") + farmingPanel();
@@ -4035,6 +4101,14 @@ document.addEventListener("click", e => { if (e.target.closest("#lvlpop")) { hid
 document.addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t || t.disabled) return;
   if (t.id && cloudClick(t.id)) return;
+  if (t.dataset.nav) {
+    const [tb, sb] = t.dataset.nav.split(":");
+    if (tb === "combat") { combatSub = sb; eqSel = null; }
+    if (tb === "clog") { logSub = sb; if (sb === "clog") clogPath = []; }
+    if (tb === "more") moreSub = sb;
+    if (tb === "bank" && tab !== "bank") bankSel = null;
+    tab = tb; saveDraft = null; render(); window.scrollTo(0, 0); return;
+  }
   if (t.id === "hsRefresh") { hsLoad(true); return; }
   if (t.id === "hsSave") { hsSaveName(); return; }
   if (t.id === "hsRename") { hs.renaming = true; hs.nameDraft = cm.hsName || ""; hs.nameMsg = ""; hsRender(); return; }
