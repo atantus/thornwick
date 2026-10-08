@@ -338,6 +338,31 @@ body.noscroll{overflow:hidden}
 .hst th:first-child,.hst td:first-child{width:3em;color:var(--muted)}
 .hst tr.me td{background:rgba(240,163,58,.12);color:var(--fg);font-weight:700}
 .hst tr.gap td{text-align:center;color:var(--muted);padding:2px}
+.clues{display:grid;gap:10px}
+.clue{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.clue.on{border-color:var(--ember-dim)}
+.clue .ch{display:flex;align-items:center;gap:12px}
+.clue .ch .ico{width:40px;height:40px;flex:none}
+.clue .ch div{flex:1}
+.clue .ch b{display:block}
+.clue .ch span{color:var(--muted);font-size:.82rem}
+.clue.elite .ch b{color:var(--rare)}
+.cstep{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.cstep .sn{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ember)}
+.cstep b{display:block;margin-top:2px}
+.cstep .tbar{margin:10px 0 8px}
+.cstep .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cstep .row .num{color:var(--muted);font-size:.85rem}
+.cnone{margin:8px 0 0;color:var(--muted);font-size:.85rem}
+.dawnrow{display:flex;gap:8px;flex-wrap:wrap}
+.dawnrow .dp{width:46px;height:46px;border-radius:10px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center}
+.dawnrow .dp .ico{width:36px;height:36px;filter:grayscale(1) brightness(.35)}
+.dawnrow .dp.got{border-color:#ffd45a;box-shadow:0 0 12px rgba(255,212,90,.35)}
+.dawnrow .dp.got .ico{filter:none}
+.lvlpop .in.dawn{outline-color:#ffd45a;background:linear-gradient(135deg,#2a2412,#16241d 60%);box-shadow:0 0 40px rgba(255,212,90,.45),0 10px 30px rgba(0,0,0,.55)}
+.lvlpop .in.dawn .t{color:#ffd45a}
+.lvlpop .in.dawn .sub{grid-column:2;font-size:.82rem;color:#e8dcb0;text-transform:none;letter-spacing:0;font-weight:600}
+.seg.five button{font-size:.76rem;padding-inline:2px;white-space:nowrap}
 .task{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
 .taskhead{display:flex;gap:12px;align-items:center}
 .taskhead .ico{width:40px;height:40px;flex:none}
@@ -465,6 +490,34 @@ const SKILLS = {
 
 // sell: coins each (omit = can't sell)
 const ITEMS = {
+  clue_reward_easy:   { name: "Reward casket (easy)",   desc: "From an easy clue scroll. Open it.", rare: true },
+  clue_reward_medium: { name: "Reward casket (medium)", desc: "From a medium clue scroll. Open it.", rare: true },
+  clue_reward_hard:   { name: "Reward casket (hard)",   desc: "From a hard clue scroll. Open it.", rare: true },
+  clue_reward_elite:  { name: "Reward casket (elite)",  desc: "From an elite clue scroll. Open it. Some say the Dawnforged lie within.", rare: true },
+  wayfarer_hat:     { name: "Wayfarer's hat",    desc: "Easy clue reward. Head, Defence +2.", rare: true, sell: 500 },
+  patchwork_cape:   { name: "Patchwork cape",    desc: "Easy clue reward. Cape, Defence +2.", rare: true, sell: 500 },
+  lucky_horseshoe:  { name: "Lucky horseshoe",   desc: "Easy clue reward. Clue scrolls turn up 10% more often.", rare: true },
+  trimmed_shield:   { name: "Trimmed kiteshield", desc: "Easy clue reward. Shield, Defence 12.", rare: true, sell: 800 },
+  ranger_tricorne:  { name: "Ranger's tricorne", desc: "Medium clue reward. Head, Defence +5.", rare: true, sell: 3000 },
+  explorer_cape:    { name: "Explorer's cape",   desc: "Medium clue reward. Cape, Defence +4.", rare: true, sell: 3000 },
+  pathfinder_compass:{ name: "Pathfinder's compass", desc: "Medium clue reward. Clue steps need 20% less work.", rare: true },
+  treasure_ring:    { name: "Treasure ring",     desc: "Medium clue reward. Ring. 25% chance of an extra roll in reward caskets.", rare: true },
+  gilded_helm:      { name: "Gilded full helm",  desc: "Hard clue reward. Head, Defence 25. Runite strength, golden trim.", rare: true, sell: 25000 },
+  gilded_platebody: { name: "Gilded platebody",  desc: "Hard clue reward. Body, Defence 72. Runite strength, golden trim.", rare: true, sell: 60000 },
+  gilded_platelegs: { name: "Gilded platelegs",  desc: "Hard clue reward. Legs, Defence 43. Runite strength, golden trim.", rare: true, sell: 40000 },
+  gilded_kiteshield:{ name: "Gilded kiteshield", desc: "Hard clue reward. Shield, Defence 36. Runite strength, golden trim.", rare: true, sell: 35000 },
+  starlit_cape:     { name: "Starlit cape",      desc: "Elite clue reward. Cape, Defence +8. It glitters.", rare: true, sell: 80000 },
+  wyrm_mask:        { name: "Wyrm mask",         desc: "Elite clue reward. Head, Defence 30.", rare: true, sell: 90000 },
+  gilded_scimitar:  { name: "Gilded scimitar",   desc: "Elite clue reward. Weapon, Attack 65.", rare: true, sell: 120000 },
+  ancient_tome:     { name: "Ancient tome",      desc: "Elite clue reward. +3% xp in every skill.", rare: true },
+  pet_sniffer:      { name: "Sniffer",           desc: "Treasure pet. A hound who can smell a clue a mile off. Clue scrolls turn up 20% more often.", rare: true },
+  dawnforged_helm:      { name: "Dawnforged helm",      desc: "Dawnforged set. Head, Defence 34. Forged before the first sunrise.", rare: true, sell: 2000000 },
+  dawnforged_platebody: { name: "Dawnforged platebody", desc: "Dawnforged set. Body, Defence 92. Forged before the first sunrise.", rare: true, sell: 4000000 },
+  dawnforged_platelegs: { name: "Dawnforged platelegs", desc: "Dawnforged set. Legs, Defence 55. Forged before the first sunrise.", rare: true, sell: 3000000 },
+  dawnforged_kiteshield:{ name: "Dawnforged kiteshield",desc: "Dawnforged set. Shield, Defence 48. Forged before the first sunrise.", rare: true, sell: 2500000 },
+  dawnforged_cape:      { name: "Dawnforged cape",      desc: "Dawnforged set. Cape, Defence 10. Forged before the first sunrise.", rare: true, sell: 2000000 },
+  dawnforged_amulet:    { name: "Dawnforged amulet",    desc: "Dawnforged set. Amulet, Defence 8. Forged before the first sunrise.", rare: true, sell: 2000000 },
+  dawnforged_blade:     { name: "Dawnforged blade",     desc: "Dawnforged set. Weapon, Attack 75. Forged before the first sunrise.", rare: true, sell: 5000000 },
   pet_twiglet: { name: "Twiglet", desc: "Woodcutting pet. A sapling that decided to follow you home. +3% Woodcutting xp.", rare: true },
   pet_cinder: { name: "Cinder", desc: "Firemaking pet. A friendly ember that never quite goes out. +3% Firemaking xp.", rare: true },
   pet_burrow: { name: "Burrow", desc: "Farming pet. A mole with a nose for good soil. +3% Farming xp.", rare: true },
@@ -959,6 +1012,34 @@ const MONSTERS = [
 const SKILL_PETS = { woodcutting:"pet_twiglet", firemaking:"pet_cinder", farming:"pet_burrow", fishing:"pet_puffin", cooking:"pet_crumb", mining:"pet_pebble", smithing:"pet_clinker", fletching:"pet_quill", enchanting:"pet_glimmer", brewing:"pet_hops", agility:"pet_scamper", thieving:"pet_fidget", slayer:"pet_grimling" };
 const PET_HOURS = 60;               // average hours of training per pet at a mid-level action
 const PET_PER_HARVEST = 1 / 300, PET_PER_BREW = 1 / 150, PET_PER_TASK = 1 / 60;
+
+/* ================= CLUE SCROLLS (data) ================= */
+const CLUE_TIERS = ["easy", "medium", "hard", "elite"];
+const CLUE_NAMES = { easy: "Easy", medium: "Medium", hard: "Hard", elite: "Elite" };
+const CLUE_STEPS = { easy: [2, 3], medium: [3, 4], hard: [4, 5], elite: [5, 6] };          // steps per clue
+const CLUE_BAND = { easy: [1, 25], medium: [10, 50], hard: [30, 75], elite: [55, 99] };       // action levels a step can use
+const CLUE_MINS = { easy: 2, medium: 3, hard: 5, elite: 7 };                                // minutes of work per step
+const CLUE_KILLS = { easy: [4, 6], medium: [6, 10], hard: [8, 12], elite: [10, 15] };
+const CLUE_ROLLS = { easy: [2, 3], medium: [3, 4], hard: [4, 5], elite: [5, 6] };
+const CLUE_UNIQUE = { easy: 1 / 12, medium: 1 / 11, hard: 1 / 13, elite: 1 / 15 };          // per roll
+const CLUE_UNIQUES = {
+  easy: ["wayfarer_hat", "patchwork_cape", "lucky_horseshoe", "trimmed_shield"],
+  medium: ["ranger_tricorne", "explorer_cape", "pathfinder_compass", "treasure_ring"],
+  hard: ["gilded_helm", "gilded_platebody", "gilded_platelegs", "gilded_kiteshield"],
+  elite: ["starlit_cape", "wyrm_mask", "gilded_scimitar", "ancient_tome"],
+};
+// The rarest set in the game. Rolled once per casket; you always get a piece you don't have yet.
+const DAWNFORGED = ["dawnforged_helm", "dawnforged_platebody", "dawnforged_platelegs", "dawnforged_kiteshield", "dawnforged_cape", "dawnforged_amulet", "dawnforged_blade"];
+const DAWN_CHANCE = { hard: 1 / 1000, elite: 1 / 100 };
+const SNIFFER_CHANCE = 1 / 750;   // per elite casket
+const CLUE_COMMON = {
+  easy: [ { item:"coins", weight:30, min:200, max:800 }, { item:"oak_logs", weight:10, min:10, max:30 }, { item:"trout", weight:10, min:5, max:15 }, { item:"air_rune", weight:8, min:30, max:80 }, { item:"water_rune", weight:8, min:30, max:80 }, { item:"iron_bar", weight:8, min:3, max:8 }, { item:"potato_seed", weight:8, min:5, max:10 }, { item:"skyfeather", weight:8, min:3, max:8 }, { item:"casket", weight:4, min:1, max:2 } ],
+  medium: [ { item:"coins", weight:30, min:1000, max:4000 }, { item:"maple_logs", weight:10, min:15, max:40 }, { item:"lobster", weight:10, min:8, max:20 }, { item:"fire_rune", weight:8, min:50, max:120 }, { item:"steel_bar", weight:8, min:5, max:12 }, { item:"hop_seed", weight:8, min:3, max:8 }, { item:"skyfeather", weight:8, min:8, max:15 }, { item:"doubloon", weight:8, min:3, max:8 }, { item:"uncut_sapphire", weight:5, min:1, max:2 } ],
+  hard: [ { item:"coins", weight:30, min:5000, max:15000 }, { item:"yew_logs", weight:10, min:20, max:50 }, { item:"swordfish", weight:10, min:10, max:25 }, { item:"chaos_rune", weight:8, min:40, max:100 }, { item:"mithril_bar", weight:8, min:8, max:15 }, { item:"cobalt_bar", weight:6, min:3, max:8 }, { item:"uncut_ruby", weight:6, min:1, max:3 }, { item:"doubloon", weight:8, min:8, max:20 }, { item:"magic_seed", weight:3, min:1, max:1 }, { item:"treasure_map", weight:4, min:1, max:1 } ],
+  elite: [ { item:"coins", weight:30, min:20000, max:60000 }, { item:"magic_logs", weight:10, min:30, max:80 }, { item:"shark", weight:10, min:15, max:40 }, { item:"death_rune", weight:8, min:60, max:150 }, { item:"runite_bar", weight:8, min:5, max:12 }, { item:"uncut_diamond", weight:6, min:1, max:3 }, { item:"magic_seed", weight:5, min:1, max:3 }, { item:"skyfeather", weight:8, min:40, max:80 }, { item:"treasure_map", weight:5, min:1, max:2 } ],
+};
+const CLUE_SKILLS = ["woodcutting", "fishing", "mining", "thieving", "agility"];   // skills that can drop clues and appear in steps
+const CLUE_HOURS = { easy: 1.5, medium: 2.5, hard: 4, elite: 20 };                // average hours of skilling per clue
 // Slayer
 const SLAYER_SHOP = [
   { item:"slayer_helm", price:250, req:10 },
@@ -967,7 +1048,7 @@ const SLAYER_SHOP = [
 ];
 const SKIP_COST = 30, SLAYER_XP = 6;   // Slayer xp per monster hitpoint, on task
 // Gear: best piece you own and meet the level for is used automatically
-const WEAPONS = [ ["voidlash",75,74,58], ["voidreaver",70,66,60], ["gargant_maul",60,44,64], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
+const WEAPONS = [ ["dawnforged_blade",75,72,66], ["voidlash",75,74,58], ["gilded_scimitar",65,58,50], ["voidreaver",70,66,60], ["gargant_maul",60,44,64], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
 const ARMOURS = [ ["colossus_plate",70,95], ["troll_hide",60,85], ["runite_platebody",55,72], ["cobalt_platebody",40,60], ["drake_scale",50,75], ["mithril_platebody",30,46], ["steel_platebody",20,32], ["iron_platebody",10,21], ["leather_body",1,8] ]; // id, defence req, defence bonus
 const PETS = ["pet_chick","pet_goblin","pet_magpie","pet_giant","pet_squire","pet_drakeling","pet_troll","pet_wraith","pet_colossus","pet_gull","pet_parrot"];
 const FOOD = { eel:26, anglerfish:22, shark:20, sunfruit:18, swordfish:14, lobster:12, salmon:9, trout:7, baked_potato:4, cooked_chicken:3, shrimp:3, ship_biscuit:2 };
@@ -1053,7 +1134,7 @@ function rollTable(table) {
 const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 /* ================= STATE ================= */
-const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 } });
+const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} } });
 let state = fresh();
 let tab = "skills";
 let bankSub = "items", bankFilter = "All", bankSel = null;
@@ -1135,6 +1216,12 @@ for (const [m, [r, def]] of Object.entries(METAL_DEF)) {
 Object.assign(GEAR, {
   bandit_mask:{ slot:"head", def:2 }, smuggler_coat:{ slot:"body", def:15 },
   slayer_helm:{ slot:"head", def:10 }, mire_greaves:{ slot:"legs", req:["defence", 35], def:35 },
+  wayfarer_hat:{ slot:"head", def:2 }, patchwork_cape:{ slot:"cape", def:2 }, trimmed_shield:{ slot:"shield", req:["defence", 5], def:12 },
+  ranger_tricorne:{ slot:"head", def:5 }, explorer_cape:{ slot:"cape", def:4 }, treasure_ring:{ slot:"ring" },
+  gilded_helm:{ slot:"head", req:["defence", 55], def:25 }, gilded_platebody:{ slot:"body", req:["defence", 55], def:72 }, gilded_platelegs:{ slot:"legs", req:["defence", 55], def:43 }, gilded_kiteshield:{ slot:"shield", req:["defence", 55], def:36 },
+  starlit_cape:{ slot:"cape", def:8 }, wyrm_mask:{ slot:"head", req:["defence", 60], def:30 },
+  dawnforged_helm:{ slot:"head", req:["defence", 70], def:34 }, dawnforged_platebody:{ slot:"body", req:["defence", 70], def:92 }, dawnforged_platelegs:{ slot:"legs", req:["defence", 70], def:55 },
+  dawnforged_kiteshield:{ slot:"shield", req:["defence", 70], def:48 }, dawnforged_cape:{ slot:"cape", def:10 }, dawnforged_amulet:{ slot:"amulet", def:8 },
   gull_cloak:{ slot:"cape" }, windrunner_cape:{ slot:"cape" }, mastery_cape:{ slot:"cape", def:5 },
   kindling_amulet:{ slot:"amulet" }, seam_amulet:{ slot:"amulet" }, plenty_amulet:{ slot:"amulet" }, deep_amulet:{ slot:"amulet" }, knight_oath:{ slot:"amulet" }, silver_locket:{ slot:"amulet" },
   tide_ring:{ slot:"ring" }, roots_ring:{ slot:"ring" }, fury_ring:{ slot:"ring" }, wealth_ring:{ slot:"ring" }, forester_ring:{ slot:"ring" }, gold_signet:{ slot:"ring" },
@@ -1247,6 +1334,7 @@ function fightRound(m, sum) {
     fx({ t:"kill", mon: m.id });
     state.kills[m.id] = (state.kills[m.id] || 0) + 1; sum.kills = (sum.kills || 0) + 1;
     if (onTask(m)) slayerKill(m, sum);
+    clueTick("combat", m.id, sum); clueFromKill(m, sum);
     const drops = m.always.map(e => ({ item: e.item, qty: randInt(e.min, e.max) }));
     const r = rollTable(m.table); if (r && r.item) { if (r.item === "coins" && worn("bandit_mask")) r.qty = Math.round(r.qty * 1.25); drops.push(r); }
     for (const u of m.uniques) if (Math.random() < u.chance * (worn("wealth_ring") ? 1.1 : 1)) { drops.push({ item: u.item, qty: 1 }); sum.uniques = (sum.uniques || []).concat(ITEMS[u.item].name); }
@@ -1308,6 +1396,8 @@ function xpMult(skill) {
   if (has("ember_core")) m *= 1.05;
   if (worn("mastery_cape")) m *= 1.05;
   if (SKILL_PETS[skill] && has(SKILL_PETS[skill])) m *= 1.03;
+  if (has("ancient_tome")) m *= 1.03;
+  if (fullDawn()) m *= 1.05;
   if (skill === "slayer") { if (has("echo_charm")) m *= 1.1; if (has("bone_charm")) m *= 1.05; }
   return m;
 }
@@ -1323,7 +1413,7 @@ function gainXp(skill, x, sum) {
 }
 
 /* ================= PETS ================= */
-const allPets = () => [...PETS, ...Object.values(SKILL_PETS)];
+const allPets = () => [...PETS, ...Object.values(SKILL_PETS), "pet_sniffer"];
 function givePet(skill, sum) {
   const pet = SKILL_PETS[skill]; if (!pet || has(pet)) return;
   add(pet, 1); sum.items[pet] = (sum.items[pet] || 0) + 1;
@@ -1384,6 +1474,7 @@ function complete(sum) {
   }
   gainXp(skill, a.xp * (skill === "firemaking" && has("ember_lantern") ? 1.1 : 1), sum); sum.actions++;
   petRoll(skill, a, sum);
+  clueTick(skill, a.id, sum); clueFromSkill(skill, a, sum);
   return true;
 }
 
@@ -1442,6 +1533,117 @@ function advanceCore(ms, sum) {
   return sum;
 }
 
+
+
+/* ================= CLUE SCROLLS ================= */
+const fullDawn = () => DAWNFORGED.every(worn);
+const clueMult = () => (has("lucky_horseshoe") ? 1.1 : 1) * (has("pet_sniffer") ? 1.2 : 1);
+const clueVerb = (skill, a) => skill === "combat" ? `Defeat {n} ${a.name.toLowerCase()}${/s$/.test(a.name) ? "" : "s"}`
+  : skill === "woodcutting" ? `Chop {n} ${ITEMS[a.item].name.toLowerCase()}` : skill === "fishing" ? `Catch {n} ${ITEMS[a.item].name.toLowerCase().replace(/^raw /, "")}`
+  : skill === "mining" ? `Mine {n} ${ITEMS[a.item].name.toLowerCase()}` : skill === "thieving" ? `${a.name.replace(/^Pickpocket/, "Pickpocket")} {n} times`
+  : `Run {n} laps of the ${a.name.replace(/ course$/i, "").toLowerCase()} course`;
+// pick a step the player can actually do, close to the clue's difficulty
+function makeStep(tier) {
+  const [lo, hi] = CLUE_BAND[tier];
+  const pickFrom = list => list[Math.floor(Math.random() * list.length)];
+  const mons = MONSTERS.filter(m => reqMet("combat", m) && !m.boss && m.lvl >= lo * 0.8 && m.lvl <= hi);
+  const opts = [];
+  for (const sk of CLUE_SKILLS) {
+    const ok = ACTIONS[sk].filter(a => reqMet(sk, a));
+    let band = ok.filter(a => a.lvl >= lo && a.lvl <= hi);
+    if (!band.length && ok.length) band = [ok.slice().sort((x, y) => y.lvl - x.lvl)[0]];
+    if (band.length) opts.push([sk, band]);
+  }
+  const less = has("pathfinder_compass") ? 0.8 : 1;
+  if (mons.length && (Math.random() < 0.35 || !opts.length)) {
+    const m = pickFrom(mons), n = Math.max(1, Math.round(randInt(...CLUE_KILLS[tier]) * less));
+    return { skill: "combat", id: m.id, n, have: 0 };
+  }
+  const [sk, band] = pickFrom(opts), a = pickFrom(band);
+  const n = Math.max(3, Math.round(CLUE_MINS[tier] * 60000 / actionTime(sk, a) * less));
+  return { skill: sk, id: a.id, n, have: 0 };
+}
+const stepText = st => { const a = findAction(st.skill, st.id); return a ? clueVerb(st.skill, a).replace("{n}", fmt(st.n)) : "Unknown step"; };
+function giveClue(tier, sum) {
+  if (state.clues.held[tier]) return;   // one clue of each tier at a time
+  const steps = randInt(...CLUE_STEPS[tier]);
+  state.clues.held[tier] = { step: 1, of: steps, cur: makeStep(tier) };
+  const msg = `You found ${tier === "easy" || tier === "elite" ? "an" : "a"} ${tier} clue scroll!`;
+  if (sum) { sum.rare.push(`${CLUE_NAMES[tier]} clue scroll`); sum.notes.push(msg + " Open More › Clues"); }
+  else toast(msg, true);
+  log(`${msg} <b>${stepText(state.clues.held[tier].cur)}</b>`, "r");
+}
+// a successful action or kill: move any clue step that's waiting for it
+function clueTick(skill, id, sum) {
+  for (const tier of CLUE_TIERS) {
+    const c = state.clues.held[tier]; if (!c || c.cur.skill !== skill || c.cur.id !== id) continue;
+    if (++c.cur.have < c.cur.n) continue;
+    if (c.step >= c.of) {
+      delete state.clues.held[tier];
+      state.clues.done[tier] = (state.clues.done[tier] || 0) + 1;
+      add("clue_reward_" + tier, 1);
+      const msg = `${CLUE_NAMES[tier]} clue complete! You got a reward casket`;
+      if (sum) { sum.notes.push(msg); sum.rare.push(ITEMS["clue_reward_" + tier].name); } else toast(msg, true);
+      log(`<b>${msg}</b>`, "r");
+    } else {
+      c.step++; c.cur = makeStep(tier);
+      const msg = `${CLUE_NAMES[tier]} clue, step ${c.step}/${c.of}: ${stepText(c.cur)}`;
+      if (sum) sum.notes.push(msg); else toast(msg);
+      log(msg);
+    }
+  }
+}
+// clue drops from monsters
+function clueFromKill(m, sum) {
+  const r = (t, p) => { if (Math.random() < p * clueMult()) giveClue(t, sum); };
+  if (m.boss) { r("hard", 1 / 20); r("elite", 1 / 35); return; }
+  if (m.lvl <= 10) r("easy", 1 / 50);
+  else if (m.lvl <= 30) { r("easy", 1 / 80); r("medium", 1 / 90); }
+  else if (m.lvl <= 60) { r("medium", 1 / 90); r("hard", 1 / 110); }
+  else { r("hard", 1 / 90); r("elite", 1 / 350); }
+}
+// clue drops from gathering, pickpocketing and agility (odds depend on time spent)
+function clueFromSkill(skill, a, sum) {
+  if (!CLUE_SKILLS.includes(skill)) return;
+  const secs = actionTime(skill, a) / 1000, p = h => secs / (h * 3600) * clueMult();
+  const tier = a.lvl < 25 ? "easy" : a.lvl < 50 ? "medium" : "hard";
+  if (Math.random() < p(CLUE_HOURS[tier])) giveClue(tier, sum);
+  if (a.lvl >= 75 && Math.random() < p(CLUE_HOURS.elite)) giveClue("elite", sum);
+}
+function openClueCasket(tier, all) {
+  const key = "clue_reward_" + tier; let n = all ? qty(key) : Math.min(1, qty(key)); if (!n) return;
+  const got = {}, dawn = [];
+  const gain = (item, q, src) => { if (src) trackedAdd(src, item, q); else add(item, q); got[item] = (got[item] || 0) + q; };
+  for (let k = 0; k < n; k++) {
+    add(key, -1);
+    let rolls = randInt(...CLUE_ROLLS[tier]); if (worn("treasure_ring") && Math.random() < 0.25) rolls++;
+    for (let i = 0; i < rolls; i++) {
+      if (Math.random() < CLUE_UNIQUE[tier]) { const u = CLUE_UNIQUES[tier]; gain(u[Math.floor(Math.random() * u.length)], 1, "clue-" + tier); }
+      else { const r = rollTable(CLUE_COMMON[tier]); gain(r.item, r.qty); }
+    }
+    if (DAWN_CHANCE[tier] && Math.random() < DAWN_CHANCE[tier]) {
+      const missing = DAWNFORGED.filter(i => !got[i] && !(state.clog[i] > 0)), pool = missing.length ? missing : DAWNFORGED;
+      const piece = pool[Math.floor(Math.random() * pool.length)]; gain(piece, 1); dawn.push(piece);
+    }
+    if (tier === "elite" && !has("pet_sniffer") && Math.random() < SNIFFER_CHANCE) { gain("pet_sniffer", 1); if (!state.opts.follow) state.opts.follow = "pet_sniffer"; }
+  }
+  const parts = Object.entries(got).map(([k, q]) => `${q > 1 ? fmt(q) + " " : ""}${ITEMS[k].name}`);
+  const rare = Object.keys(got).some(k => ITEMS[k].rare);
+  toast(`${CLUE_NAMES[tier]} casket${n > 1 ? "s" : ""}: ${parts.join(", ")}`, rare);
+  log(`Opened ${n > 1 ? n + " " : "a "}${tier} reward casket${n > 1 ? "s" : ""}: <b>${parts.join(", ")}</b>`, rare ? "r" : "");
+  for (const d of dawn) { log(`<b>✦ DAWNFORGED ✦</b> You found the <b>${ITEMS[d].name}</b>! (${DAWNFORGED.filter(i => state.clog[i] > 0).length}/7)`, "r"); dawnPop(d); }
+}
+// a big banner for the rarest drop in the game
+function dawnPop(item) {
+  if (!$("lvlpop")) return;
+  lvlQueue.unshift({ dawn: item }); if (!lvlTimer) showNextLevel();
+}
+function clueGo(tier) {
+  const c = state.clues.held[tier]; if (!c) return;
+  const a = findAction(c.cur.skill, c.cur.id); if (!a || !reqMet(c.cur.skill, a)) return;
+  state.active = { skill: c.cur.skill, id: c.cur.id }; state.progress = 0;
+  if (c.cur.skill === "combat") { state.fight = null; tab = "combat"; combatSub = "fight"; } else tab = c.cur.skill;
+}
 
 /* ================= SLAYER ================= */
 const onTask = m => !!(state.slayer && state.slayer.task && state.slayer.task.mon === m.id && state.slayer.task.left > 0);
@@ -1670,6 +1872,7 @@ function loadObj(o) {
     for (const e of clogTree().flatMap(g => g.entries)) if (e.tracked) for (const x of e.items) if (x.unique && state.clog[x.item]) { (state.clogSrc[e.id] = state.clogSrc[e.id] || {})[x.item] = state.clog[x.item]; }
   }
   state.slayer = Object.assign({ task:null, points:0, streak:0, done:0 }, o.slayer);
+  state.clues = Object.assign({ held:{}, done:{} }, o.clues);
   state.xp.slayer = state.xp.slayer || 0;
   state.kills = o.kills || {}; state.buffs = o.buffs || {}; state.boats = o.boats || {}; state.islands = o.islands || {}; state.upgrades = o.upgrades || {};
   state.barrels = Array.isArray(o.barrels) ? o.barrels.concat([null,null,null]).slice(0, 3) : [null,null,null]; if (typeof o.hp !== "number") state.hp = lvl("hitpoints");
@@ -1724,7 +1927,12 @@ function showNextLevel() {
   document.documentElement.style.setProperty("--lvl-h", (el.offsetHeight || 96) + "px");
   lvlTimer = setTimeout(hideLevel, unTxt ? LVL_MS_UNLOCK : LVL_MS);
 }
-function drawLevel({ skill, from, to }) {
+function drawLevel({ skill, from, to, dawn }) {
+  if (dawn) {
+    const el = $("lvlpop"), n = DAWNFORGED.filter(i => state.clog[i] > 0).length;
+    el.innerHTML = `<div class="in dawn" role="status">${icon(dawn, "lg")}<span class="t">✦ Dawnforged ✦</span><span class="big">${esc(ITEMS[dawn].name)}</span><span class="sub">${n}/7 of the rarest set in Thornwick</span><span class="tap">Tap to close</span></div>`;
+    return true;
+  }
   const el = $("lvlpop"), un = unlocksBetween(skill, from, to);
   const shown = un.slice(0, 4), more = un.length - shown.length;
   const unBlock = un.length ? `<div class="unl"><span class="ut">New unlock${un.length > 1 ? "s" : ""}</span><div class="ucards">${shown.map(u => `<span class="uc">${u.ic ? icon(u.ic) : ""}<span>${esc(u.name)}</span></span>`).join("")}${more ? `<span class="uc more">+${more} more</span>` : ""}</div></div>` : "";
@@ -1742,7 +1950,7 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
@@ -1758,7 +1966,7 @@ function badges() {
   return {
     skills: state.patches.filter(p => p && now >= p.readyAt).length + state.barrels.filter(p => p && now >= p.readyAt).length + Object.values(state.boats).filter(t => t && now >= t.readyAt).length,
     clog: 0,
-    bank: qty("bird_nest") + qty("casket") + qty("geode"),
+    bank: qty("bird_nest") + qty("casket") + qty("geode") + CLUE_TIERS.reduce((n, t) => n + qty("clue_reward_" + t), 0),
     combat: 0, more: claimable(),
   };
 }
@@ -1956,9 +2164,15 @@ function clogTree() {
       { id: "jewellery", name: "Enchanted jewellery", sub: "Enchanting", items: ENCHANT.filter(e => e.section === "Jewellery").map(e => ({ item: e.out, rate: `Enchanting ${e.lvl}` })) },
       { id: "brews", name: "Brews", sub: "Brewing", items: BREWS.map(b => ({ item: b.out, rate: `Brewing ${b.lvl}` })) },
     ] },
+    { id: "clues", name: "Treasure trails", entries: [
+      ...CLUE_TIERS.map(t => ({ id: "clue-" + t, name: `${CLUE_NAMES[t]} rewards`, tracked: true, sub: `${fmt(state.clues.done[t] || 0)} completed`,
+        items: CLUE_UNIQUES[t].map(i => ({ item: i, unique: true, rate: `about ${oneIn(CLUE_UNIQUE[t] * (CLUE_ROLLS[t][0] + CLUE_ROLLS[t][1]) / 2 / CLUE_UNIQUES[t].length)} per casket` })) })),
+      { id: "dawn", name: "Dawnforged set", sub: "The rarest set in Thornwick", items: DAWNFORGED.map(i => ({ item: i, unique: true, rate: "Elite 1/100 · hard 1/1,000 per casket" })) },
+    ] },
     { id: "petsg", name: "Pets", entries: [
       { id: "pets", name: "Monster pets", sub: "Each gives +2% combat xp", items: PETS.filter(p => MONSTERS.some(m => m.uniques.some(u => u.item === p))).map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }) },
       { id: "pets-voy", name: "Voyage pets", sub: "Each gives +2% combat xp", items: PETS.filter(p => !MONSTERS.some(m => m.uniques.some(u => u.item === p))).map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }) },
+      { id: "pets-other", name: "Treasure pet", sub: "Clue scrolls 20% more often", items: [{ item: "pet_sniffer", unique: true, rate: "1/750 per elite casket" }] },
       { id: "pets-skill", name: "Skilling pets", sub: "Each gives +3% xp in its skill", items: Object.entries(SKILL_PETS).map(([sk, p]) => ({ item: p, unique: true, rate: sk === "farming" ? "1/300 per harvest" : sk === "brewing" ? "1/150 per barrel" : sk === "slayer" ? "1/60 per Slayer task" : `${SKILLS[sk].name}, about ${PET_HOURS}h` })) },
     ] },
     { id: "other", name: "Other", entries: [
@@ -1981,6 +2195,10 @@ function clogItems() {
 // goal: lvl [skill,n] | total n | cmb n | kills [monster,n] | life [item,n] | trips n | clog n ("all" = every slot) | max99 1
 const QUEST_TIERS = ["Novice", "Adept", "Master", "Grandmaster"];
 const QUESTS = [
+  { id:"c1", tier:0, name:"X marks the spot",  desc:"Complete an easy clue scroll.",           goal:{ life:["clue_reward_easy",1] },   reward:{ coins:500 } },
+  { id:"c2", tier:1, name:"Map reader",        desc:"Complete 10 medium clue scrolls.",        goal:{ life:["clue_reward_medium",10] }, reward:{ coins:10000 } },
+  { id:"c3", tier:2, name:"Gilded age",        desc:"Complete 25 hard clue scrolls.",          goal:{ life:["clue_reward_hard",25] },   reward:{ coins:50000 } },
+  { id:"c4", tier:3, name:"Chasing the dawn",  desc:"Complete 100 elite clue scrolls.",        goal:{ life:["clue_reward_elite",100] }, reward:{ coins:500000 } },
   { id:"s1", tier:0, name:"Monster hunter",    desc:"Reach Slayer level 10.",                  goal:{ lvl:["slayer",10] },        reward:{ coins:500 } },
   { id:"s2", tier:1, name:"Bog standard",      desc:"Defeat 100 bog horrors.",                 goal:{ kills:["boghorror",100] },  reward:{ coins:5000 } },
   { id:"s3", tier:2, name:"Stone breaker",     desc:"Reach Slayer level 60.",                  goal:{ lvl:["slayer",60] },        reward:{ coins:25000 } },
@@ -2092,9 +2310,10 @@ function clogPanel() {
 
 function morePanel() {
   let h = `<div class="pagehead"><h2>More</h2><span>Total level ${totalLevel()}</span></div>
-    <div class="seg" role="group" aria-label="More" style="grid-template-columns:repeat(4,1fr)">${[["quests","Quests"],["hiscores","Hiscores"],["activity","Activity"],["help","Help & save"]].map(([k, n]) => `<button id="msub-${k}" data-moresub="${k}" aria-pressed="${moreSub === k}">${n}</button>`).join("")}</div>`;
+    <div class="seg five" role="group" aria-label="More" style="grid-template-columns:repeat(5,1fr)">${[["quests","Quests"],["clues","Clues"],["hiscores","Hiscores"],["activity","Activity"],["help","Help & save"]].map(([k, n]) => `<button id="msub-${k}" data-moresub="${k}" aria-pressed="${moreSub === k}">${n}</button>`).join("")}</div>`;
   if (moreSub === "quests") return h + questsPanel();
   if (moreSub === "hiscores") return h + hiscoresPanel();
+  if (moreSub === "clues") return h + cluesPanel();
   if (moreSub === "clog") moreSub = "quests";
   if (moreSub === "activity") return h + (state.feed.length ? `<ul class="feed">` + state.feed.map(f => `<li class="${f.k}">${f.t}</li>`).join("") + `</ul>` : `<div class="empty">Level-ups, rare drops and voyages will be listed here.</div>`);
   h += `<h3>How to play</h3><ol class="guide">
@@ -2225,6 +2444,25 @@ function combatPanel() {
   return h;
 }
 
+
+function cluesPanel() {
+  let h = `<p class="note" style="margin-top:0">Clue scrolls drop from monsters, and from gathering, pickpocketing and agility. Each one is a short trail of jobs that finish while you play, even offline. You can carry one clue of each tier.</p><div class="clues">`;
+  for (const tier of CLUE_TIERS) {
+    const c = state.clues.held[tier], box = "clue_reward_" + tier, nBox = qty(box);
+    h += `<div class="clue ${tier} ${c ? "on" : ""}"><div class="ch">${icon("clue_" + tier)}<div><b>${CLUE_NAMES[tier]} clue</b><span>${fmt(state.clues.done[tier] || 0)} completed</span></div>${nBox ? `<button class="btn solid" id="ccopen-${tier}" data-ccopen="${tier}">Open ${nBox > 1 ? fmt(nBox) + " caskets" : "casket"}</button>` : ""}</div>`;
+    if (c) {
+      const a = findAction(c.cur.skill, c.cur.id), active = state.active && state.active.skill === c.cur.skill && state.active.id === c.cur.id;
+      h += `<div class="cstep"><span class="sn">Step ${c.step} of ${c.of}</span><b>${esc(stepText(c.cur))}</b><div class="tbar"><i data-clueprog="${tier}"></i></div>
+        <div class="row"><span class="num" data-cluehave="${tier}"></span>${a && reqMet(c.cur.skill, a) ? `<button class="btn ${active ? "" : "solid"}" id="cluego-${tier}" data-cluego="${tier}" ${active ? "disabled" : ""}>${active ? "Doing it now" : "Do this now"}</button>` : `<span class="lock">You can't do this yet</span>`}</div></div>`;
+    } else h += `<p class="cnone">${{ easy: "Low-level monsters, and gathering below level 25.", medium: "Monsters level 11–60, and gathering from level 25.", hard: "Monsters level 31 and up, bosses, and gathering from level 50.", elite: "The strongest monsters, the Ashen Colossus, and top-level gathering." }[tier]}</p>`;
+    h += `</div>`;
+  }
+  h += `</div>`;
+  const have = DAWNFORGED.filter(i => state.clog[i] > 0).length;
+  h += `<h3>The Dawnforged set <span>${have}/7</span></h3><div class="dawnrow">${DAWNFORGED.map(i => `<span class="dp ${state.clog[i] > 0 ? "got" : ""}" title="${esc(ITEMS[i].name)}">${icon(i)}</span>`).join("")}</div>
+    <p class="note">The rarest set in Thornwick. About 1 in 100 elite reward caskets holds a piece, and 1 in 1,000 hard caskets. You never get a duplicate until the set is complete. Wear all seven for <b>+5% xp in every skill</b> and a golden glow.</p>`;
+  return h;
+}
 function slayerPanel() {
   const st = state.slayer, m = taskMon(), l = lvl("slayer");
   let h = `<div class="task">`;
@@ -2329,6 +2567,7 @@ function renderSheet() {
   if (GEAR[k]) b += worn(k) ? `<button class="btn" id="sheet-unequip" data-unequip="${GEAR[k].slot}">Remove (${CTYPES[state.opts.ctype || "melee"]})</button>` : `<button class="btn solid" id="sheet-equip" data-equip="${k}">Wear (${CTYPES[state.opts.ctype || "melee"]})</button>`;
   if (k === "geode") b += `<button class="btn solid" id="openg1" data-geode="1">Open</button><button class="btn" id="opengall" data-geode="all">Open all</button>`;
   if (k === "casket") b += `<button class="btn solid" id="openc1" data-casket="1">Open</button><button class="btn" id="opencall" data-casket="all">Open all</button>`;
+  if (k.startsWith("clue_reward_")) { const tier = k.slice(12); b += `<button class="btn solid" id="ccopen1-${tier}" data-ccopen="${tier}">Open</button><button class="btn" id="ccopenall-${tier}" data-ccopen="${tier}" data-all="1">Open all</button>`; }
   if (k === "bird_nest") b += `<button class="btn solid" id="open1" data-open="1">Open</button><button class="btn" id="openall" data-open="all">Open all</button>`;
   if (it.sell) b += `<button class="btn" id="sell1-${k}" data-sell="${k}">Sell 1 · ${it.sell}c</button><button class="btn" id="sellkeep-${k}" data-sellkeep="${k}">Sell all but 1 · <span class="num" data-sellk="${k}"></span>c</button><button class="btn" id="sellall-${k}" data-sellall="${k}">Sell all · <span class="num" data-sellv="${k}"></span>c</button>`;
   el.innerHTML = `<div class="in" role="dialog" aria-label="${esc(it.name)}">${icon(k)}<span class="nm ${it.rare ? "rare" : ""}">${esc(it.name)}</span><button class="x" id="sheetClose" data-pick="" aria-label="Close">×</button>
@@ -2663,6 +2902,13 @@ const ICONS = {
 };
 // Item icons: templates use role digits 1-4 (recoloured per item) plus shared palette letters.
 const ITEM_TPL = {
+  scroll: ["............", "..22222222..", ".2111111112.", ".2133331112.", ".2111111112.", ".2133311112.", ".2111111112.", ".2131333112.", ".2111111112.", "..22222222..", "...4....4...", "............"],
+  hat: ["............", "............", "............", "....1111....", "...111111...", "...133331...", "...111111...", ".1111111111.", "122222222221", "............", "............", "............"],
+  tricorne: ["............", "............", "............", "............", "1....11....1", "11.111111.11", "111131131111", ".1111111111.", "..22222222..", "............", "............", "............"],
+  horseshoe: ["............", "...111111...", "..11111111..", ".113....311.", ".11......11.", ".13......31.", ".11......11.", ".13......31.", ".11......11.", ".22......22.", "............", "............"],
+  tome: ["............", "..22222222..", "..21111113..", "..21333113..", "..21313113..", "..21333113..", "..21111113..", "..21144113..", "..21111113..", "..22222222..", "............", "............"],
+  hound: ["............", "............", "1...........", "11.......11.", "111......1k1", ".1111111111.", ".1111111114.", "..1111111...", "..11...11...", "..22...22...", "............", "............"],
+  wyrm: ["............", "..3......3..", "..33....33..", "..11111111..", ".1111111111.", ".11k1111k11.", ".1111111111.", ".1114444111.", "..11111111..", "...111111...", "............", "............"],
   sapling: ["....3333....", "...333333...", "..33343333..", "...333333...", "....1111....", "...1k11k1...", "...111111...", "..21111112..", "....1111....", "....2..2....", "...22..22...", "............"],
   ember: [".....3......", "....33..3...", "...3443.33..", "..3444433...", "..34114433..", ".3411111443.", ".3k1111k143.", ".3411111143.", "..34111143..", "...333333...", "............", "............"],
   mole: ["............", "............", "...111111...", "..11111111..", ".1111111111.", "441k1111111.", "4411111111..", ".1111111111.", ".1111111111.", "33.33..33...", "............", "............"],
@@ -2742,6 +2988,7 @@ const IC = {
 };
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
+  clue_easy:["scroll",["#efe6cc", "#8a7044", "#8a7044", "#5aa7e8"]], clue_medium:["scroll",["#efe6cc", "#8a7044", "#8a7044", "#6fbf5a"]], clue_hard:["scroll",["#efe6cc", "#8a7044", "#8a7044", "#d2452f"]], clue_elite:["scroll",["#f7f0d0", "#7a4ad0", "#7a4ad0", "#c79bf2"]], clue_reward_easy:["chest",["#b07a3e", "#4a2e16", "#000", "#5aa7e8"]], clue_reward_medium:["chest",["#b07a3e", "#4a2e16", "#000", "#6fbf5a"]], clue_reward_hard:["chest",["#b07a3e", "#4a2e16", "#000", "#d2452f"]], clue_reward_elite:["chest",["#3a2a5a", "#1e0f3a", "#000", "#ffd45a"]], wayfarer_hat:["hat",["#8a5a2a", "#4a2e16", "#d2452f", "#000"]], patchwork_cape:["cape",["#6fbf5a", "#8e2a1f", "#000", "#000"]], lucky_horseshoe:["horseshoe",["#c8ccd2", "#6a727a", "#3a4048", "#000"]], trimmed_shield:["kite",["#8a8f96", "#4e5359", "#e8b84a", "#000"]], ranger_tricorne:["tricorne",["#2f6a24", "#1a3a14", "#e8b84a", "#000"]], explorer_cape:["cape",["#2f5ea8", "#e8b84a", "#000", "#000"]], pathfinder_compass:["compass",["#e8b84a", "#8a6a20", "#000", "#000"]], treasure_ring:["ring",["#e8b84a", "#8a6a20", "#d2452f", "#d2452f"]], gilded_helm:["helm",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], gilded_platebody:["body",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], gilded_platelegs:["legs",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], gilded_kiteshield:["kite",["#2ab8b0", "#13706a", "#ffd45a", "#000"]], starlit_cape:["cape",["#1e2a5a", "#ffd45a", "#000", "#000"]], wyrm_mask:["wyrm",["#3f8a5a", "#1f4f30", "#e8dcc0", "#f7d35a"]], gilded_scimitar:["sword",["#ffd45a", "#a07a1a", "#000", "#7a2a1e"]], ancient_tome:["tome",["#7a2a1e", "#3a1410", "#ffd45a", "#c79bf2"]], pet_sniffer:["hound",["#b07a3e", "#5a3a1c", "#000", "#f2a0b0"]], dawnforged_helm:["helm",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_platebody:["body",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_platelegs:["legs",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_kiteshield:["kite",["#f7f2e0", "#c9a440", "#ffd45a", "#000"]], dawnforged_cape:["cape",["#f7f2e0", "#ffd45a", "#000", "#000"]], dawnforged_amulet:["amulet",["#ffd45a", "#000", "#ffffff", "#f7f2e0"]], dawnforged_blade:["sword",["#fff6d8", "#c9a440", "#000", "#ffd45a"]],
   pet_twiglet:["sapling",["#a0703a", "#5a3a1c", "#6fbf5a", "#3f7a3a"]], pet_cinder:["ember",["#f7d35a", "#8e2a1f", "#d2452f", "#f0a33a"]], pet_burrow:["mole",["#5a4a52", "#2e242a", "#e3b98f", "#f2a0b0"]], pet_puffin:["bird",["#2a2a30", "#111114", "#f0a33a", "#f0a33a"]], pet_crumb:["mouse",["#b8b0a8", "#7a706a", "#f2a0b0", "#f2a0b0"]], pet_pebble:["crab",["#8a8f96", "#4e5359", "#b8c0c8", "#000"]], pet_clinker:["lizard",["#d2452f", "#7a2418", "#000", "#f7d35a"]], pet_quill:["bird",["#9a6a3a", "#5a3a1c", "#f7d35a", "#e8b84a"]], pet_glimmer:["moth",["#c79bf2", "#6b4fa0", "#6b4fa0", "#f2efe6"]], pet_hops:["frog",["#5aa846", "#2f6a24", "#d8e8a0", "#000"]], pet_scamper:["squirrel",["#c0703a", "#7a4a1e", "#d88a4a", "#f2efe6"]], pet_fidget:["ferret",["#d8c8a8", "#7a6a50", "#4a3a2e", "#000"]], pet_grimling:["imp",["#b03a5a", "#5a1a2e", "#e8dcc0", "#000"]], slayer_helm:["helm",["#3a3e44", "#1a1c20", "#d2452f", "#000"]], hunter_satchel:["satchel",["#8a5a2a", "#4a2e16", "#c8ccd2", "#e8b84a"]], bone_charm:["amulet",["#e8dcc0", "#000", "#f2efe6", "#c2a36b"]], echo_charm:["amulet",["#9aa3ad", "#000", "#c79bf2", "#5a3a8a"]], mire_greaves:["legs",["#5a7a2a", "#2f4a14", "#a0c060", "#000"]], gargant_maul:["maul",["#8a8f96", "#5a3a1c", "#c8ccd2", "#3a3e44"]], voidlash:["whip",["#7a4ad0", "#3a1e6a", "#000", "#7dff6a"]], bat_wing:["wing",["#5a3a8a", "#2e1e4a", "#000", "#000"]], bog_moss:["pile",["#5a7a2a", "#2f4a14", "#a0c060", "#000"]], gargant_shard:["gem",["#8a8f96", "#4e5359", "#c8ccd2", "#ff7a1a"]], void_essence:["orb",["#3a1e6a", "#1e0f3a", "#7dff6a", "#000"]],
   logs:["log",IC.wood], oak_logs:["log",IC.oak], willow_logs:["log",IC.willow], maple_logs:["log",IC.maple], ashes:["pile",["#8a8f96","#4e5359","#c8ccd2","#000"]],
   bird_nest:["nest",["#8a5a2a","#4a2e16","#000","#000"]], coins:["coins",["#e8b84a","#9a7420","#f7e08a","#000"]], doubloon:["coin",["#d9a430","#8a6418","#f7d35a","#000"]],
@@ -3067,6 +3314,16 @@ function hpBar(ctx, x, y, w, frac) {
   ctx.fillStyle = frac > 0.5 ? "#4fe04a" : frac > 0.25 ? "#ffb52e" : "#ff3b30"; ctx.fillRect(x - w / 2, y, w * Math.max(0, Math.min(1, frac)), 4);
 }
 
+// the full Dawnforged set makes you glow
+function drawAura(ctx, x, ground, h, now, still) {
+  if (!fullDawn()) return;
+  const t = still ? 0 : now / 1000, cy = ground - h / 2;
+  const g = ctx.createRadialGradient(x, cy, 4, x, cy, h * 0.9);
+  g.addColorStop(0, "rgba(255,226,140,.45)"); g.addColorStop(1, "rgba(255,226,140,0)");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, cy, h * 0.9, 0, 7); ctx.fill();
+  for (let i = 0; i < 6; i++) { const a = t * 1.3 + i * 1.05, r = h * 0.55 + Math.sin(t * 2 + i) * 4;
+    ctx.fillStyle = i % 2 ? "#fff6c8" : "#ffd45a"; ctx.fillRect(Math.round(x + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r * 0.8), 3, 3); }
+}
 // your chosen pet trots along beside you
 function drawFollower(ctx, x, ground, now, still) {
   const f = state.opts.follow; if (!f || !has(f)) return;
@@ -3120,6 +3377,7 @@ function drawScene(now) {
   const resting = fighting && state.fight.resting;
   const t = ctype(), hero = t === "ranged" ? SPRITES.archer : t === "magic" ? SPRITES.wizard : SPRITES.warrior;
   if (t === "magic") hero.pal.o = SPELL_COLOURS[spellOf().id];
+  drawAura(ctx, pX, ground, 60, now, still);
   drawFollower(ctx, pX - 52, ground, now, still);
   const ps = drawSprite(ctx, hero, pX + pdx, ground + bob, 5, false, 1);
   hpBar(ctx, pX, ground - ps.h - 12, 34, state.hp / maxHp());
@@ -3375,6 +3633,7 @@ function drawSkillScene(now) {
     if (state.progress < 0) pdx = -10;
     else pdx = t * (oX - pX - 46) + (now - sscene.swingAt < 200 ? 6 : 0);
   }
+  drawAura(ctx, px2 + pdx, ground + pdy, WORKER.grid.length * s, now, still);
   drawFollower(ctx, px2 - WORKER.grid[0].length * s / 2 - 22, ground, now, still);
   const pr = drawGrid(ctx, "worker", WORKER.grid, WORKER.pal, px2 + pdx, ground + bob + pdy, s);
   const hx = px2 + pdx + 4.5 * s, hy = ground + bob + pdy - 2.8 * s;
@@ -3516,6 +3775,9 @@ function render() {
 
 /* Cheap in-place refresh, safe to run every frame */
 function update() {
+  for (const t of CLUE_TIERS) { const c = state.clues.held[t];
+    document.querySelectorAll(`[data-clueprog="${t}"]`).forEach(el => el.style.width = c ? (100 * c.cur.have / c.cur.n) + "%" : "0");
+    document.querySelectorAll(`[data-cluehave="${t}"]`).forEach(el => el.textContent = c ? `${fmt(c.cur.have)} / ${fmt(c.cur.n)}` : ""); }
   { const el = $("syncInd"); if (el) { const on = cloudOn && !!cm.s; el.hidden = !on;
     if (on) { const err = /reach|error|expired/i.test(cloud.msg || ""), stale = !cm.at || Date.now() - cm.at > 3 * 60000;
       el.className = "sync" + (err ? " err" : stale ? " stale" : ""); const txt = err ? "Not synced, will retry" : cm.at ? `Synced ${ago(cm.at)}` : "Not synced yet"; if ($("syncTxt").textContent !== txt) $("syncTxt").textContent = txt; } } }
@@ -3661,6 +3923,8 @@ document.addEventListener("click", e => {
   if (d.tboat) { traderBoat = d.tboat; return after(); }
   if (d.slayer) { if (d.slayer === "fight") { fightTask(); render(); window.scrollTo(0, 0); return after(); } newTask(d.slayer === "skip"); return after(); }
   if (d.sbuy !== undefined) { buySlayer(+d.sbuy); return after(); }
+  if (d.ccopen) { openClueCasket(d.ccopen, d.all === "1"); return after(); }
+  if (d.cluego) { clueGo(d.cluego); render(); window.scrollTo(0, 0); return after(); }
   if (d.follow) { state.opts.follow = state.opts.follow === d.follow ? null : d.follow; renderSheet(); return after(); }
   if (t.id === "dismissAway") { $("away").innerHTML = ""; return; }
   if (t.id === "copySave") {
@@ -4066,7 +4330,7 @@ function begin() {
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
 }
-window.__thornwick = { get state() { return state; }, get started() { return started; }, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
