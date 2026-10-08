@@ -338,6 +338,18 @@ body.noscroll{overflow:hidden}
 .hst th:first-child,.hst td:first-child{width:3em;color:var(--muted)}
 .hst tr.me td{background:rgba(240,163,58,.12);color:var(--fg);font-weight:700}
 .hst tr.gap td{text-align:center;color:var(--muted);padding:2px}
+.upd{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.upd.new{border-color:var(--ember)}
+.upd .uh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.upd .uh span{font-size:.75rem;color:var(--muted);white-space:nowrap}
+.upd .uh em{font-style:normal;color:var(--bg);background:var(--ember);border-radius:6px;padding:1px 6px;font-weight:700;margin-left:4px}
+.upd ul{margin:8px 0 0;padding-left:18px;color:var(--fg);font-size:.88rem}
+.upd li{margin:3px 0}
+.ideas{display:grid;gap:8px}
+.idea{border:1px dashed var(--line);border-radius:10px;padding:10px 12px}
+.idea b{display:block}
+.idea span{color:var(--muted);font-size:.85rem}
+.seg .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ember);vertical-align:middle;margin-left:3px}
 .clues{display:grid;gap:10px}
 .clue{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
 .clue.on{border-color:var(--ember-dim)}
@@ -1971,7 +1983,7 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
@@ -1988,7 +2000,7 @@ function badges() {
     skills: state.patches.filter(p => p && now >= p.readyAt).length + state.barrels.filter(p => p && now >= p.readyAt).length + Object.values(state.boats).filter(t => t && now >= t.readyAt).length,
     clog: 0,
     bank: qty("bird_nest") + qty("casket") + qty("geode") + CLUE_TIERS.reduce((n, t) => n + qty("clue_reward_" + t), 0),
-    combat: 0, more: claimable(),
+    combat: 0, more: claimable() + (newsUnseen() ? 1 : 0),
   };
 }
 function renderTabs() {
@@ -2332,10 +2344,11 @@ function clogPanel() {
 
 function morePanel() {
   let h = `<div class="pagehead"><h2>More</h2><span>Total level ${totalLevel()}</span></div>
-    <div class="seg five" role="group" aria-label="More" style="grid-template-columns:repeat(5,1fr)">${[["quests","Quests"],["clues","Clues"],["hiscores","Hiscores"],["activity","Activity"],["help","Help & save"]].map(([k, n]) => `<button id="msub-${k}" data-moresub="${k}" aria-pressed="${moreSub === k}">${n}</button>`).join("")}</div>`;
+    <div class="seg" role="group" aria-label="More" style="grid-template-columns:repeat(3,1fr)">${[["quests","Quests"],["clues","Clues"],["hiscores","Hiscores"],["news",`What's new${newsUnseen() ? ' <span class="dot"></span>' : ""}`],["activity","Activity"],["help","Help & save"]].map(([k, n]) => `<button id="msub-${k}" data-moresub="${k}" aria-pressed="${moreSub === k}">${n}</button>`).join("")}</div>`;
   if (moreSub === "quests") return h + questsPanel();
   if (moreSub === "hiscores") return h + hiscoresPanel();
   if (moreSub === "clues") return h + cluesPanel();
+  if (moreSub === "news") return h + newsPanel();
   if (moreSub === "clog") moreSub = "quests";
   if (moreSub === "activity") return h + (state.feed.length ? `<ul class="feed">` + state.feed.map(f => `<li class="${f.k}">${f.t}</li>`).join("") + `</ul>` : `<div class="empty">Level-ups, rare drops and voyages will be listed here.</div>`);
   h += `<h3>How to play</h3><ol class="guide">
@@ -2467,6 +2480,63 @@ function combatPanel() {
 }
 
 
+
+/* ================= WHAT'S NEW =================
+   Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
+const UPDATES = [
+  { v: 13, date: "8 Oct 2026", title: "What's new", items: [
+    "This page! Every update is listed here, newest first.",
+    "Ideas for what could come next are at the bottom. Tell Claude which ones you want." ] },
+  { v: 12, date: "8 Oct 2026", title: "Clue nests, bottles and geodes", items: [
+    "Woodcutting, Fishing and Mining now find their own clues: a clue nest, a clue bottle or a clue geode.",
+    "The higher your level in that skill, the better the clue: mostly easy at level 1 (elite 1 in 5,000), up to 15% elite at level 99.",
+    "Each of those skill pages shows your current clue odds." ] },
+  { v: 11, date: "8 Oct 2026", title: "Treasure trails and the Dawnforged set", items: [
+    "Clue scrolls in four tiers (easy, medium, hard, elite) from monsters, gathering, pickpocketing and agility.",
+    "Each clue is a short trail of jobs that finish while you play, even offline. More › Clues shows your steps.",
+    "Reward caskets with tier uniques: Wayfarer's hat, Ranger's tricorne, the Gilded armour set, Starlit cape, Wyrm mask, Ancient tome and more.",
+    "The Dawnforged set: the rarest set in Thornwick. 7 pieces, 1 in 100 elite caskets. Full set gives +5% xp in every skill and a golden glow.",
+    "New treasure pet: Sniffer the hound." ] },
+  { v: 10, date: "8 Oct 2026", title: "Pets get their own log", items: [ "Pets now have their own collection log section: Monster, Voyage, Treasure and Skilling pets." ] },
+  { v: 9, date: "8 Oct 2026", title: "Slayer, pets and hiscores", items: [
+    "New skill: Slayer. Get tasks, earn points, buy the Slayer helm, and fight four Slayer-only monsters with their own uniques.",
+    "13 skilling pets, one per skill, each giving +3% xp. Your pet follows you around in the scenes.",
+    "Hiscores: an overall board and one for every skill. Pick a name and see your rank (More › Hiscores).",
+    "A sync dot under the title shows when your cloud save last synced.",
+    "Rare items need a second tap before they're sold." ] },
+  { v: 8, date: "8 Oct 2026", title: "Login screen", items: [ "A new login screen with an animated campfire. Sign in with a code sent to your email, or play without an account." ] },
+  { v: 7, date: "8 Oct 2026", title: "Cloud saves", items: [
+    "Sign in with your email to keep your save online and carry on from any device.",
+    "If two devices both made progress, the game asks which save to keep." ] },
+  { v: 5, date: "8 Oct 2026", title: "Sell all but 1", items: [ "The bank's item panel can now sell everything except one." ] },
+  { v: 4, date: "7 Oct 2026", title: "Thornwick goes live", items: [
+    "19 skills to 99, including Farming, Agility, Thieving, Fishing, Cooking, Mining, Smithing, Ranged, Magic, Fletching, Enchanting, Brewing and Seafaring voyages.",
+    "Combat with bosses and combat-only uniques, an equipment screen with 3 loadouts, and animated battle and skilling scenes.",
+    "The Eyrie and the Black Flag Trader shops, a collection log, quests, and an installable offline iPhone app." ] },
+];
+// Ideas Claude suggests for future updates. Move one into UPDATES when it's built.
+const IDEAS = [
+  { t: "Character customisation", d: "Pick your adventurer's skin, hair and outfit colours, and show off clue cosmetics on your character." },
+  { t: "Prayer", d: "Monsters drop bones. Bury or offer them to level Prayer and unlock prayers that boost combat." },
+  { t: "Daily challenges", d: "Three small goals each day for bonus rewards, with a streak counter." },
+  { t: "Friends list", d: "Add friends by hiscores name and compare your levels side by side." },
+  { t: "Boss encounters", d: "Multi-phase bosses with special attacks you have to gear for, and a boss kill log." },
+  { t: "Sound effects", d: "Soft chops, splashes and level-up chimes, with a mute toggle." },
+  { t: "Phone notifications", d: "Alerts when crops, brews and voyages finish. Designed and ready whenever you want it." },
+  { t: "Achievement diaries", d: "Region-based task lists (easy to elite) with permanent perks as rewards." },
+];
+const NEWS_KEY = "thornwick-news-seen";
+const newsSeen = () => { try { return +localStorage.getItem(NEWS_KEY) || 0; } catch (e) { return 0; } };
+const newsUnseen = () => UPDATES[0].v > newsSeen();
+function markNewsSeen() { try { localStorage.setItem(NEWS_KEY, String(UPDATES[0].v)); } catch (e) {} }
+let newsBase = null;   // what you'd seen when this session started, so "New" tags stay up while you read
+function newsPanel() {
+  if (newsBase === null) newsBase = newsSeen();
+  const seen = newsBase; setTimeout(markNewsSeen, 0);
+  let h = UPDATES.map((u, i) => `<div class="upd ${u.v > seen && i === 0 ? "new" : ""}"><div class="uh"><b>${esc(u.title)}</b><span>v${u.v} · ${esc(u.date)}${u.v > seen ? ` <em>New</em>` : ""}</span></div><ul>${u.items.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>`).join("");
+  h += `<h3>Ideas for next time</h3><p class="note" style="margin-top:0">Suggestions for future updates. Tell Claude which ones you'd like.</p><div class="ideas">${IDEAS.map(x => `<div class="idea"><b>${esc(x.t)}</b><span>${esc(x.d)}</span></div>`).join("")}</div>`;
+  return h;
+}
 function cluesPanel() {
   let h = `<p class="note" style="margin-top:0">Clue scrolls drop from monsters, and from gathering, pickpocketing and agility. Each one is a short trail of jobs that finish while you play, even offline. You can carry one clue of each tier.</p><div class="clues">`;
   for (const tier of CLUE_TIERS) {
@@ -4344,6 +4414,7 @@ function cloudThenBegin() {
 }
 function begin() {
   started = true;
+  if (newsUnseen() && totalLevel() > 25) setTimeout(() => toast(`New update (v${UPDATES[0].v}): ${UPDATES[0].title}. See More › What's new`, true), 1500);
   const away = Date.now() - (state.last || Date.now());
   if (away > 2000) report(advance(away), away > 60000);
   fxq = [];
