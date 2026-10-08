@@ -295,6 +295,28 @@ h3 span{text-transform:none;letter-spacing:0;color:var(--ember);font-family:var(
 .cin{width:100%;min-height:44px;font:inherit;font-size:1rem;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:4px 0 8px}
 .cin:focus{outline:2px solid var(--ember);outline-offset:1px}
 .save.cloud{margin-bottom:8px}
+#login{position:fixed;inset:0;z-index:15;overflow-y:auto;background:radial-gradient(120% 70% at 50% 30%,#1b3226 0%,var(--bg) 70%);padding:max(24px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))}
+#login[hidden]{display:none}
+body.noscroll{overflow:hidden}
+#login .lin{max-width:400px;margin:0 auto;display:flex;flex-direction:column;align-items:stretch;min-height:100%;justify-content:center;gap:4px}
+#login .brand{text-align:center}
+#login .brand h1{font-size:3.2rem}
+#login .brand p{color:var(--muted);margin:8px 0 0;font-size:.92rem}
+#loginScene{width:100%;height:150px;display:block;margin-top:6px}
+#login .lcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 16px 14px;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+#login .lcard h2{font-family:var(--f-display);font-weight:400;font-size:1.6rem;margin:0 0 4px}
+#login .lcard p{margin:0 0 12px;color:var(--muted);font-size:.9rem}
+#login .lcard p b{color:var(--fg)}
+#login .lbl{display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:2px}
+#login .cin.code{font-family:var(--f-num);font-size:1.5rem;letter-spacing:.35em;text-align:center}
+.btn.wide{width:100%;min-height:48px;font-size:1rem}
+#login .lrow{display:flex;justify-content:space-between;gap:8px;margin-top:8px}
+.lnk{font:inherit;font-size:.88rem;background:none;border:0;color:var(--ember);cursor:pointer;padding:10px 4px;min-height:40px;text-decoration:underline;text-underline-offset:3px}
+.lnk.skip{align-self:center;margin-top:10px;color:var(--fg)}
+#login .fine{font-size:.78rem;color:var(--muted);margin:10px 0 0}
+#login .fine.center{text-align:center;margin:0}
+#login .lcard .lmsg{min-height:1.2em;margin:10px 0 0;font-size:.85rem;color:var(--ember)}
+#login .lmsg:empty{display:none}
 #cloudPrompt{position:fixed;inset:0;z-index:20;background:rgba(5,10,8,.72);display:flex;align-items:center;justify-content:center;padding:16px}
 #cloudPrompt[hidden]{display:none}
 #cloudPrompt .in{max-width:420px;width:100%;background:var(--panel-2);border:1px solid var(--ember-dim);border-radius:14px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
@@ -372,6 +394,15 @@ h3 span{text-transform:none;letter-spacing:0;color:var(--ember);font-family:var(
 <div class="lvlpop" id="lvlpop" hidden></div>
 <div id="toastHost"></div>
 <div id="cloudPrompt" hidden></div>
+<div id="login" hidden>
+  <div class="lin">
+    <div class="brand"><h1>Thorn<span>wick</span></h1><p>An idle adventure. Your skills keep training while you're away.</p></div>
+    <canvas id="loginScene" role="img" aria-label="An archer, a warrior and a wizard resting by a campfire"></canvas>
+    <div class="lcard" id="loginCard"></div>
+    <button class="lnk skip" id="loginSkip">Play without an account</button>
+    <p class="fine center">Without an account, progress stays on this device only. You can sign in any time from More › Help &amp; save.</p>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -3341,8 +3372,8 @@ document.addEventListener("click", e => {
   }
 });
 document.addEventListener("change", e => { if (e.target.id === "autoChop") { state.opts.autoChop = e.target.checked; save(); } });
-document.addEventListener("input", e => { if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "cloudEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode") cloud.codeDraft = e.target.value; });
-document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "cloudEmail") sendCode(); if (e.target.id === "cloudCode") verifyCode(); });
+document.addEventListener("input", e => { if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
+document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
 
 /* ================= CLOUD SAVE (Supabase) =================
    Sign in with an emailed code; the save lives in the `saves` table (one row per player).
@@ -3357,7 +3388,8 @@ if (!cm.dev) cm.dev = Math.random().toString(36).slice(2, 10);
 const cloud = { step: cm.s ? "in" : "out", email: cm.email || "", msg: "", busy: false, ready: false, prompt: null, emailDraft: null, codeDraft: "" };
 function saveMeta() { try { localStorage.setItem(CLOUD_META_KEY, JSON.stringify(cm)); } catch (e) {} }
 const newRev = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-function cloudSay(m) { cloud.msg = m; const el = $("cloudMsg"); if (el) el.textContent = m; }
+function cloudSay(m) { cloud.msg = m; for (const id of ["cloudMsg", "loginMsg"]) { const el = $(id); if (el) el.textContent = m; } }
+function cloudRender() { render(); renderLogin(); }
 function ago(t) {
   if (!t) return "never";
   const s = Math.max(0, (Date.now() - t) / 1000);
@@ -3397,6 +3429,7 @@ async function accessToken() {
 function signOutLocal(msg) {
   cm.s = null; cm.rev = null; cm.synced = null; saveMeta();
   cloud.step = "out"; cloud.codeDraft = ""; cloud.msg = msg || ""; render();
+  if (started) showLogin();
 }
 
 async function sendCode() {
@@ -3405,7 +3438,7 @@ async function sendCode() {
   cloud.busy = true; cloudSay("Sending…");
   try {
     await api("/auth/v1/otp", { method: "POST", body: { email, create_user: true } }, false);
-    cloud.email = email; cloud.step = "code"; cloud.codeDraft = ""; cloud.msg = `Code sent to ${email}. It can take a minute; check spam too.`; render();
+    cloud.email = email; cloud.step = "code"; cloud.codeDraft = ""; cloud.msg = `Code sent to ${email}. It can take a minute; check junk too.`; cloudRender(); const lc = $("loginCode"); if (lc) lc.focus();
   } catch (e) { cloudSay(e.status === 429 ? "Too many emails in a short time. Wait a few minutes and try again." : e.msg); }
   cloud.busy = false;
 }
@@ -3416,8 +3449,9 @@ async function verifyCode() {
   try {
     const j = await api("/auth/v1/verify", { method: "POST", body: { type: "email", email: cloud.email, token } }, false);
     if (cm.s && cm.s.uid !== (j.user && j.user.id)) { cm.rev = null; cm.synced = null; }
-    setSession(j); cloud.step = "in"; cloud.msg = ""; render();
-    await cloudCheck(false, true);
+    setSession(j); cloud.step = "in"; cloud.msg = ""; cm.skip = false; saveMeta();
+    if (!loginOpen()) { render(); await cloudCheck(false, true); }
+    else { hideLogin(); toast(`Signed in as ${cloud.email}`); if (started) { render(); await cloudCheck(false, true); } else cloudThenBegin(); }
   } catch (e) { cloudSay(e.status === 403 || e.status === 400 ? "That code didn't work. It may have expired; send a new one." : e.msg); }
   cloud.busy = false;
 }
@@ -3542,10 +3576,13 @@ function cloudFill() {
   const c = $("cloudCode"); if (c) c.value = cloud.codeDraft;
 }
 function cloudClick(id) {
-  if (cloud.busy && id !== "cloudBack") return true;
+  if (cloud.busy && id !== "cloudBack" && id !== "loginBack") return true;
   if (id === "cloudSend" || id === "cloudResend") { sendCode(); return true; }
   if (id === "cloudVerify") { verifyCode(); return true; }
-  if (id === "cloudBack") { cloud.step = "out"; cloud.emailDraft = null; cloud.msg = ""; render(); return true; }
+  if (id === "cloudBack" || id === "loginBack") { cloud.step = "out"; cloud.emailDraft = null; cloud.msg = ""; cloudRender(); return true; }
+  if (id === "loginSend" || id === "loginResend") { sendCode(); return true; }
+  if (id === "loginVerify") { verifyCode(); return true; }
+  if (id === "loginSkip") { cm.skip = true; saveMeta(); hideLogin(); cloud.msg = ""; if (!started) cloudThenBegin(); return true; }
   if (id === "cloudSync") { cloudSay("Syncing…"); (cm.rev ? cloudCheck(false) : push()).then(() => { if (cloud.msg === "Syncing…") cloudSay("Synced"); }); return true; }
   if (id === "cloudOut") { signOut(); return true; }
   if (id === "cpCloud" && promptDone) { promptDone("cloud"); return true; }
@@ -3553,6 +3590,64 @@ function cloudClick(id) {
   return false;
 }
 setInterval(() => { if (!document.hidden) push(); }, 60000);
+
+/* ================= LOGIN SCREEN ================= */
+const loginOpen = () => !$("login").hidden;
+function showLogin() {
+  const el = $("login"); el.hidden = false; document.body.classList.add("noscroll");
+  renderLogin(); heroLoop();
+  const f = $("loginEmail") || $("loginCode"); if (f && !(window.matchMedia && matchMedia("(pointer:coarse)").matches)) f.focus();
+}
+function hideLogin() { $("login").hidden = true; document.body.classList.remove("noscroll"); }
+function renderLogin() {
+  if (!loginOpen()) return;
+  const card = $("loginCard"); const focusId = document.activeElement && document.activeElement.id;
+  let h;
+  if (cloud.step === "code") h = `<h2>Check your email</h2>
+      <p>We sent a 6-digit code to <b>${esc(cloud.email)}</b>. Type it here; there's no need to tap the link.</p>
+      <label class="lbl" for="loginCode">Code</label>
+      <input class="cin code" id="loginCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••">
+      <button class="btn solid wide" id="loginVerify">Sign in</button>
+      <div class="lrow"><button class="lnk" id="loginResend">Send a new code</button><button class="lnk" id="loginBack">Use another email</button></div>`;
+  else h = `<h2>Sign in</h2>
+      <p>Your progress is saved online, so you can pick up on any device.</p>
+      <label class="lbl" for="loginEmail">Email</label>
+      <input class="cin" id="loginEmail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com">
+      <button class="btn solid wide" id="loginSend">Email me a code</button>
+      <p class="fine">No password needed. We'll email you a code each time you sign in.</p>`;
+  card.innerHTML = h + `<p class="lmsg" id="loginMsg" role="status">${esc(cloud.msg)}</p>`;
+  const e = $("loginEmail"); if (e) e.value = cloud.emailDraft !== null ? cloud.emailDraft : cloud.email;
+  const c = $("loginCode"); if (c) c.value = cloud.codeDraft;
+  if (focusId && $(focusId)) $(focusId).focus({ preventScroll: true });
+}
+// three heroes round a campfire on the login screen
+function heroLoop() {
+  const cv = $("loginScene"); if (!cv) return;
+  const draw = now => {
+    if (!loginOpen()) return;
+    const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+    if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    const ctx = cv.getContext && cv.getContext("2d"); if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, w, h);
+    const t = reduceMotion() ? 0 : now / 1000, ground = h - 18, mid = w / 2;
+    ctx.fillStyle = "#1d3327"; ctx.fillRect(0, ground, w, h - ground);
+    ctx.fillStyle = "#24402f"; for (let x = 4; x < w; x += 22) ctx.fillRect(x, ground, 10, 3);
+    // fire
+    const fl = [["#d2452f", 14], ["#f0a33a", 9], ["#f7d35a", 5]];
+    ctx.fillStyle = "#0b0b0d"; ctx.fillRect(mid - 20, ground - 7, 40, 7); ctx.fillStyle = "#6b4a2a"; ctx.fillRect(mid - 18, ground - 6, 36, 5); ctx.fillStyle = "#4a2e16"; ctx.fillRect(mid - 6, ground - 6, 3, 5); ctx.fillRect(mid + 8, ground - 6, 3, 5);
+    fl.forEach(([c, r], i) => { const k = 1 + 0.15 * Math.sin(t * 9 + i * 2); ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(mid, ground - 6 - r * k, r * 0.8, r * 1.4 * k, 0, 0, 7); ctx.fill(); });
+    ctx.globalAlpha = 0.12 + 0.04 * Math.sin(t * 7); ctx.fillStyle = "#f0a33a"; ctx.beginPath(); ctx.ellipse(mid, ground - 8, 90, 38, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+    const unit = Math.min(64, w / 6);   // about one hero's width
+    const heroes = [["archer", -2.35, false], ["warrior", -1.2, false], ["wizard", 1.4, true]];
+    heroes.forEach(([k, off, flip], i) => {
+      const sp = SPRITES[k]; if (!sp) return;
+      const bob = Math.round(Math.sin(t * 2 + i * 1.7) * 1.5);
+      drawSprite(ctx, sp, mid + off * unit, ground + bob, unit / 12.8, flip, 1);
+    });
+    requestAnimationFrame(draw);
+  };
+  requestAnimationFrame(draw);
+}
 
 /* ================= LOOP ================= */
 let lastFrame = 0, lastSave = Date.now(), lastSigCheck = 0, lastQuestCheck = 0;
@@ -3573,14 +3668,18 @@ window.addEventListener("pagehide", save);
 function start(data) {
   if (data && data.state) loadObj(data.state);
   else { try { const raw = localStorage.getItem(SAVE_KEY); if (raw) loadObj(JSON.parse(raw)); } catch (e) {} }
-  if (cloudOn) {   // check the cloud before applying offline progress (gives up after a few seconds)
+  if (cloudOn) {
     render(); renderNow();
-    const wait = cloudFromLink().then(() => cloudCheck(true));
-    let done = false; const go = () => { if (!done) { done = true; cloud.ready = true; begin(); } };
-    wait.then(go, go); setTimeout(() => { if (!cloud.prompt) go(); }, 6000);
+    cloudFromLink().then(() => { if (!cm.s && !cm.skip) showLogin(); else cloudThenBegin(); });
     return;
   }
   begin();
+}
+// check the cloud before applying offline progress (gives up after a few seconds)
+function cloudThenBegin() {
+  const wait = cloudCheck(true);
+  let done = false; const go = () => { if (!done) { done = true; cloud.ready = true; begin(); } };
+  Promise.resolve(wait).then(go, go); setTimeout(() => { if (!cloud.prompt) go(); }, 6000);
 }
 function begin() {
   started = true;
@@ -3592,7 +3691,7 @@ function begin() {
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
 }
-window.__thornwick = { get state() { return state; }, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, get started() { return started; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
