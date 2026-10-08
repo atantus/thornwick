@@ -1956,9 +1956,12 @@ function clogTree() {
       { id: "jewellery", name: "Enchanted jewellery", sub: "Enchanting", items: ENCHANT.filter(e => e.section === "Jewellery").map(e => ({ item: e.out, rate: `Enchanting ${e.lvl}` })) },
       { id: "brews", name: "Brews", sub: "Brewing", items: BREWS.map(b => ({ item: b.out, rate: `Brewing ${b.lvl}` })) },
     ] },
+    { id: "petsg", name: "Pets", entries: [
+      { id: "pets", name: "Monster pets", sub: "Each gives +2% combat xp", items: PETS.filter(p => MONSTERS.some(m => m.uniques.some(u => u.item === p))).map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }) },
+      { id: "pets-voy", name: "Voyage pets", sub: "Each gives +2% combat xp", items: PETS.filter(p => !MONSTERS.some(m => m.uniques.some(u => u.item === p))).map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }) },
+      { id: "pets-skill", name: "Skilling pets", sub: "Each gives +3% xp in its skill", items: Object.entries(SKILL_PETS).map(([sk, p]) => ({ item: p, unique: true, rate: sk === "farming" ? "1/300 per harvest" : sk === "brewing" ? "1/150 per barrel" : sk === "slayer" ? "1/60 per Slayer task" : `${SKILLS[sk].name}, about ${PET_HOURS}h` })) },
+    ] },
     { id: "other", name: "Other", entries: [
-      { id: "pets", name: "Pets", sub: "Combat pets +2% combat xp · skilling pets +3% to their skill", items: [...PETS.map(p => { const src = petSrc(p); return { item: p, unique: true, rate: `${src.name} ${oneIn(src.uniques.find(u => u.item === p).chance)}` }; }),
-        ...Object.entries(SKILL_PETS).map(([sk, p]) => ({ item: p, unique: true, rate: sk === "farming" ? "1/300 per harvest" : sk === "brewing" ? "1/150 per barrel" : sk === "slayer" ? "1/60 per task" : `${SKILLS[sk].name}, about ${PET_HOURS}h` }))] },
       { id: "slayershop", name: "Slayer shop", sub: "Slayer points", items: SLAYER_SHOP.map(e => ({ item: e.item, rate: `${e.price} points` })) },
       { id: "eyrie", name: "The Eyrie", sub: "Skyfeather shop", items: EYRIE.filter(e => e.item).map(e => ({ item: e.item, rate: `${e.price} feathers` })) },
     ] },
