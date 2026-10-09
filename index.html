@@ -1524,6 +1524,7 @@ function fightRound(m, sum) {
   if (block) { state.fight = null; state.active = null; sum.notes.push(`${block}, so you stopped fighting`); return true; }
   // pay for the attack
   const t = ctype(), px = 1 + 0.02 * petCount();
+  const XPS = ["attack", "strength", "defence", "ranged", "magic", "hitpoints"], xp0 = XPS.map(k => state.xp[k] || 0);
   if (t === "ranged") { const ar = arrow()[0]; if (!(has("drakebone_bow") && bow()[0] === "drakebone_bow" && Math.random() < 0.5) && Math.random() < 0.5) { add(ar, -1); sum.items[ar] = (sum.items[ar] || 0) - 1; } }
   if (t === "magic") { const sp = spellOf(); for (const [r, q] of Object.entries(spellCost(sp))) { add(r, -q); sum.items[r] = (sum.items[r] || 0) - q; } gainXp("magic", sp.xp * 1.5 * px, sum); }
   // you attack
@@ -1538,7 +1539,9 @@ function fightRound(m, sum) {
       gainXp(skill, dmg * (t === "magic" ? 6 : 12) * px, sum); gainXp("hitpoints", dmg * 4 * px, sum);
     }
   }
-  fx({ t:"swing", dmg: landed, ctype: t, spell: t === "magic" ? spellOf().id : null, mon: m.id });
+  // xp drops for the scene: what each skill actually gained this hit (after all bonuses)
+  const xpGot = XPS.map((k, i) => [k, (state.xp[k] || 0) - xp0[i]]).filter(([, v]) => v >= 0.5).map(([k, v]) => [k, Math.round(v)]);
+  fx({ t:"swing", dmg: landed, ctype: t, spell: t === "magic" ? spellOf().id : null, mon: m.id, xp: xpGot });
   if (state.fight.mhp <= 0) {
     fx({ t:"kill", mon: m.id });
     state.kills[m.id] = (state.kills[m.id] || 0) + 1; sum.kills = (sum.kills || 0) + 1;
@@ -2775,6 +2778,9 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 30, date: "9 Oct 2026", title: "Xp drops in combat", items: [
+    "Every hit now shows the xp you earned, floating up in the top-right of the battle scene with each skill's icon (for example +48 Strength and +16 Hitpoints).",
+    "A running total of the xp you've gained in the current fight sits in the corner. It resets when you switch monster." ] },
   { v: 29, date: "8 Oct 2026", title: "Full-screen Rooftop run", items: [
     "Rooftop run has a full-screen button (bottom right of the scene, or press F). Tap anywhere to jump; ✕ or Esc to come back.",
     "The view always shows at least 15 m of course ahead, and your payout shows on screen when a run ends. On a phone, turn it sideways for the widest view." ] },
@@ -3786,7 +3792,7 @@ function drawScene(now) {
   const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.imageSmoothingEnabled = false;
   const fighting = state.active && state.active.skill === "combat" && state.fight;
   const mon = fighting ? findAction("combat", state.fight.id) : null;
-  if (mon && scene.lastMon !== mon.id) { scene.lastMon = mon.id; scene.anims = []; }
+  if (mon && scene.lastMon !== mon.id) { scene.lastMon = mon.id; scene.anims = []; scene.xpTotal = 0; }
   // turn queued fight events into timed animations
   const still = reduceMotion();
   for (const e of fxq) {
@@ -3795,6 +3801,7 @@ function drawScene(now) {
       if (!still) scene.anims.push({ k: e.ctype === "melee" ? "lunge" : e.ctype === "ranged" ? "arrow" : "orb", who: "p", start: now, dur: e.ctype === "melee" ? 260 : travel, colour: SPELL_COLOURS[e.spell] });
       scene.anims.push({ k: "splat", who: "m", start: now + travel, dur: 900, v: e.dmg, kind: e.dmg > 0 ? "hit" : "miss" });
       if (e.dmg > 0 && !still) scene.anims.push({ k: "flinch", who: "m", start: now + travel, dur: 200 });
+      if (e.xp && e.xp.length) { scene.anims.push({ k: "xpdrop", who: "p", start: now + travel, dur: 1600, xp: e.xp }); scene.xpTotal = (scene.xpTotal || 0) + e.xp.reduce((n, [, v]) => n + v, 0); }
     } else if (e.t === "hurt") {
       if (!still) scene.anims.push({ k: "lunge", who: "m", start: now + 650, dur: 260 });
       scene.anims.push({ k: "splat", who: "p", start: now + 780, dur: 900, v: e.dmg, kind: e.dmg > 0 ? "hit" : "miss" });
@@ -3854,6 +3861,29 @@ function drawScene(now) {
     ctx.fillText(state.hp <= 0 ? "Knocked out. Resting…" : "Pick a monster below to fight", W * 0.66, H / 2 - 10);
   }
   for (const a of scene.anims) if (a.k === "splat" && a.who === "p" && now >= a.start) splat(ctx, pX, ground - ps.h / 2, a.v, a.kind, prog(a));
+  drawXpDrops(ctx, pX + (mX - pX) * 0.38, ground - ps.h * 0.45, H, now, prog);
+}
+// RuneScape-style xp drops: each hit's xp floats up from above your head, with a running total for this fight
+function drawXpDrops(ctx, x, top, H, now, prog) {
+  ctx.save(); ctx.lineJoin = "round";
+  if (scene.xpTotal) {
+    ctx.textAlign = "left"; ctx.font = "700 12px 'JetBrains Mono', monospace"; const t = `${fmt(Math.round(scene.xpTotal))} xp`, w = ctx.measureText(t).width;
+    const by = H - 26;
+    ctx.fillStyle = "rgba(8,10,20,.65)"; ctx.fillRect(6, by, w + 32, 20);
+    drawIcon(ctx, "skills", 17, by + 10, 14);
+    ctx.fillStyle = "#f7d35a"; ctx.fillText(t, 28, by + 14);
+  }
+  for (const a of scene.anims) {
+    if (a.k !== "xpdrop" || now < a.start) continue;
+    const q = prog(a), rise = q * 30, alpha = q < 0.65 ? 1 : Math.max(0, 1 - (q - 0.65) / 0.35);
+    ctx.globalAlpha = alpha; ctx.font = "800 13px Karla, sans-serif"; ctx.textAlign = "left";
+    a.xp.forEach(([k, v], i) => {
+      const y = top - rise - (a.xp.length - 1 - i) * 18, txt = `+${fmt(v)}`, w = ctx.measureText(txt).width, x0 = x - (w + 20) / 2;
+      drawIcon(ctx, k, x0 + 7, y - 5, 16);
+      ctx.lineWidth = 3; ctx.strokeStyle = "#0b0b0d"; ctx.strokeText(txt, x0 + 18, y); ctx.fillStyle = "#ffffff"; ctx.fillText(txt, x0 + 18, y);
+    });
+  }
+  ctx.restore();
 }
 
 /* ================= SKILLING SCENES ================= */
@@ -5841,7 +5871,7 @@ function begin() {
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
 }
-window.__thornwick = { get state() { return state; }, roofPayout, roofTime, roofGen, roofJump, roofSpeed, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, sceneDrops: () => { const now = performance.now(), a = scene.anims.find(x => x.k === "xpdrop" && now >= x.start); return a ? (now - a.start) / a.dur : 0; }, roofPayout, roofTime, roofGen, roofJump, roofSpeed, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();

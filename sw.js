@@ -1,5 +1,5 @@
 // Thornwick offline cache. Bump VERSION whenever you upload a new index.html so players get the update.
-const VERSION = "thornwick-v29";
+const VERSION = "thornwick-v30";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
