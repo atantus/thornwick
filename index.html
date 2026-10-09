@@ -461,6 +461,17 @@ body.noscroll{overflow:hidden}
 .arena-res .ok{color:var(--moss)}
 .rules{display:flex;flex-direction:column;gap:6px;margin-top:12px;padding:12px 14px;border:1px dashed var(--ember-dim);border-radius:12px;font-size:.9rem;color:var(--muted)}
 .rules>b{color:var(--ember);font-size:.75rem;text-transform:uppercase;letter-spacing:.1em} .rules span b{color:var(--fg)}
+.shoptabs{position:sticky;top:0;z-index:3;background:var(--bg);padding:6px 0;margin:0 0 10px}
+.shoptabs button{display:flex;align-items:center;gap:6px}
+.shoptabs .ico{width:18px;height:18px}
+.shoptabs .ct{font-size:.7rem;opacity:.75;font-family:var(--f-num)}
+.storesec{margin-top:6px}
+.storesec button{display:flex;align-items:center;gap:6px} .storesec .ico{width:18px;height:18px}
+.storemult{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 4px;font-size:.82rem;color:var(--muted)}
+.storemult button{font:inherit;font-weight:700;font-size:.8rem;min-height:34px;min-width:48px;border-radius:8px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}
+.storemult button[aria-pressed="true"]{background:var(--ember);border-color:var(--ember);color:var(--bg)}
+.shoplink{display:flex;align-items:center;gap:12px;margin-top:16px;padding:12px 14px;border:1px dashed var(--ember-dim);border-radius:12px;background:var(--panel)}
+.shoplink .ico{width:28px;height:28px;flex:none} .shoplink span{flex:1;color:var(--muted);font-size:.9rem} .shoplink b{color:var(--fg)}
 .paytable{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
 .paytable div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:.82rem;color:var(--muted)}
 .paytable div b{color:var(--fg);font-size:1rem}
@@ -1277,16 +1288,76 @@ const CROPS = [
 const PATCH_LEVELS = [1, 1, 10, 25];
 const FERTILISE_COST = 10;
 
+// General store (Shops › General store). Prices are about 3–4× what the item sells for, so nothing can be
+// bought and sold back for profit. sec = store section; stack items can be bought ×1/×10/×100.
+const STORE_SECS = [["seeds", "Seeds", "potato_seed"], ["food", "Food", "trout"], ["ammo", "Arrows & runes", "fire_rune"], ["weapons", "Weapons", "steel_sword"], ["armour", "Armour", "iron_platebody"], ["tools", "Tools", "iron_pickaxe"], ["brews", "Brews", "brew_forester"]];
 const SHOP = [
-  { item:"potato_seed", price:3,    qty:5, req:["farming",1] },
-  { item:"willow_seed", price:90,   qty:1, req:["farming",15] },
-  { item:"maple_seed",  price:300,  qty:1, req:["farming",30] },
-  { item:"yew_seed",    price:2500, qty:1, req:["farming",60] },
-  { item:"magic_seed",  price:8000, qty:1, req:["farming",75] },
-  { item:"barley_seed", price:10,   qty:5, req:["farming",8] },
-  { item:"hop_seed",    price:40,   qty:5, req:["farming",18] },
-  { item:"leather_body",price:25,   once:true, req:["defence",1] },
-]; // Axes, pickaxes, swords and platebodies come from Smithing
+  { item:"potato_seed", price:10,   qty:5, req:["farming",1], sec:"seeds", stack:true },
+  { item:"willow_seed", price:90,   qty:1, req:["farming",15], sec:"seeds", stack:true },
+  { item:"maple_seed",  price:300,  qty:1, req:["farming",30], sec:"seeds", stack:true },
+  { item:"yew_seed",    price:2500, qty:1, req:["farming",60], sec:"seeds", stack:true },
+  { item:"magic_seed",  price:8000, qty:1, req:["farming",75], sec:"seeds", stack:true },
+  { item:"barley_seed", price:20,   qty:5, req:["farming",8], sec:"seeds", stack:true },
+  { item:"hop_seed",    price:40,   qty:5, req:["farming",18], sec:"seeds", stack:true },
+  { item:"leather_body",price:25,   once:true, req:["defence",1], sec:"armour" },
+  // food
+  { item:"shrimp",  price:20,  qty:1, req:["hitpoints",1],  sec:"food", stack:true },
+  { item:"trout",   price:55,  qty:1, req:["hitpoints",10], sec:"food", stack:true },
+  { item:"salmon",  price:85,  qty:1, req:["hitpoints",15], sec:"food", stack:true },
+  { item:"lobster", price:165, qty:1, req:["hitpoints",25], sec:"food", stack:true },
+  { item:"swordfish", price:280, qty:1, req:["hitpoints",35], sec:"food", stack:true },
+  // arrows and runes
+  { item:"bronze_arrow",  price:150,  qty:50, req:["ranged",1],  sec:"ammo", stack:true },
+  { item:"iron_arrow",    price:300,  qty:50, req:["ranged",10], sec:"ammo", stack:true },
+  { item:"steel_arrow",   price:600,  qty:50, req:["ranged",20], sec:"ammo", stack:true },
+  { item:"mithril_arrow", price:1350, qty:50, req:["ranged",30], sec:"ammo", stack:true },
+  { item:"air_rune",   price:300, qty:50, req:["magic",1],  sec:"ammo", stack:true },
+  { item:"water_rune", price:300, qty:50, req:["magic",5],  sec:"ammo", stack:true },
+  { item:"earth_rune", price:450, qty:50, req:["magic",9],  sec:"ammo", stack:true },
+  { item:"fire_rune",  price:450, qty:50, req:["magic",13], sec:"ammo", stack:true },
+  { item:"chaos_rune", price:900, qty:25, req:["magic",25], sec:"ammo", stack:true },
+  // weapons
+  { item:"bronze_sword",  price:40,   req:["attack",1],  sec:"weapons" },
+  { item:"iron_sword",    price:400,  req:["attack",10], sec:"weapons" },
+  { item:"steel_sword",   price:1600, req:["attack",20], sec:"weapons" },
+  { item:"mithril_sword", price:5200, req:["attack",30], sec:"weapons" },
+  { item:"shortbow",        price:40,  req:["ranged",1],  sec:"weapons" },
+  { item:"oak_shortbow",    price:120, req:["ranged",10], sec:"weapons" },
+  { item:"willow_shortbow", price:320, req:["ranged",20], sec:"weapons" },
+  { item:"maple_shortbow",  price:800, req:["ranged",30], sec:"weapons" },
+  { item:"apprentice_staff", price:80,   req:["magic",1],  sec:"weapons" },
+  { item:"air_staff",        price:480,  req:["magic",10], sec:"weapons" },
+  { item:"earth_staff",      price:1200, req:["magic",25], sec:"weapons" },
+  // armour
+  { item:"bronze_full_helm",  price:16,   req:["defence",1],  sec:"armour" },
+  { item:"bronze_platelegs",  price:24,   req:["defence",1],  sec:"armour" },
+  { item:"bronze_kiteshield", price:24,   req:["defence",1],  sec:"armour" },
+  { item:"iron_full_helm",    price:52,   req:["defence",10], sec:"armour" },
+  { item:"iron_platebody",    price:520,  req:["defence",10], sec:"armour" },
+  { item:"iron_platelegs",    price:80,   req:["defence",10], sec:"armour" },
+  { item:"iron_kiteshield",   price:80,   req:["defence",10], sec:"armour" },
+  { item:"steel_full_helm",   price:120,  req:["defence",20], sec:"armour" },
+  { item:"steel_platebody",   price:2000, req:["defence",20], sec:"armour" },
+  { item:"steel_platelegs",   price:190,  req:["defence",20], sec:"armour" },
+  { item:"steel_kiteshield",  price:190,  req:["defence",20], sec:"armour" },
+  { item:"mithril_full_helm", price:340,  req:["defence",30], sec:"armour" },
+  { item:"mithril_platebody", price:6400, req:["defence",30], sec:"armour" },
+  { item:"mithril_platelegs", price:545,  req:["defence",30], sec:"armour" },
+  { item:"mithril_kiteshield",price:545,  req:["defence",30], sec:"armour" },
+  // tools
+  { item:"bronze_axe",      price:40,   req:["woodcutting",1],  sec:"tools" },
+  { item:"iron_axe",        price:100,  req:["woodcutting",10], sec:"tools" },
+  { item:"steel_axe",       price:240,  req:["woodcutting",20], sec:"tools" },
+  { item:"mithril_axe",     price:640,  req:["woodcutting",30], sec:"tools" },
+  { item:"bronze_pickaxe",  price:60,   req:["mining",1],  sec:"tools" },
+  { item:"iron_pickaxe",    price:180,  req:["mining",10], sec:"tools" },
+  { item:"steel_pickaxe",   price:440,  req:["mining",20], sec:"tools" },
+  { item:"mithril_pickaxe", price:1200, req:["mining",30], sec:"tools" },
+  // brews
+  { item:"brew_forester", price:80,  qty:1, req:["woodcutting",1], sec:"brews", stack:true },
+  { item:"brew_angler",   price:120, qty:1, req:["fishing",1],     sec:"brews", stack:true },
+  { item:"brew_miner",    price:180, qty:1, req:["mining",1],      sec:"brews", stack:true },
+];
 const AXES = [["runite_axe",0.7],["cobalt_axe",0.75],["mithril_axe",0.8],["steel_axe",0.85],["iron_axe",0.9],["bronze_axe",0.95]];
 
 const NEST_TABLE = [
@@ -2086,11 +2157,13 @@ function openNests(all) {
   toast(`Nest${n > 1 ? "s" : ""}: ${parts.join(", ")}`, rare);
   log(`Opened ${n > 1 ? n + " nests" : "a nest"}: <b>${parts.join(", ")}</b>`, rare ? "r" : "");
 }
-function buy(i) {
-  const s = SHOP[i]; const [sk, l] = s.req; const cur = s.cur || "coins";
-  if (qty(cur) < s.price || lvl(sk) < l || (s.once && has(s.item))) return;
-  add(cur, -s.price); add(s.item, s.qty || 1);
-  toast(`Bought ${s.qty > 1 ? s.qty + " " : ""}${ITEMS[s.item].name.toLowerCase()}`);
+function buy(i, n) {
+  const s = SHOP[i]; if (!s) return; const [sk, l] = s.req; const cur = s.cur || "coins";
+  n = s.stack ? Math.max(1, n || 1) : 1;
+  const cost = s.price * n, got = (s.qty || 1) * n;
+  if (qty(cur) < cost || lvl(sk) < l || (s.once && has(s.item))) return;
+  add(cur, -cost); add(s.item, got);
+  toast(`Bought ${got > 1 ? fmt(got) + " " : ""}${ITEMS[s.item].name.toLowerCase()} for ${fmt(cost)} coins`);
 }
 
 /* ================= SAVE ================= */
@@ -2197,7 +2270,7 @@ function hideLevel() {
 function signature() {
   const now = Date.now();
   return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
-    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, state.daily && state.daily.day, state.daily && state.daily.list ? state.daily.list.map(c => c.done).join() : "", state.weekly && state.weekly.list ? state.weekly.list.map(c => c.done).join() + state.weekly.week + !!(state.weekly.boss && state.weekly.boss.done) : "", state.dspecial && state.dspecial.day + state.dspecial.bought, tab === "dshop" || tab === "daily" ? qty(TOK) : 0, railKey(), tab === "mini" ? [arenaLeft(), roofState().runs, roofState().best, qty(GLORY)] : 0, tab === "arena" ? [qty(GLORY), arena.opps ? arena.opps.map(o => o.name).join() : "", arena.fight ? [arena.fight.round, arena.fight.over] : 0, arenaState().fights] : 0, tab === "roof" ? [roof.last && roof.last.t, roofState().runs] : 0, logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
+    state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, state.daily && state.daily.day, state.daily && state.daily.list ? state.daily.list.map(c => c.done).join() : "", state.weekly && state.weekly.list ? state.weekly.list.map(c => c.done).join() + state.weekly.week + !!(state.weekly.boss && state.weekly.boss.done) : "", state.dspecial && state.dspecial.day + state.dspecial.bought, tab === "dshop" || tab === "daily" ? qty(TOK) : 0, railKey(), tab === "shops" ? [shopSub, storeSec, storeMult, qty(TOK), qty(GLORY), state.slayer.points, apBalance(), JSON.stringify(state.apUp), state.dspecial && state.dspecial.bought, traderBoat] : 0, tab === "mini" ? [arenaLeft(), roofState().runs, roofState().best, qty(GLORY)] : 0, tab === "arena" ? [qty(GLORY), arena.opps ? arena.opps.map(o => o.name).join() : "", arena.fight ? [arena.fight.round, arena.fight.over] : 0, arenaState().fights] : 0, tab === "roof" ? [roof.last && roof.last.t, roofState().runs] : 0, logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
 const SKILL_GROUPS = [
@@ -2207,7 +2280,7 @@ const SKILL_GROUPS = [
 ];
 const SECTIONS = [["skills","Skills","✦"],["combat","Combat","⚔"],["clog","Log","▤"],["bank","Bank","◫"],["more","More","≡"]];
 const NAV_ICON = { skills:"skills", combat:"attack", clog:"more", bank:"bank", more:"cog" };
-const sectionOf = t => ["combat","clog","bank","more","daily","dshop","arena","roof","mini"].includes(t) ? t : "skills";
+const sectionOf = t => ["combat","clog","bank","more","daily","shops","arena","roof","mini"].includes(t) ? t : "skills";
 function badges() {
   const now = Date.now();
   return {
@@ -2222,7 +2295,7 @@ const MORE_NAMES = { quests: "Quests", clues: "Clues", hiscores: "Hiscores", new
 const RAIL = [
   ["nav-skills", "Skills", "skills", "skills", "", "Play"],
   ["nav-daily", "Challenges", "lucky_horseshoe", "daily", "", "Play"],
-  ["nav-dshop", "Daily shop", "daily_token", "dshop", "", "Play"],
+  ["nav-shops", "Shops", "coins", "shops", "", "Play"],
   ["nav-mini", "Minigames", "arena_helm", "mini", "", "Play"],
   ["nav-combat", "Fight", "attack", "combat", "fight", "Combat"],
   ["csub-gear", "Equipment", "defence", "combat", "gear", "Combat"],
@@ -2230,7 +2303,6 @@ const RAIL = [
   ["nav-bank", "Bank", "bank", "bank", "", "Items"],
   ["nav-clog", "Collection log", "more", "clog", "clog", "Log"],
   ["lsub-ach", "Achievements", "trophy_kills", "clog", "ach", "Log"],
-  ["lsub-shop", "Point shop", "coins", "clog", "shop", "Log"],
   ["nav-more", "Quests", "treasure_map", "more", "quests", "More"],
   ["msub-clues", "Clues", "clue_elite", "more", "clues", "More"],
   ["msub-hiscores", "Hiscores", "drowned_crown", "more", "hiscores", "More"],
@@ -2238,7 +2310,7 @@ const RAIL = [
   ["msub-activity", "Activity", "captain_compass", "more", "activity", "More"],
   ["msub-help", "Help & save", "cog", "more", "help", "More"],
 ];
-const railKey = () => tab === "daily" ? "daily:" : tab === "dshop" ? "dshop:" : tab === "arena" || tab === "roof" || tab === "mini" ? "mini:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
+const railKey = () => tab === "daily" ? "daily:" : tab === "shops" ? "shops:" : tab === "arena" || tab === "roof" || tab === "mini" ? "mini:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
 function renderRail() {
   const b = badges(), cur = railKey(); let h = "", g = "";
   const badge = { "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
@@ -2425,7 +2497,7 @@ function bankItemsHtml() {
 function bankPanel() {
   const keys = Object.keys(state.bank);
   let h = `<div class="pagehead"><h2>Bank</h2><span>${keys.length} items</span></div>
-    <div class="seg" role="group" aria-label="Bank view" style="grid-template-columns:repeat(4,1fr)">${[["items","Items"],["gear","Equipment"],["shop","Shop"],["tables","Drop tables"]].map(([k, n]) => `<button id="bsub-${k}" data-bsub="${k}" aria-pressed="${bankSub === k}">${n}</button>`).join("")}</div>`;
+    <div class="seg" role="group" aria-label="Bank view" style="grid-template-columns:repeat(3,1fr)">${[["items","Items"],["gear","Equipment"],["tables","Drop tables"]].map(([k, n]) => `<button id="bsub-${k}" data-bsub="${k}" aria-pressed="${bankSub === k}">${n}</button>`).join("")}</div>`;
   if (bankSub === "gear") return h + gearPanel() + `<p class="note">Changes here are the same as on Combat › Equipment. You can also tap an item in Items and choose <b>Wear</b>.</p>`;
   if (bankSub === "items") {
     const slotFilter = bankFilter.startsWith("slot:") ? bankFilter.slice(5) : null;
@@ -2448,18 +2520,88 @@ function bankPanel() {
     }
     h += `<div class="filters bcats" role="group" aria-label="Item categories">${slotFilter ? `<button id="bf-slot" data-bfilter="All" aria-pressed="true">${SLOT_NAMES[slotFilter]} gear ×</button>` : ""}<button id="bf-All" data-bfilter="All" aria-pressed="${!slotFilter && bankFilter === "All"}">All <span class="ct">${keys.length}</span></button>${present.map(([c, ic]) => { const n = keys.filter(k => itemCat(k) === c).length; return `<button id="bf-${c.replace(/\W/g, "")}" data-bfilter="${c}" aria-pressed="${!slotFilter && bankFilter === c}">${icon(ic)}${c} <span class="ct">${n}</span></button>`; }).join("")}</div>`;
     h += `<div id="bankItems">${bankItemsHtml()}</div>${bankSel ? `<div style="height:170px" aria-hidden="true"></div>` : ""}`;
-  } else if (bankSub === "shop") {
-    h += `<h3>General store <span><span data-q="coins"></span> coins</span></h3><div class="grid">` + SHOP.map((s, i) => {
-      if (s.once && has(s.item)) return "";
-      const [sk, l] = s.req; const locked = lvl(sk) < l;
-      return `<div class="slot"><span class="n">${icon(s.item)}${s.qty > 1 ? s.qty + "× " : ""}${esc(ITEMS[s.item].name)}</span><span class="d">${esc(ITEMS[s.item].desc)}</span>
-        <div class="btns">${locked ? `<span class="note lock">Needs ${SKILLS[sk].name} ${l}</span>` : `<button class="btn" id="buy-${i}" data-buy="${i}" data-cost="${s.price}" data-cur="${s.cur || "coins"}">Buy · ${fmt(s.price)}c</button>`}</div></div>`;
-    }).join("") + `</div>
-      <p class="note">More shops: <b>The Eyrie</b> on the Agility page takes Skyfeathers, and the <b>Black Flag Trader</b> in Voyages takes doubloons. Swords, armour, axes and pickaxes come from Smithing.</p>`;
   } else {
     h += lootTable("Bird's nest", NEST_TABLE) + lootTable("Casket", CASKET_TABLE) + lootTable("Geode", GEODE_TABLE) + lootTable("Essence rock gems", GEM_TABLE);
     h += `<p class="note">Monster and island uniques are listed in the collection logs on the Combat and Voyages pages.</p>`;
   }
+  return h;
+}
+
+/* ================= SHOPS ================= */
+// Every shop in one place: Shops in the side menu, one tab per shop.
+let shopSub = "general", storeSec = "all", storeMult = 1;
+const SHOPS = [
+  ["general", "General store", "coins", () => qty("coins"), "coins"],
+  ["daily", "Daily shop", "daily_token", () => qty(TOK), "tokens"],
+  ["points", "Point shop", "skills", () => apBalance(), "points"],
+  ["glory", "Glory shop", "glory", () => qty(GLORY), "glory"],
+  ["slayer", "Slayer shop", "slayer", () => state.slayer.points, "points"],
+  ["eyrie", "The Eyrie", "skyfeather", () => qty("skyfeather"), "feathers"],
+  ["trader", "Black Flag Trader", "doubloon", () => qty("doubloon"), "doubloons"],
+];
+function generalStorePanel() {
+  const secs = STORE_SECS.filter(([k]) => SHOP.some(s => s.sec === k));
+  if (storeSec !== "all" && !secs.some(([k]) => k === storeSec)) storeSec = "all";
+  let h = `<p class="note" style="margin:0 0 4px">Supplies for the early and middle game. Better gear comes from Smithing, monsters and voyages.</p>`;
+  h += `<div class="filters storesec" role="group" aria-label="Store sections"><button id="ss-all" data-storesec="all" aria-pressed="${storeSec === "all"}">All</button>${secs.map(([k, n, ic]) => `<button id="ss-${k}" data-storesec="${k}" aria-pressed="${storeSec === k}">${icon(ic)}${n}</button>`).join("")}</div>`;
+  h += `<div class="storemult" role="group" aria-label="How many to buy"><span>Buy</span>${[1, 10, 100].map(n => `<button id="sm-${n}" data-storemult="${n}" aria-pressed="${storeMult === n}">×${n}</button>`).join("")}<span class="note" style="margin:0">(stackable items)</span></div>`;
+  for (const [k, n] of secs) {
+    if (storeSec !== "all" && storeSec !== k) continue;
+    const rows = SHOP.map((s, i) => [s, i]).filter(([s]) => s.sec === k && !(s.once && has(s.item)));
+    if (!rows.length) continue;
+    h += `<h3>${n}</h3><div class="actions">` + rows.map(([s, i]) => {
+      const [sk, l] = s.req, locked = lvl(sk) < l, m = s.stack ? storeMult : 1, cost = s.price * m, got = (s.qty || 1) * m, owned = !s.stack && has(s.item);
+      return `<button class="act ${locked ? "locked" : ""}" id="buy-${i}" data-buy="${i}" ${locked ? "disabled" : `data-cost="${cost}" data-cur="${s.cur || "coins"}"`}><span class="nm">${icon(s.item)}${got > 1 ? fmt(got) + "× " : ""}${esc(ITEMS[s.item].name)}</span>
+        <span class="meta">${locked ? `<span class="lock">Needs ${SKILLS[sk].name} ${l}</span> · ` : ""}${owned ? `<span class="ok">You have ${fmt(qty(s.item))}</span> · ` : ""}${esc(ITEMS[s.item].desc)}</span>
+        <span class="side"><b>${fmt(cost)}</b>coins</span></button>`;
+    }).join("") + `</div>`;
+  }
+  return h + `<p class="note">Locked items unlock as your skills grow. Buying ×10 or ×100 applies to stackable items only.</p>`;
+}
+function shopsPanel() {
+  if (!SHOPS.some(x => x[0] === shopSub)) shopSub = "general";
+  const cur = SHOPS.find(x => x[0] === shopSub);
+  let h = `<div class="pagehead"><h2>${cur[1]}</h2><span>${fmt(cur[3]())} ${cur[4]}</span></div>`;
+  h += `<div class="filters shoptabs" role="tablist" aria-label="Shops">${SHOPS.map(([k, n, ic, bal]) => `<button id="shop-${k}" data-nav="shops:${k}" role="tab" aria-selected="${shopSub === k}" aria-pressed="${shopSub === k}">${icon(ic)}<span>${n}</span><span class="ct">${fmt(bal())}</span></button>`).join("")}</div>`;
+  h += shopSub === "general" ? generalStorePanel() : shopSub === "daily" ? dshopPanel() : shopSub === "points" ? apShopPanel() : shopSub === "glory" ? gloryShopPanel() : shopSub === "slayer" ? slayerShopPanel() : shopSub === "eyrie" ? eyriePanel() : traderPanel();
+  return h;
+}
+function slayerShopPanel() {
+  const st = state.slayer, l = lvl("slayer");
+  let h = `<div class="achtop">${icon("slayer")}<div><span class="ar">Slayer points</span><b class="num">${fmt(st.points)}</b><span>Earned by finishing Slayer tasks. <button class="linkbtn" id="toSlayer" data-tab="slayer">Get a task</button></span></div></div>`;
+  h += `<h3>Rewards</h3><div class="actions">` + SLAYER_SHOP.map((e, i) => {
+    const owned = has(e.item), locked = l < e.req;
+    return `<button class="act" id="sbuy-${e.item}" data-sbuy="${i}" ${owned || locked || st.points < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${esc(ITEMS[e.item].name)}</span><span class="meta">${locked ? `<span class="lock">Needs Slayer ${e.req}</span>` : owned ? `<span class="ok">Owned</span> · ${esc(ITEMS[e.item].desc)}` : esc(ITEMS[e.item].desc)}</span><span class="side"><b>${e.price}</b>points</span></button>`;
+  }).join("") + `</div>`;
+  return h;
+}
+function gloryShopPanel() {
+  const A = arenaState();
+  let h = `<div class="achtop">${icon(GLORY)}<div><span class="ar">Glory</span><b class="num">${fmt(qty(GLORY))}</b><span>Won in the Arena: ${fmt(A.wins)} wins so far. <button class="linkbtn" id="toArena" data-nav="arena:">Enter the Arena</button></span></div></div>`;
+  h += `<h3>Rewards</h3><div class="actions">` + ASHOP.map((e, i) => {
+    const owned = e.once && ownedEver(e.item);
+    return `<button class="act" id="ashop-${e.item}" data-ashop="${i}" ${owned || qty(GLORY) < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${e.qty > 1 ? e.qty + "× " : ""}${esc(ITEMS[e.item].name)}</span><span class="meta">${owned ? `<span class="ok">Owned</span> · ` : ""}${esc(ITEMS[e.item].desc)}</span><span class="side"><b>${fmt(e.price)}</b>glory</span></button>`;
+  }).join("") + `</div><p class="note">Win: 10 glory plus a fifth of their combat level, +5 against a stronger opponent, up to +10 more on a win streak. Loss: 3 glory. ${ARENA_DAILY} ranked fights a day.</p>`;
+  return h;
+}
+function traderPanel() {
+  let h = "";
+  // Black Flag Trader
+  const owned = BOATS.filter(b => b.id in state.boats);
+  h += `<div class="achtop">${icon("doubloon")}<div><span class="ar">Doubloons</span><b class="num" data-q="doubloon"></b><span>Pirate gold from voyages. <button class="linkbtn" id="toVoyages" data-tab="seafaring">Go to Seafaring</button></span></div></div>`;
+  if (!owned.length) h += `<div class="empty">Build a boat and go on voyages to earn doubloons. The trader fits upgrades to your boats.</div>`;
+  else {
+    if (!traderBoat || !(traderBoat in state.boats)) traderBoat = owned[owned.length - 1].id;
+    h += `<p class="note">Upgrades are fitted to one boat. Fit specialised gear to the boat you send on that type of voyage.</p>`;
+    if (owned.length > 1) h += `<div class="seg" style="grid-template-columns:repeat(${owned.length},1fr)">` + owned.map(b => `<button id="tb-${b.id}" data-tboat="${b.id}" aria-pressed="${traderBoat === b.id}">${b.name}</button>`).join("") + `</div>`;
+    h += `<div class="grid">` + UPGRADES.map(u => {
+      const l = upLvl(traderBoat, u.id), c = upgradeCost(traderBoat, u.id);
+      return `<div class="slot"><span class="n">${u.name} <span class="num" style="color:var(--muted)">${l}/${u.max}</span></span>${u.type ? `<span class="d" style="color:var(--ember)">${VOYAGE_TYPES[u.type]}</span>` : ""}<span class="d">${esc(u.desc)}</span>
+        <div class="btns">${c === null ? `<span class="note">Maxed</span>` : `<button class="btn" id="up-${traderBoat}-${u.id}" data-up="${u.id}" data-boat="${traderBoat}" data-cost="${c}" data-cur="doubloon">Fit · ${c} doubloons</button>`}</div></div>`;
+    }).join("") + TRADER_GOODS.map(g => `<div class="slot"><span class="n">${icon(g.id)}${g.name}</span><span class="d">${esc(g.desc)}</span>
+        <div class="btns"><button class="btn" id="goods-${g.id}" data-goods="${g.id}" data-cost="${g.price}" data-cur="doubloon">Buy · ${g.price} doubloons</button></div></div>`).join("") + `</div>`;
+  }
+
   return h;
 }
 
@@ -2650,7 +2792,7 @@ function morePanel() {
     <li><b>Skills feed each other.</b> Logs fuel Firemaking and Cooking, ore becomes gear in Smithing, food keeps you alive in Combat and pays for voyages.</li>
     <li><b>Follow the quest log.</b> Quests in More › Quests give you goals from your first log to level 99, with rewards to claim.</li>
     <li><b>Chase rare drops.</b> Monsters and islands have uniques you can't make, tracked in the Log on the bottom bar.</li>
-    <li><b>Spend currencies</b>: coins in the Bank shop, Skyfeathers at The Eyrie (Agility), doubloons at the Black Flag Trader (Voyages).</li>
+    <li><b>Spend currencies</b>: every shop is under Shops in the side menu (General store, Daily shop, Point shop, Glory shop, Slayer shop, The Eyrie and the Black Flag Trader).</li>
   </ol>`;
   h += cloudPanel();
   h += `<h3>Save code</h3><div class="save"><p class="note">Progress also saves on this device automatically. Copy the code to keep a backup or move it by hand.</p>
@@ -2660,8 +2802,8 @@ function morePanel() {
 }
 
 function eyriePanel() {
-  return `<h3>The Eyrie <span><span data-q="skyfeather"></span> skyfeathers</span></h3>
-  <p class="note">A rooftop trader who only takes Skyfeathers. Upgrades here help every skill.</p><div class="grid">` + EYRIE.map((s, i) => {
+  return `<div class="achtop">${icon("skyfeather")}<div><span class="ar">Skyfeathers</span><b class="num" data-q="skyfeather"></b><span>Found on agility courses and Rooftop runs. A rooftop trader who only takes Skyfeathers; upgrades here help every skill.</span></div></div>`
+  + `<div style="height:12px"></div><div class="grid">` + EYRIE.map((s, i) => {
     if (s.once && has(s.item)) return "";
     const [sk, l] = s.req; const locked = lvl(sk) < l;
     const name = s.special ? s.name : ITEMS[s.item].name, desc = s.special ? s.desc : ITEMS[s.item].desc;
@@ -2778,6 +2920,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 31, date: "10 Oct 2026", title: "Shops", items: [
+    "Every shop now lives under Shops in the side menu: the General store, Daily shop, Point shop, Glory shop, Slayer shop, The Eyrie and the Black Flag Trader, each with your balance shown on its tab.",
+    "The General store has moved out of the Bank and is much bigger: seeds, food (shrimp to swordfish), arrows and runes, swords, bows and staffs, bronze to mithril armour, axes, pickaxes and brews. Items unlock as your skills grow.",
+    "Buy ×1, ×10 or ×100 at a time for seeds, food, ammo, runes and brews.",
+    "The Slayer, Arena, Agility and Seafaring pages have a shortcut to their shop." ] },
   { v: 30, date: "9 Oct 2026", title: "Xp drops in combat", items: [
     "Every hit now shows the xp you earned, floating up in the top-right of the battle scene with each skill's icon (for example +48 Strength and +16 Hitpoints).",
     "A running total of the xp you've gained in the current fight sits in the corner. It resets when you switch monster." ] },
@@ -2918,10 +3065,7 @@ function slayerPanel() {
       <div class="row"><button class="btn solid" id="slayerFight" data-slayer="fight" ${reqMet("combat", m) ? "" : "disabled"}>Fight ${esc(m.name.toLowerCase())}</button><button class="btn" id="slayerSkip" data-slayer="skip" ${st.points < SKIP_COST ? "disabled" : ""}>Skip · ${SKIP_COST} points</button></div>`;
   } else h += `<div class="taskhead">${icon("slayer")}<div><b>No task</b><span>The task master picks a monster you can handle and how many to kill.</span></div></div><div class="row"><button class="btn solid" id="slayerNew" data-slayer="new">Get a task</button></div>`;
   h += `</div><div class="perks"><span class="chip on">Points: <b class="num" data-slayerpts></b></span><span class="chip on">Tasks done: ${fmt(st.done)}</span><span class="chip on">Streak ${st.streak} (every 10th task ×5 points, 50th ×15)</span></div>`;
-  h += `<h3>Slayer shop</h3><div class="actions">` + SLAYER_SHOP.map((e, i) => {
-    const owned = has(e.item), locked = l < e.req;
-    return `<button class="act" id="sbuy-${e.item}" data-sbuy="${i}" ${owned || locked || st.points < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${esc(ITEMS[e.item].name)}</span><span class="meta">${locked ? `<span class="lock">Needs Slayer ${e.req}</span>` : owned ? `<span class="ok">Owned</span> · ${esc(ITEMS[e.item].desc)}` : esc(ITEMS[e.item].desc)}</span><span class="side"><b>${e.price}</b>points</span></button>`;
-  }).join("") + `</div>`;
+  h += `<div class="shoplink">${icon("coins")}<span>Spend Slayer points in the <b>Slayer shop</b>.</span><button class="btn" id="toSlayerShop" data-nav="shops:slayer">Open shop</button></div>`;
   h += `<h3>Slayer monsters</h3><div class="clog">` + MONSTERS.filter(x => x.slayer).map(x =>
     `<div class="row"><b>${esc(x.name)}</b><span><span class="${l >= x.slayer ? "got" : ""}">Slayer ${x.slayer}</span> · combat ${x.lvl} · ${x.uniques.map(u => `<span class="${got(u.item) ? "got" : ""}">${esc(ITEMS[u.item].name)} 1/${fmt(Math.round(1 / u.chance))}</span>`).join(", ")}</span></div>`).join("") + `</div>
     <p class="note">Every kill on task gives Slayer xp as well as combat xp. Finish a task to earn points, then get a new one here. ${has(SKILL_PETS.slayer) ? "" : "Some say a small horned creature follows the most dedicated hunters…"}</p>`;
@@ -2980,22 +3124,7 @@ function seafaringPanel() {
       <div class="btns">${ready ? `<button class="btn solid" id="unload-${b.id}" data-unload="${b.id}">Unload cargo</button>` : ""}</div></div>`;
   }).join("") + `</div>`;
 
-  // Black Flag Trader
-  const owned = BOATS.filter(b => b.id in state.boats);
-  h += `<h3>Black Flag Trader <span><span data-q="doubloon"></span> doubloons</span></h3>`;
-  if (!owned.length) h += `<div class="empty">Build a boat and go on voyages to earn doubloons. The trader fits upgrades to your boats.</div>`;
-  else {
-    if (!traderBoat || !(traderBoat in state.boats)) traderBoat = owned[owned.length - 1].id;
-    h += `<p class="note">Upgrades are fitted to one boat. Fit specialised gear to the boat you send on that type of voyage.</p>`;
-    if (owned.length > 1) h += `<div class="seg" style="grid-template-columns:repeat(${owned.length},1fr)">` + owned.map(b => `<button id="tb-${b.id}" data-tboat="${b.id}" aria-pressed="${traderBoat === b.id}">${b.name}</button>`).join("") + `</div>`;
-    h += `<div class="grid">` + UPGRADES.map(u => {
-      const l = upLvl(traderBoat, u.id), c = upgradeCost(traderBoat, u.id);
-      return `<div class="slot"><span class="n">${u.name} <span class="num" style="color:var(--muted)">${l}/${u.max}</span></span>${u.type ? `<span class="d" style="color:var(--ember)">${VOYAGE_TYPES[u.type]}</span>` : ""}<span class="d">${esc(u.desc)}</span>
-        <div class="btns">${c === null ? `<span class="note">Maxed</span>` : `<button class="btn" id="up-${traderBoat}-${u.id}" data-up="${u.id}" data-boat="${traderBoat}" data-cost="${c}" data-cur="doubloon">Fit · ${c} doubloons</button>`}</div></div>`;
-    }).join("") + TRADER_GOODS.map(g => `<div class="slot"><span class="n">${icon(g.id)}${g.name}</span><span class="d">${esc(g.desc)}</span>
-        <div class="btns"><button class="btn" id="goods-${g.id}" data-goods="${g.id}" data-cost="${g.price}" data-cur="doubloon">Buy · ${g.price} doubloons</button></div></div>`).join("") + `</div>`;
-  }
-
+  h += `<div class="shoplink">${icon("doubloon")}<span>Fit boat upgrades at the <b>Black Flag Trader</b>.</span><button class="btn" id="toTrader" data-nav="shops:trader">Open shop</button></div>`;
   const tot = VOYAGES.reduce((n, v) => n + v.uniques.length, 0), gotN = VOYAGES.reduce((n, v) => n + v.uniques.filter(u => got(u.item)).length, 0);
   h += `<h3>Island log <span>${gotN}/${tot}</span></h3><div class="clog">` + VOYAGES.map(v =>
     `<div class="row"><b>${esc(v.name)}</b><span>${VOYAGE_TYPES[v.type]} · ${fmt(state.islands[v.id] || 0)} trips · ${v.gold[0]}–${v.gold[1]} doubloons · ${v.uniques.map(u => `<span class="${got(u.item) ? "got" : ""}">${esc(ITEMS[u.item].name)} 1/${Math.round(1 / u.chance)}</span>`).join(" · ")}</span></div>`).join("") + `</div>
@@ -4234,7 +4363,7 @@ function render() {
   else if (tab === "mini") h = `<div class="pagehead"><h2>Minigames</h2><span>Hands-on play</span></div>` + miniPanel();
   else if (tab === "arena") h = miniBack + `<div class="pagehead"><h2>Arena</h2><span>${arenaLeft()} / ${ARENA_DAILY} ranked left</span></div>` + arenaPanel();
   else if (tab === "roof") h = miniBack + `<div class="pagehead"><h2>Rooftop run</h2><span>Best ${fmt(roofState().best)} m</span></div>` + roofPanel();
-  else if (tab === "dshop") h = `<div class="pagehead"><h2>Daily shop</h2><span>${fmt(qty(TOK))} tokens</span></div>` + dshopPanel();
+  else if (tab === "shops") h = shopsPanel();
   else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "ach" ? "Achievements" : logSub === "shop" ? "Point shop" : "Collection log"}</h2><span>${logSub === "ach" ? fmt(achPoints()) + " points" : logSub === "shop" ? fmt(apBalance()) + " to spend" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
 ` + (logSub === "ach" ? achPanel() : logSub === "shop" ? apShopPanel() : clogPanel());
   else if (tab === "combat") h = combatPanel();
@@ -4242,7 +4371,7 @@ function render() {
   else if (tab === "farming") h = backBtn() + skillHead("farming") + farmingPanel();
   else if (tab === "brewing") h = backBtn() + skillHead("brewing") + brewingPanel();
   else if (tab === "slayer") h = backBtn() + skillHead("slayer") + slayerPanel();
-  else h = backBtn() + skillHead(tab) + (SCENE_SKILLS.includes(tab) ? `<canvas id="sscene" class="scene" role="img" aria-label="${SKILLS[tab].name} scene"></canvas>` : "") + actionList(tab) + (tab === "agility" ? eyriePanel() : "");
+  else h = backBtn() + skillHead(tab) + (SCENE_SKILLS.includes(tab) ? `<canvas id="sscene" class="scene" role="img" aria-label="${SKILLS[tab].name} scene"></canvas>` : "") + actionList(tab) + (tab === "agility" ? `<div class="shoplink">${icon("skyfeather")}<span>Spend Skyfeathers at <b>The Eyrie</b>.</span><button class="btn" id="toEyrie" data-nav="shops:eyrie">Open shop</button></div>` : "");
   const focusId = document.activeElement && document.activeElement.id;
   const openDetails = [...document.querySelectorAll("#panel details.more[open]")].length > 0;
   const openCats = [...document.querySelectorAll("#panel details.cl-cat")].map(d => [d.id, d.open]);
@@ -4348,7 +4477,11 @@ document.addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t || t.disabled) return;
   if (t.id && cloudClick(t.id)) return;
   if (t.dataset.nav) {
-    const [tb, sb] = t.dataset.nav.split(":");
+    let [tb, sb] = t.dataset.nav.split(":");
+    // old shop locations now live under Shops
+    if (tb === "dshop") { tb = "shops"; sb = "daily"; }
+    if (tb === "clog" && sb === "shop") { tb = "shops"; sb = "points"; }
+    if (tb === "shops") shopSub = sb || shopSub;
     if (tb === "combat") { combatSub = sb; eqSel = null; }
     if (tb === "clog") { logSub = sb; if (sb === "clog") clogPath = []; }
     if (tb === "more") moreSub = sb;
@@ -4366,7 +4499,7 @@ document.addEventListener("click", e => {
   if (d.tab) { const changed = tab !== d.tab; tab = d.tab; saveDraft = null; render(); if (changed) window.scrollTo(0, 0); return; }
   if (d.bankeq) { const id = eq(d.bankeq); if (id) { bankSel = id; } else { bankFilter = bankFilter === "slot:" + d.bankeq ? "All" : "slot:" + d.bankeq; bankSel = null; } render(); return; }
   if (d.pick !== undefined) { bankSel = d.pick && bankSel !== d.pick ? d.pick : null; render(); return; }
-  if (d.bsub) { bankSub = d.bsub; render(); return; }
+  if (d.bsub) { bankSub = d.bsub === "shop" ? "items" : d.bsub; render(); return; }
   if (d.bfilter) { bankFilter = d.bfilter; render(); const el = $("bankItems"); if (el && t.classList.contains("bglink")) window.scrollTo(0, 0); return; }
   if (t.id === "bankEqToggle") { state.opts.bankEq = !state.opts.bankEq; if (!state.opts.bankEq && bankFilter.startsWith("slot:")) bankFilter = "All"; return after(); }
   if (d.style) { state.opts.style = d.style; return after(); }
@@ -4400,7 +4533,9 @@ document.addEventListener("click", e => {
   if (d.sell) { sell(d.sell, false); return after(); }
   if (d.sellall) { sell(d.sellall, true); return after(); }
   if (d.sellkeep) { sell(d.sellkeep, "keep1"); return after(); }
-  if (d.buy) { buy(+d.buy); return after(); }
+  if (d.buy) { buy(+d.buy, storeMult); return after(); }
+  if (d.storesec) { storeSec = d.storesec; render(); return; }
+  if (d.storemult) { storeMult = +d.storemult; render(); return; }
   if (d.eyrie) { buyEyrie(+d.eyrie); return after(); }
   if (d.plant) { plant(+d.plant, d.crop); return after(); }
   if (d.fert) { fertilise(+d.fert); return after(); }
@@ -5185,7 +5320,7 @@ function dailyPanel() {
   const d = state.daily, w = state.weekly, now = new Date(), mid = new Date(now); mid.setHours(24, 0, 0, 0);
   const nextMon = new Date(w.week + "T00:00:00"); nextMon.setDate(nextMon.getDate() + 7);
   const streakNow = d.last === d.day ? (d.streak || 0) : streakAfterMiss(d);
-  let h = `<div class="achtop">${icon(TOK)}<div><span class="ar">Daily tokens</span><b class="num">${fmt(qty(TOK))}</b><span>Streak ${streakNow} day${streakNow === 1 ? "" : "s"} · best ${d.best || 0}${qty("streak_saver") ? ` · ${qty("streak_saver")} streak saver${qty("streak_saver") > 1 ? "s" : ""}` : ""} · <button class="linkbtn" id="toDshop" data-nav="dshop:">Daily shop</button></span></div></div>`;
+  let h = `<div class="achtop">${icon(TOK)}<div><span class="ar">Daily tokens</span><b class="num">${fmt(qty(TOK))}</b><span>Streak ${streakNow} day${streakNow === 1 ? "" : "s"} · best ${d.best || 0}${qty("streak_saver") ? ` · ${qty("streak_saver")} streak saver${qty("streak_saver") > 1 ? "s" : ""}` : ""} · <button class="linkbtn" id="toDshop" data-nav="shops:daily">Daily shop</button></span></div></div>`;
   h += `<h3>Today <span>new in ${dur(mid - now)}</span></h3><div class="dailies">${challengeCards(d.list, false)}</div>`;
   const nextStreak = (d.last === dayBefore(d.day) ? (d.streak || 0) : streakAfterMiss(d)) + 1, box = nextStreak % 30 === 0 ? "clue_reward_elite" : nextStreak % 7 === 0 ? "clue_reward_hard" : "clue_reward_medium";
   h += `<div class="dbonus ${d.setDone ? "done" : ""}">${icon(d.setDone ? "clue_reward_medium" : box)}<div><b>${d.setDone ? "All done for today!" : "Finish all three today"}</b><span>${d.setDone ? "Come back tomorrow to keep your streak going." : `+${DAILY_SET_TOK} tokens and a ${esc(ITEMS[box].name.toLowerCase())}. Every 7th day in a row: a hard casket; every 30th: an elite casket.`}</span></div></div>`;
@@ -5480,10 +5615,7 @@ function arenaPanel() {
   h += (arena.opps || []).map((o, i) => `<button class="act" id="arena-opp-${i}" data-arenafight="${i}"><span class="nm">${icon(o.ghost ? "skills" : "attack")}${esc(o.name)}${o.ghost ? ` <span class="chip" style="padding:0 7px;margin-left:6px">Real player</span>` : ""}</span><span class="meta">Combat ${o.cb} · ${ARENA_STYLES[o.style]} · hits up to ${o.max} · ${o.hpMax} hp${o.cb > combatLevel() ? ` · <span class="ok">+5 glory</span>` : ""}</span><span class="side"><b>Fight</b>${left ? "ranked" : "practice"}</span></button>`).join("");
   h += `</div><div class="row" style="margin-top:8px"><button class="btn" id="arenaRefresh">Find new opponents</button></div>
     <p class="note">${arena.src === "mixed" ? "Real players are ghosts built from their hiscores stats; they don't need to be online." : cloudOn ? "Looking for real players near your combat level…" : "Sign in to meet ghosts of real players. Until then you face the arena's gladiators."}</p>`;
-  h += `<h3>Glory shop</h3><div class="actions">` + ASHOP.map((e, i) => {
-    const owned = e.once && ownedEver(e.item);
-    return `<button class="act" id="ashop-${e.item}" data-ashop="${i}" ${owned || qty(GLORY) < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${e.qty > 1 ? e.qty + "× " : ""}${esc(ITEMS[e.item].name)}</span><span class="meta">${owned ? `<span class="ok">Owned</span> · ` : ""}${esc(ITEMS[e.item].desc)}</span><span class="side"><b>${fmt(e.price)}</b>glory</span></button>`;
-  }).join("") + `</div><p class="note">Win: 10 glory plus a fifth of their combat level, +5 against a stronger opponent, up to +10 more on a win streak. Loss: 3 glory. ${ARENA_DAILY} ranked fights a day.</p>`;
+  h += `<div class="shoplink">${icon(GLORY)}<span>Spend glory in the <b>Glory shop</b>.</span><button class="btn" id="toGloryShop" data-nav="shops:glory">Open shop</button></div>`;
   return h;
 }
 function drawArena(now) {
