@@ -472,6 +472,14 @@ body.noscroll{overflow:hidden}
 .storemult button[aria-pressed="true"]{background:var(--ember);border-color:var(--ember);color:var(--bg)}
 .shoplink{display:flex;align-items:center;gap:12px;margin-top:16px;padding:12px 14px;border:1px dashed var(--ember-dim);border-radius:12px;background:var(--panel)}
 .shoplink .ico{width:28px;height:28px;flex:none} .shoplink span{flex:1;color:var(--muted);font-size:.9rem} .shoplink b{color:var(--fg)}
+.ptype{margin-top:8px}
+.ptype .ptl{display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 5px}
+.ptype .ptl .ico{width:16px;height:16px}
+.ptype .btns{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px}
+.ptype .btn{display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:5px 10px;font-size:.8rem;width:auto;flex:0 0 auto}
+.ptype .btn .ico{width:16px;height:16px}
+.subh{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:var(--fg);margin:12px 0 6px}
+.subh .ico{width:18px;height:18px}
 .paytable{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
 .paytable div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:.82rem;color:var(--muted)}
 .paytable div b{color:var(--fg);font-size:1rem}
@@ -1275,17 +1283,20 @@ const ROUND_MS = 2400, EAT_AT = 0.5, REGEN_MS = 6000;
 
 // Farming: grows in real time (also while away). Fertilising with ashes halves the time left and adds 25% yield.
 const CROPS = [
-  { id:"barley",  name:"Barley",     seed:"barley_seed",   lvl:8,  grow:4,  plantXp:40,  harvestXp:180,  out:"barley",   min:4,  max:8 },
-  { id:"hops",    name:"Hops",       seed:"hop_seed",      lvl:18, grow:8,  plantXp:80,  harvestXp:360,  out:"hops",     min:4,  max:8 },
-  { id:"sunfruit",name:"Sunfruit",   seed:"sunfruit_seed", lvl:35, grow:30, plantXp:600, harvestXp:3600, out:"sunfruit", min:4,  max:8 },
-  { id:"potato", name:"Potatoes",   seed:"potato_seed", lvl:1,  grow:2,  plantXp:32,   harvestXp:120,  out:"potato",      min:3,  max:6 },
-  { id:"oak",    name:"Oak tree",   seed:"acorn",       lvl:5,  grow:6,  plantXp:100,  harvestXp:560, out:"oak_logs",    min:10, max:15 },
-  { id:"willow", name:"Willow tree",seed:"willow_seed", lvl:15, grow:12, plantXp:240,  harvestXp:1360, out:"willow_logs", min:10, max:15 },
-  { id:"maple",  name:"Maple tree", seed:"maple_seed",  lvl:30, grow:25, plantXp:480, harvestXp:2880, out:"maple_logs",  min:10, max:15 },
-  { id:"yew",    name:"Yew tree",   seed:"yew_seed",    lvl:60, grow:45, plantXp:1000, harvestXp:6400, out:"yew_logs",   min:10, max:15 },
-  { id:"magic",  name:"Magic tree", seed:"magic_seed",  lvl:75, grow:70, plantXp:1800, harvestXp:12000, out:"magic_logs", min:8,  max:12 },
+  { id:"barley",  type:"hops", name:"Barley",     seed:"barley_seed",   lvl:8,  grow:4,  plantXp:40,  harvestXp:180,  out:"barley",   min:4,  max:8 },
+  { id:"hops",    type:"hops", name:"Hops",       seed:"hop_seed",      lvl:18, grow:8,  plantXp:80,  harvestXp:360,  out:"hops",     min:4,  max:8 },
+  { id:"sunfruit",type:"bush", name:"Sunfruit",   seed:"sunfruit_seed", lvl:35, grow:30, plantXp:600, harvestXp:3600, out:"sunfruit", min:4,  max:8 },
+  { id:"potato", type:"allotment", name:"Potatoes",   seed:"potato_seed", lvl:1,  grow:2,  plantXp:32,   harvestXp:120,  out:"potato",      min:3,  max:6 },
+  { id:"oak",    type:"tree", name:"Oak tree",   seed:"acorn",       lvl:5,  grow:6,  plantXp:100,  harvestXp:560, out:"oak_logs",    min:10, max:15 },
+  { id:"willow", type:"tree", name:"Willow tree",seed:"willow_seed", lvl:15, grow:12, plantXp:240,  harvestXp:1360, out:"willow_logs", min:10, max:15 },
+  { id:"maple",  type:"tree", name:"Maple tree", seed:"maple_seed",  lvl:30, grow:25, plantXp:480, harvestXp:2880, out:"maple_logs",  min:10, max:15 },
+  { id:"yew",    type:"tree", name:"Yew tree",   seed:"yew_seed",    lvl:60, grow:45, plantXp:1000, harvestXp:6400, out:"yew_logs",   min:10, max:15 },
+  { id:"magic",  type:"tree", name:"Magic tree", seed:"magic_seed",  lvl:75, grow:70, plantXp:1800, harvestXp:12000, out:"magic_logs", min:8,  max:12 },
 ]; // grow is in minutes
 const PATCH_LEVELS = [1, 1, 10, 25];
+// crop sections, in the order they're shown: [type, name, icon]
+const CROP_TYPES = [["allotment", "Allotments", "potato_seed"], ["hops", "Hops", "hop_seed"], ["bush", "Bushes", "sunfruit_seed"], ["tree", "Trees", "acorn"]];
+const cropOfSeed = seed => CROPS.find(c => c.seed === seed);
 const FERTILISE_COST = 10;
 
 // General store (Shops › General store). Prices are about 3–4× what the item sells for, so nothing can be
@@ -2427,19 +2438,25 @@ function farmingPanel() {
   return `<div class="patches">` + state.patches.map((p, i) => {
     if (fl < PATCH_LEVELS[i]) return `<div class="patch locked"><div class="ph"><b>Patch ${i + 1}</b><span>Unlocks at Farming ${PATCH_LEVELS[i]}</span></div></div>`;
     if (!p) {
-      const opts = CROPS.slice().sort((x, y) => x.lvl - y.lvl).filter(c => c.lvl <= fl || c === CROPS.slice().sort((x, y) => x.lvl - y.lvl).find(x => x.lvl > fl)).map(c => {
-        const ok = fl >= c.lvl && has(c.seed);
-        const why = fl < c.lvl ? `Lv ${c.lvl}` : `${fmt(qty(c.seed))}`;
-        return `<button class="btn" id="plant-${i}-${c.id}" data-plant="${i}" data-crop="${c.id}" ${ok ? "" : "disabled"}>${esc(c.name)} <span class="num">(${why})</span></button>`;
+      // grouped by section; each shows what you can plant plus the next one to unlock
+      const groups = CROP_TYPES.map(([t, n, ic]) => {
+        const list = CROPS.filter(c => c.type === t).sort((x, y) => x.lvl - y.lvl);
+        const shown = list.filter(c => c.lvl <= fl || c === list.find(x => x.lvl > fl));
+        if (!shown.length) return "";
+        return `<div class="ptype"><span class="ptl">${icon(ic)}${n}</span><div class="btns">${shown.map(c => {
+          const ok = fl >= c.lvl && has(c.seed);
+          const why = fl < c.lvl ? `Lv ${c.lvl}` : `${fmt(qty(c.seed))}`;
+          return `<button class="btn" id="plant-${i}-${c.id}" data-plant="${i}" data-crop="${c.id}" ${ok ? "" : "disabled"}>${icon(c.seed)}${esc(c.name)} <span class="num">(${why})</span></button>`;
+        }).join("")}</div></div>`;
       }).join("");
-      return `<div class="patch"><div class="ph"><b>Patch ${i + 1}</b><span>Empty. Plant a seed:</span></div><div class="btns">${opts}</div></div>`;
+      return `<div class="patch"><div class="ph"><b>Patch ${i + 1}</b><span>Empty. Plant a seed:</span></div>${groups}</div>`;
     }
     const c = cropById(p.crop); const ready = now >= p.readyAt;
     return `<div class="patch ${ready ? "ready" : ""}"><div class="ph"><b>${esc(c.name)}${p.fert ? " · fertilised" : ""}</b><span data-ptime="${i}"></span></div>
       <div class="bar"><i data-pbar="${i}"></i></div>
       <div class="btns">${ready ? `<button class="btn solid" id="harvest-${i}" data-harvest="${i}">Harvest</button>`
         : p.fert ? "" : `<button class="btn" id="fert-${i}" data-fert="${i}" data-need="${FERTILISE_COST}">Fertilise (${FERTILISE_COST} ashes · have <span class="num" data-q="ashes"></span>)</button>`}</div></div>`;
-  }).join("") + `</div><p class="note">Seeds come from bird's nests and the shop in the Bank tab. Tree crops give a big stack of logs to burn.</p>`;
+  }).join("") + `</div><p class="note">Seeds come from bird's nests, voyages and Shops › General store. Allotments grow food, hops and barley are for Brewing, bushes give exotic fruit, and trees give a big stack of logs.</p>`;
 }
 
 // Bank categories, in the order they're shown. [name, icon]
@@ -2549,12 +2566,15 @@ function generalStorePanel() {
     if (storeSec !== "all" && storeSec !== k) continue;
     const rows = SHOP.map((s, i) => [s, i]).filter(([s]) => s.sec === k && !(s.once && has(s.item)));
     if (!rows.length) continue;
-    h += `<h3>${n}</h3><div class="actions">` + rows.map(([s, i]) => {
+    const row = ([s, i]) => {
       const [sk, l] = s.req, locked = lvl(sk) < l, m = s.stack ? storeMult : 1, cost = s.price * m, got = (s.qty || 1) * m, owned = !s.stack && has(s.item);
       return `<button class="act ${locked ? "locked" : ""}" id="buy-${i}" data-buy="${i}" ${locked ? "disabled" : `data-cost="${cost}" data-cur="${s.cur || "coins"}"`}><span class="nm">${icon(s.item)}${got > 1 ? fmt(got) + "× " : ""}${esc(ITEMS[s.item].name)}</span>
         <span class="meta">${locked ? `<span class="lock">Needs ${SKILLS[sk].name} ${l}</span> · ` : ""}${owned ? `<span class="ok">You have ${fmt(qty(s.item))}</span> · ` : ""}${esc(ITEMS[s.item].desc)}</span>
         <span class="side"><b>${fmt(cost)}</b>coins</span></button>`;
-    }).join("") + `</div>`;
+    };
+    if (k === "seeds") {
+      h += `<h3>${n}</h3>` + CROP_TYPES.map(([t, tn, ic]) => { const g = rows.filter(([s]) => (cropOfSeed(s.item) || {}).type === t).sort((a, b) => a[0].req[1] - b[0].req[1]); return g.length ? `<h4 class="subh">${icon(ic)}${tn}</h4><div class="actions">${g.map(row).join("")}</div>` : ""; }).join("");
+    } else h += `<h3>${n}</h3><div class="actions">` + rows.map(row).join("") + `</div>`;
   }
   return h + `<p class="note">Locked items unlock as your skills grow. Buying ×10 or ×100 applies to stackable items only.</p>`;
 }
@@ -2920,6 +2940,9 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 32, date: "13 Oct 2026", title: "Tidier Farming", items: [
+    "Seeds are sorted into sections on the Farming page and in the General store: Allotments (potatoes), Hops (barley and hops), Bushes (sunfruit) and Trees (oak to magic).",
+    "Each empty patch shows the seeds you can plant in each section, with their icons, plus the next one you'll unlock." ] },
   { v: 31, date: "10 Oct 2026", title: "Shops", items: [
     "Every shop now lives under Shops in the side menu: the General store, Daily shop, Point shop, Glory shop, Slayer shop, The Eyrie and the Black Flag Trader, each with your balance shown on its tab.",
     "The General store has moved out of the Bank and is much bigger: seeds, food (shrimp to swordfish), arrows and runes, swords, bows and staffs, bronze to mithril armour, axes, pickaxes and brews. Items unlock as your skills grow.",
