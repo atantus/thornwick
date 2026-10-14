@@ -727,6 +727,22 @@ const ITEMS = {
   pot_fortune:  { name: "Fortune elixir",   desc: "Drink: clue scrolls turn up 25% more often for 15 min.", sell: 110, buff: "p_fortune" },
   pot_warlord:  { name: "Warlord's tonic",  desc: "Drink: +15% accuracy and max hit with every style, and monsters hit you 15% less often, for 15 min.", sell: 200, buff: "p_war" },
   glory:         { name: "Glory", desc: "Won in the Arena. Spend it in the Glory shop." },
+  // PvP gear from the Glory shop: normal stats plus an Arena bonus
+  pvp_sabre:     { name: "Duelist's sabre",      desc: "Arena weapon. Attack 40. +10% damage in Arena duels.", sell: 900, rare: true },
+  pvp_warblade:  { name: "Pitfighter's warblade", desc: "Arena weapon. Attack 60. Heavy and brutal. +12% damage in Arena duels.", sell: 2500, rare: true },
+  pvp_greatsword:{ name: "Champion's greatsword", desc: "Arena weapon. Attack 75. +15% damage in Arena duels.", sell: 6000, rare: true },
+  pvp_shortbow:  { name: "Skirmisher's bow",     desc: "Arena weapon. Ranged 40. +10% damage in Arena duels.", sell: 900, rare: true },
+  pvp_longbow:   { name: "Champion's longbow",   desc: "Arena weapon. Ranged 65. +15% damage in Arena duels.", sell: 6000, rare: true },
+  pvp_wand:      { name: "Battlemage's staff",   desc: "Arena weapon. Magic 40. Unlimited air runes. +10% damage in Arena duels.", sell: 900, rare: true },
+  pvp_staff:     { name: "Champion's staff",     desc: "Arena weapon. Magic 65. Unlimited air and fire runes. +15% damage in Arena duels.", sell: 6000, rare: true },
+  pit_helm:      { name: "Pitfighter's helm",    desc: "Arena armour. Defence 40. Takes 3% less damage in Arena duels.", sell: 400, rare: true },
+  pit_body:      { name: "Pitfighter's platebody", desc: "Arena armour. Defence 40. Takes 3% less damage in Arena duels.", sell: 900, rare: true },
+  pit_legs:      { name: "Pitfighter's platelegs", desc: "Arena armour. Defence 40. Takes 3% less damage in Arena duels.", sell: 600, rare: true },
+  pit_shield:    { name: "Pitfighter's shield",  desc: "Arena armour. Defence 40. Takes 3% less damage in Arena duels.", sell: 500, rare: true },
+  champ_helm:    { name: "Champion's helm",      desc: "Arena armour. Defence 65. Takes 4% less damage in Arena duels.", sell: 1000, rare: true },
+  champ_body:    { name: "Champion's platebody", desc: "Arena armour. Defence 65. Takes 4% less damage in Arena duels.", sell: 2200, rare: true },
+  champ_legs:    { name: "Champion's platelegs", desc: "Arena armour. Defence 65. Takes 4% less damage in Arena duels.", sell: 1400, rare: true },
+  champ_shield:  { name: "Champion's shield",    desc: "Arena armour. Defence 65. Takes 4% less damage in Arena duels.", sell: 1200, rare: true },
   arena_helm:    { name: "Gladiator's helm", desc: "Glory shop. Head, Defence +5. Dented, proudly.", rare: true },
   arena_cape:    { name: "Champion's mantle", desc: "Glory shop. Cape, Defence +8. Crimson and gold, for the crowd's favourite.", rare: true },
   pet_brawler:   { name: "Brawler", desc: "Arena pet. A scarred pit hound with a soft heart. +10% glory from ranked fights.", rare: true },
@@ -1201,9 +1217,9 @@ const FLETCH = [
   { id:"runite_arrow",    section:"Arrows", name:"Runite arrows ×15",  lvl:75, time:2.0, xp:200, inputs:{ runite_bar:1, magic_logs:1 }, out:"runite_arrow",  outQty:15 },
   { id:"magic_shortbow",  section:"Bows",   name:"Magic shortbow",     lvl:80, time:2.4, xp:230, inputs:{ magic_logs:2 },              out:"magic_shortbow" },
 ];
-const BOWS   = [ ["wraith_bow",70,64], ["magic_shortbow",55,50], ["yew_shortbow",40,38], ["drakebone_bow",45,55], ["maple_shortbow",30,29], ["willow_shortbow",20,20], ["oak_shortbow",10,14], ["shortbow",1,8] ];        // id, ranged req, accuracy
+const BOWS   = [ ["pvp_longbow",65,60], ["pvp_shortbow",40,42], ["wraith_bow",70,64], ["magic_shortbow",55,50], ["yew_shortbow",40,38], ["drakebone_bow",45,55], ["maple_shortbow",30,29], ["willow_shortbow",20,20], ["oak_shortbow",10,14], ["shortbow",1,8] ];        // id, ranged req, accuracy
 const ARROWS = [ ["runite_arrow",40], ["cobalt_arrow",30], ["mithril_arrow",22], ["steel_arrow",16], ["iron_arrow",10], ["bronze_arrow",7] ];                                                  // id, ranged strength
-const STAFFS = [ ["storm_staff",55,48,["air_rune","water_rune"]], ["archmage_staff",45,55,["air_rune","fire_rune"]], ["fire_staff",40,38,["fire_rune"]], ["earth_staff",25,28,["earth_rune"]], ["air_staff",10,18,["air_rune"]], ["apprentice_staff",1,10,[]] ]; // id, magic req, accuracy, free runes
+const STAFFS = [ ["pvp_staff",65,60,["air_rune","fire_rune"]], ["pvp_wand",40,44,["air_rune"]], ["storm_staff",55,48,["air_rune","water_rune"]], ["archmage_staff",45,55,["air_rune","fire_rune"]], ["fire_staff",40,38,["fire_rune"]], ["earth_staff",25,28,["earth_rune"]], ["air_staff",10,18,["air_rune"]], ["apprentice_staff",1,10,[]] ]; // id, magic req, accuracy, free runes
 const SPELLS = [
   { id:"wind",  name:"Wind strike",  lvl:1,  max:2,  xp:5.5,  runes:{ air_rune:1 } },
   { id:"water", name:"Water strike", lvl:9,  max:4,  xp:7.5,  runes:{ air_rune:1, water_rune:1 } },
@@ -1299,8 +1315,8 @@ const SLAYER_SHOP = [
 ];
 const SKIP_COST = 30, SLAYER_XP = 6;   // Slayer xp per monster hitpoint, on task
 // Gear: best piece you own and meet the level for is used automatically
-const WEAPONS = [ ["dawnforged_blade",75,72,66], ["voidlash",75,74,58], ["gilded_scimitar",65,58,50], ["voidreaver",70,66,60], ["gargant_maul",60,44,64], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
-const ARMOURS = [ ["colossus_plate",70,95], ["troll_hide",60,85], ["runite_platebody",55,72], ["cobalt_platebody",40,60], ["drake_scale",50,75], ["mithril_platebody",30,46], ["steel_platebody",20,32], ["iron_platebody",10,21], ["leather_body",1,8] ]; // id, defence req, defence bonus
+const WEAPONS = [ ["pvp_greatsword",75,70,68], ["pvp_warblade",60,56,58], ["pvp_sabre",40,44,34], ["dawnforged_blade",75,72,66], ["voidlash",75,74,58], ["gilded_scimitar",65,58,50], ["voidreaver",70,66,60], ["gargant_maul",60,44,64], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
+const ARMOURS = [ ["champ_body",65,88], ["pit_body",40,64], ["colossus_plate",70,95], ["troll_hide",60,85], ["runite_platebody",55,72], ["cobalt_platebody",40,60], ["drake_scale",50,75], ["mithril_platebody",30,46], ["steel_platebody",20,32], ["iron_platebody",10,21], ["leather_body",1,8] ]; // id, defence req, defence bonus
 const PETS = ["pet_chick","pet_goblin","pet_magpie","pet_giant","pet_squire","pet_drakeling","pet_troll","pet_wraith","pet_colossus","pet_gull","pet_parrot"];
 const FOOD = { eel:26, anglerfish:22, shark:20, sunfruit:18, swordfish:14, lobster:12, salmon:9, trout:7, baked_potato:4, cooked_chicken:3, shrimp:3, ship_biscuit:2 };
 const ROUND_MS = 2400, EAT_AT = 0.5, REGEN_MS = 6000;
@@ -1567,6 +1583,8 @@ for (const [m, [r, def]] of Object.entries(METAL_DEF)) {
   GEAR[`${m}_kiteshield`] = { slot:"shield", req:["defence", r], def: Math.round(def * 0.5) };
 }
 Object.assign(GEAR, {
+  pit_helm:{ slot:"head", req:["defence", 40], def:22 }, pit_legs:{ slot:"legs", req:["defence", 40], def:38 }, pit_shield:{ slot:"shield", req:["defence", 40], def:32 },
+  champ_helm:{ slot:"head", req:["defence", 65], def:32 }, champ_legs:{ slot:"legs", req:["defence", 65], def:52 }, champ_shield:{ slot:"shield", req:["defence", 65], def:44 },
   bandit_mask:{ slot:"head", def:2 }, smuggler_coat:{ slot:"body", def:15 },
   slayer_helm:{ slot:"head", def:10 }, mire_greaves:{ slot:"legs", req:["defence", 35], def:35 },
   wayfarer_hat:{ slot:"head", def:2 }, patchwork_cape:{ slot:"cape", def:2 }, trimmed_shield:{ slot:"shield", req:["defence", 5], def:12 },
@@ -2673,12 +2691,16 @@ function slayerShopPanel() {
   return h;
 }
 function gloryShopPanel() {
-  const A = arenaState();
-  let h = `<div class="achtop">${icon(GLORY)}<div><span class="ar">Glory</span><b class="num">${fmt(qty(GLORY))}</b><span>Won in the Arena: ${fmt(A.wins)} wins so far. <button class="linkbtn" id="toArena" data-nav="arena:">Enter the Arena</button></span></div></div>`;
-  h += `<h3>Rewards</h3><div class="actions">` + ASHOP.map((e, i) => {
-    const owned = e.once && ownedEver(e.item);
-    return `<button class="act" id="ashop-${e.item}" data-ashop="${i}" ${owned || qty(GLORY) < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${e.qty > 1 ? e.qty + "× " : ""}${esc(ITEMS[e.item].name)}</span><span class="meta">${owned ? `<span class="ok">Owned</span> · ` : ""}${esc(ITEMS[e.item].desc)}</span><span class="side"><b>${fmt(e.price)}</b>glory</span></button>`;
-  }).join("") + `</div><p class="note">Win: 10 glory plus a fifth of their combat level, +5 against a stronger opponent, up to +10 more on a win streak. Loss: 3 glory. ${ARENA_DAILY} ranked fights a day.</p>`;
+  const A = arenaState(), dr = Math.round(arenaDr() * 100), pw = Math.round((arenaPow() - 1) * 100);
+  let h = `<div class="achtop">${icon(GLORY)}<div><span class="ar">Glory</span><b class="num">${fmt(qty(GLORY))}</b><span>${fmt(A.wins)} arena wins. ${pw || dr ? `Your PvP gear: <span class="ok">+${pw}% damage, −${dr}% damage taken</span> in duels. ` : ""}<button class="linkbtn" id="toArena" data-nav="arena:">Enter the Arena</button></span></div></div>`;
+  for (const [sec, name] of ASHOP_SECS) {
+    h += `<h3>${name}</h3><div class="actions">` + ASHOP.map((e, i) => [e, i]).filter(([e]) => e.sec === sec).map(([e, i]) => {
+      const owned = e.once && ownedEver(e.item), locked = A.wins < (e.wins || 0), g = GEAR[e.item], rq = g && g.req;
+      const stat = g ? (g.slot === "weapon" ? `${g.type === "melee" ? `Accuracy +${g.acc}, strength +${g.str}` : `Accuracy +${g.acc}`}` : `Defence +${g.def}`) : "";
+      return `<button class="act ${locked ? "locked" : ""}" id="ashop-${e.item}" data-ashop="${i}" ${owned || locked || qty(GLORY) < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${e.qty > 1 ? e.qty + "× " : ""}${esc(ITEMS[e.item].name)}</span><span class="meta">${owned ? `<span class="ok">Owned</span> · ` : locked ? `<span class="lock">Needs ${e.wins} arena wins (${fmt(A.wins)} so far)</span><br>` : ""}${rq ? `${SKILLS[rq[0]].name} ${rq[1]} to wear · ${stat}. ` : ""}${esc(ITEMS[e.item].desc.replace(/^Arena (weapon|armour)\. [A-Za-z]+ \d+\. /, ""))}</span><span class="side"><b>${fmt(e.price)}</b>glory</span></button>`;
+    }).join("") + `</div>`;
+  }
+  h += `<p class="note">PvP gear works everywhere with normal stats, and gets its bonus in Arena duels. Pitfighter gear unlocks at 10 wins (the warblade at 25); Champion gear at 50. Win: 10 glory plus a fifth of their combat level, +5 against a stronger opponent, up to +10 more on a win streak. Loss: 3 glory. ${ARENA_DAILY} ranked fights a day.</p>`;
   return h;
 }
 function traderPanel() {
@@ -3019,6 +3041,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 34, date: "14 Oct 2026", title: "PvP gear in the Glory shop", items: [
+    "The Glory shop now sells PvP weapons and armour, earned with glory and arena wins.",
+    "Pitfighter tier (10 arena wins): Duelist's sabre, Skirmisher's bow, Battlemage's staff and a Pitfighter's helm, platebody, platelegs and shield (Defence 40). The Pitfighter's warblade (Attack 60) needs 25 wins.",
+    "Champion tier (50 arena wins): Champion's greatsword, longbow and staff, and a full Champion's plate set (Defence 65).",
+    "PvP gear has strong normal stats everywhere, plus a duel bonus: weapons deal 10–15% more damage in the Arena, and each armour piece cuts the damage you take there by 3–4%." ] },
   { v: 33, date: "14 Oct 2026", title: "Herbs and potions", items: [
     "Monsters now drop herbs: Marshwort, Emberleaf, Bitterroot, Moonmoss, Frostcap, Stormpetal and Duskbloom. Tougher monsters drop better herbs, and bosses drop a handful.",
     "Mix potions in Brewing: a herb, a catalyst and a vial of springwater (sold in the General store). No cleaning, no unfinished potions.",
@@ -3690,6 +3717,11 @@ const ITEM_ICON = {
   pot_attack:["vial",["#5aa7e8","#2f5ea8","#e6eef8","#a0682a"]], pot_strength:["vial",["#e0503a","#8e2a1f","#e6eef8","#a0682a"]], pot_defence:["vial",["#6fbf5a","#3f7a3a","#e6eef8","#a0682a"]],
   pot_ranging:["vial",["#f0a33a","#a0602a","#e6eef8","#6b4a2a"]], pot_magic:["vial",["#9a5ae8","#5a2a9a","#e6eef8","#a0682a"]], pot_swift:["vial",["#2ab8b0","#1a7a74","#e6eef8","#a0682a"]],
   pot_mend:["vial",["#f6a0c8","#c03a7a","#e6eef8","#a0682a"]], pot_fortune:["vial",["#f7d35a","#c8a020","#e6eef8","#a0682a"]], pot_warlord:["vial",["#ff7a1a","#8e1a14","#e6eef8","#3a3a44"]],
+  pvp_sabre:["sword",["#e6e9dc","#8e2a1f","#d2452f","#f2c230"]], pvp_warblade:["sword",["#c8ccd2","#5a2a1e","#a8282a","#c08a3a"]], pvp_greatsword:["sword",["#fff6c8","#c8a020","#f2c230","#ffffff"]],
+  pvp_shortbow:["bow",["#a8282a","#5a1a14","#e6e9dc","#f2c230"]], pvp_longbow:["bow",["#f2c230","#8a6a1a","#ffffff","#fff6c8"]],
+  pvp_wand:["staff",["#a8282a","#000","#9fd0ff","#e6e9dc"]], pvp_staff:["staff",["#f2c230","#000","#ff7a1a","#fff6c8"]],
+  pit_helm:["helm",["#a8603a","#5a2a1e","#d2452f","#000"]], pit_body:["body",["#a8603a","#5a2a1e","#d2452f","#000"]], pit_legs:["legs",["#a8603a","#5a2a1e","#d2452f","#000"]], pit_shield:["kite",["#a8603a","#5a2a1e","#d2452f","#f2c230"]],
+  champ_helm:["helm",["#f2c230","#a07a1a","#ffffff","#000"]], champ_body:["body",["#f2c230","#a07a1a","#ffffff","#000"]], champ_legs:["legs",["#f2c230","#a07a1a","#ffffff","#000"]], champ_shield:["kite",["#f2c230","#a07a1a","#ffffff","#d2452f"]],
   daybreak_hood:["hood",["#f0a33a","#d2452f","#000","#000"]], sunrise_cape:["cape",["#f0a33a","#d2452f","#000","#000"]], pet_tock:["bird",["#c9a440","#6b4a2a","#5aa7e8","#c8ccd2"]],
   glory:["coin",["#d2452f","#7a1a14","#ffd45a","#000"]], arena_helm:["helm",["#c08a3a","#6b4a1a","#d2452f","#000"]], arena_cape:["cape",["#a8282a","#f2c230","#000","#000"]], pet_brawler:["hound",["#8a6a4a","#4a3220","#d2452f","#f2efe6"]],
   roof_hood:["hood",["#4a5a7a","#1e2638","#000","#000"]], roof_cape:["cape",["#5aa7e8","#f2efe6","#000","#000"]], pet_scamp:["cat",["#e08a3a","#f2a0a0","#a0582a","#f2efe6"]],
@@ -5580,7 +5612,12 @@ function ghostFighter(name, L, seed, ghost) {
   const style = Object.keys(ARENA_STYLES)[Math.floor(r() * 3)];
   return { name, cb: L.cb, max, def: L.def + Math.min(99, L.def) * 0.06, hpMax: Math.max(10, L.hp) + 10, seed: String(seed), style, ghost };
 }
-const meFighter = () => ({ name: cm.hsName || "You", cb: combatLevel(), max: playerMax(), def: lvl("defence") + defBonus() / 10, hpMax: lvl("hitpoints") + 10 });
+// PvP gear: worn weapon adds Arena damage, each armour piece cuts Arena damage taken
+const ARENA_POW = { pvp_sabre: 0.10, pvp_shortbow: 0.10, pvp_wand: 0.10, pvp_warblade: 0.12, pvp_greatsword: 0.15, pvp_longbow: 0.15, pvp_staff: 0.15 };
+const ARENA_DR = { pit_helm: 0.03, pit_body: 0.03, pit_legs: 0.03, pit_shield: 0.03, champ_helm: 0.04, champ_body: 0.04, champ_legs: 0.04, champ_shield: 0.04 };
+const arenaPow = () => 1 + (ARENA_POW[eq("weapon")] || 0);
+const arenaDr = () => SLOTS.reduce((n, sl) => n + (ARENA_DR[eq(sl)] || 0), 0);
+const meFighter = () => ({ name: cm.hsName || "You", cb: combatLevel(), max: playerMax(), def: lvl("defence") + defBonus() / 10, hpMax: lvl("hitpoints") + 10, pow: arenaPow(), dr: arenaDr() });
 function arenaNpcs(n, seedKey) {
   const my = combatLevel(), r = seeded("npc|" + seedKey), out = [], offs = [-6, -3, -1, 0, 2, 4, 7];
   for (let tries = 0; out.length < n && tries < 40; tries++) {
@@ -5659,7 +5696,7 @@ function arenaStart(i) {
   arena.fight = { opp, me, hp: [me.hpMax, opp.hpMax], focus: [0, 0], round: 1, hist: [], log: [], ranked, over: false, model: ghostModel(opp) };
   arena.anim = null; arenaTell(arena.fight);
 }
-const arenaHit = (a, d, mult) => Math.max(1, Math.round(randInt(Math.ceil(a.max * 0.5), a.max) * mult * (1 - 0.35 * Math.min(1, d.def / 110))));
+const arenaHit = (a, d, mult) => Math.max(1, Math.round(randInt(Math.ceil(a.max * 0.5), a.max) * mult * (a.pow || 1) * (1 - (d.dr || 0)) * (1 - 0.35 * Math.min(1, d.def / 110))));
 function arenaMove(my) {
   const F = arena.fight; if (!F || F.over || !MOVE_NAMES[my]) return;
   if (my === "S" && F.focus[0] < 2) return;
@@ -5702,15 +5739,32 @@ function arenaEnd() {
   toast(`${what}${F.ranked ? `. +${F.glory} glory${F.coins ? `, +${fmt(F.coins)} coins` : ""}` : " (practice)"}`, win);
   log(`Arena: <b>${esc(what)}</b>${F.ranked ? ` (+${F.glory} glory)` : ""}`, win ? "r" : "l");
 }
+// sec: shop section; wins: arena wins needed to buy
+const ASHOP_SECS = [["weapons", "PvP weapons"], ["armour", "PvP armour"], ["extras", "Cosmetics & extras"]];
 const ASHOP = [
-  { item: "brew_giant", price: 20, qty: 5 },
-  { item: "clue_reward_hard", price: 45 },
-  { item: "arena_helm", price: 150, once: true },
-  { item: "arena_cape", price: 300, once: true },
-  { item: "pet_brawler", price: 600, once: true },
+  { item: "brew_giant", price: 20, qty: 5, sec: "extras" },
+  { item: "clue_reward_hard", price: 45, sec: "extras" },
+  { item: "arena_helm", price: 150, once: true, sec: "extras" },
+  { item: "arena_cape", price: 300, once: true, sec: "extras" },
+  { item: "pet_brawler", price: 600, once: true, sec: "extras" },
+  { item: "pvp_sabre", price: 400, once: true, wins: 10, sec: "weapons" },
+  { item: "pvp_shortbow", price: 400, once: true, wins: 10, sec: "weapons" },
+  { item: "pvp_wand", price: 400, once: true, wins: 10, sec: "weapons" },
+  { item: "pvp_warblade", price: 900, once: true, wins: 25, sec: "weapons" },
+  { item: "pvp_greatsword", price: 1800, once: true, wins: 50, sec: "weapons" },
+  { item: "pvp_longbow", price: 1800, once: true, wins: 50, sec: "weapons" },
+  { item: "pvp_staff", price: 1800, once: true, wins: 50, sec: "weapons" },
+  { item: "pit_helm", price: 250, once: true, wins: 10, sec: "armour" },
+  { item: "pit_body", price: 500, once: true, wins: 10, sec: "armour" },
+  { item: "pit_legs", price: 350, once: true, wins: 10, sec: "armour" },
+  { item: "pit_shield", price: 300, once: true, wins: 10, sec: "armour" },
+  { item: "champ_helm", price: 600, once: true, wins: 50, sec: "armour" },
+  { item: "champ_body", price: 1200, once: true, wins: 50, sec: "armour" },
+  { item: "champ_legs", price: 800, once: true, wins: 50, sec: "armour" },
+  { item: "champ_shield", price: 700, once: true, wins: 50, sec: "armour" },
 ];
 function buyAshop(i) {
-  const e = ASHOP[i]; if (!e || qty(GLORY) < e.price || (e.once && ownedEver(e.item))) return;
+  const e = ASHOP[i]; if (!e || qty(GLORY) < e.price || (e.once && ownedEver(e.item)) || arenaState().wins < (e.wins || 0)) return;
   add(GLORY, -e.price); add(e.item, e.qty || 1);
   if (e.item === "pet_brawler" && !state.opts.follow) state.opts.follow = "pet_brawler";
   toast(`Bought ${e.qty > 1 ? e.qty + " " : ""}${ITEMS[e.item].name.toLowerCase()}`);
