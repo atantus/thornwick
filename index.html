@@ -492,6 +492,20 @@ body.noscroll{overflow:hidden}
 .cdel{font:inherit;background:none;border:0;color:var(--muted);cursor:pointer;padding:0 2px;font-size:1rem;line-height:1}
 .cdel:hover{color:var(--danger)}
 .cmsg .cb{font-size:.92rem;line-height:1.35;word-wrap:break-word;overflow-wrap:anywhere;white-space:pre-wrap}
+.fradd{display:flex;gap:8px;margin:0 0 4px} .fradd .cin{flex:1;min-width:0}
+.frmsg{min-height:1.1em;margin:0 0 6px;font-size:.85rem;color:var(--ember)} .frmsg:empty{display:none}
+.frh{display:flex;align-items:baseline;gap:8px;margin:16px 0 6px;font-size:1rem} .frh span{font-size:.78rem;font-weight:600;color:var(--muted);font-family:Karla,sans-serif}
+.frrow{border:1px solid var(--line);border-radius:12px;margin:0 0 6px;background:#ffffff05;overflow:hidden}
+.frmain{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 12px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.frdot{width:10px;height:10px;border-radius:50%;background:#5c6470;flex:none} .frrow.on .frdot{background:#5fd068;box-shadow:0 0 0 3px #5fd06826}
+.frtxt{display:flex;flex-direction:column;min-width:0;flex:1} .frtxt b{font-weight:800} .frtxt span{font-size:.78rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frrow.on .frtxt span{color:#8fd08f}
+.frreq{display:flex;gap:8px;padding:0 12px 10px} .frreq .btn{min-height:36px}
+.frmore{padding:0 12px 12px;border-top:1px solid var(--line)} .frstat{font-size:.82rem;color:var(--muted);margin:10px 0 8px}
+.frskills{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:4px} .frskills span{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:8px;background:#ffffff08;font-family:var(--f-num);font-size:.85rem} .frskills .ico{width:18px;height:18px}
+.frbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px} .frbtns .btn{min-height:38px} .btn.danger{border-color:var(--danger);color:var(--danger)}
+.frtag{font-size:.72rem;font-weight:700;color:#8fd08f;border:1px solid #5fd06855;border-radius:999px;padding:1px 7px}
+.frset{display:flex;align-items:center;gap:8px;margin:14px 0 4px;font-size:.88rem}
 .cact{display:flex;align-items:center;gap:8px;margin:2px 0 6px 8px;font-size:.8rem;color:var(--muted)} .cact .btn{min-height:32px;padding:4px 10px}
 .ccompose{display:flex;gap:8px;margin-top:10px}
 .ccompose input{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none}
@@ -2492,7 +2506,7 @@ const SKILL_GROUPS = [
 ];
 const SECTIONS = [["skills","Skills","✦"],["combat","Combat","⚔"],["clog","Log","▤"],["bank","Bank","◫"],["more","More","≡"]];
 const NAV_ICON = { skills:"skills", combat:"attack", clog:"more", bank:"bank", more:"cog" };
-const sectionOf = t => ["combat","clog","bank","more","daily","shops","arena","roof","mini","chat"].includes(t) ? t : "skills";
+const sectionOf = t => ["combat","clog","bank","more","daily","shops","arena","roof","mini","chat","friends"].includes(t) ? t : "skills";
 function badges() {
   const now = Date.now();
   return {
@@ -2510,6 +2524,7 @@ const RAIL = [
   ["nav-shops", "Shops", "coins", "shops", "", "Play"],
   ["nav-mini", "Minigames", "arena_helm", "mini", "", "Play"],
   ["nav-chat", "Chat", "chat_bubble", "chat", "", "Play"],
+  ["nav-friends", "Friends", "friends", "friends", "", "Play"],
   ["nav-combat", "Fight", "attack", "combat", "fight", "Combat"],
   ["csub-gear", "Equipment", "defence", "combat", "gear", "Combat"],
   ["csub-look", "Look", "wayfarer_hat", "combat", "look", "Combat"],
@@ -2523,10 +2538,10 @@ const RAIL = [
   ["msub-activity", "Activity", "captain_compass", "more", "activity", "More"],
   ["msub-help", "Help & save", "cog", "more", "help", "More"],
 ];
-const railKey = () => tab === "chat" ? "chat:" : tab === "daily" ? "daily:" : tab === "shops" ? "shops:" : tab === "arena" || tab === "roof" || tab === "mini" ? "mini:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
+const railKey = () => tab === "chat" ? "chat:" : tab === "friends" ? "friends:" : tab === "daily" ? "daily:" : tab === "shops" ? "shops:" : tab === "arena" || tab === "roof" || tab === "mini" ? "mini:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
 function renderRail() {
   const b = badges(), cur = railKey(); let h = "", g = "";
-  const badge = { "chat:": tab === "chat" ? 0 : chat.unread, "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
+  const badge = { "chat:": tab === "chat" ? 0 : chat.unread, "friends:": frRequests().length, "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
   for (const [id, label, ic, tb, sub, grp] of RAIL) {
     if (grp !== g) { h += `${g ? '<span class="sep"></span>' : ""}<h4>${grp}</h4>`; g = grp; }
     const key = tb + ":" + sub, n = badge[key], dot = key === "more:news" && newsUnseen();
@@ -3169,6 +3184,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 43, date: "14 Oct 2026", title: "Friends list", items: [
+    "New Friends page in the side menu. Add anyone by their username, or tap a name in Chat and choose Add friend.",
+    "See who's online right now and what they're training, or when they were last seen. Tap a friend to see their combat level and every skill level.",
+    "When someone adds you, they show up under \"Added you\" with a badge so you can add them back. Friends who've added each other get a \"Friends with you\" tag.",
+    "Get a heads-up when a friend comes online (you can switch this off on the Friends page), and use Message in chat to say hello." ] },
   { v: 42, date: "14 Oct 2026", title: "Usernames", items: [
     "Signing in now asks you to choose a unique username straight after the email code. It's your name on the hiscores, in chat and in the Arena.",
     "The box tells you as you type whether a name is free. Names are 3–12 letters, numbers, spaces, - or _, and no two players can share one (capitals don't count as different).",
@@ -3786,6 +3806,7 @@ const ITEM_TPL = {
   ember: [".....3......", "....33..3...", "...3443.33..", "..3444433...", "..34114433..", ".3411111443.", ".3k1111k143.", ".3411111143.", "..34111143..", "...333333...", "............", "............"],
   mole: ["............", "............", "...111111...", "..11111111..", ".1111111111.", "441k1111111.", "4411111111..", ".1111111111.", ".1111111111.", "33.33..33...", "............", "............"],
   herb: ["............", "......11....", ".....1441...", "..11.1221...", ".1441.12.11.", ".1221.3.1441", "..12..3.1221", "...1..3..12.", "......3..1..", ".....33.....", "....333.....", "............"],
+  pals: ["............", "..333...111.", ".33333.11111", ".33333.11111", "..333...111.", "............", ".44444.22222", "444444222222", "444444222222", "444444222222", "444444222222", "............"],
   bubble: ["............", ".11111111...", "1222222221..", "1233232321..", "1222222221..", "1233332221..", "1222222221..", ".11112111...", "....121.....", "....11......", "............", "............"],
   rod: ["..........11", ".........1.4", "........1..4", ".......1...4", "......1....4", ".....1.....4", "....1......4", "...1.......3", "..22......33", ".222........", "22..........", "2..........."],
   vial: ["............", ".....44.....", ".....44.....", "....3333....", ".....33.....", "....3113....", "...311113...", "..31111113..", "..31111223..", "..31122223..", "...322223...", "....3333...."],
@@ -3868,6 +3889,7 @@ const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
   daily_token:["coin",["#f0a33a","#8e5a1a","#fff1c8","#000"]], streak_saver:["horseshoe",["#f0a33a","#8e5a1a","#3a4048","#000"]],
   chat_bubble:["bubble",["#9aa3ad","#f2efe6","#3a3a44","#000"]],
+  friends:["pals",["#f0c79a","#3d8bd9","#c99468","#5aa84e"]],
   slayer_chest:["chest",["#5a2a2e","#2e1416","#d8d0c0","#a8282a"]], emberheart_axe:["axe",["#ff7a1a","#5a1a14","#f7d35a","#d2452f"]], forgefire_pickaxe:["pickaxe",["#ff9a3a","#5a1a14","#f7d35a","#d2452f"]], hearthfire_rod:["rod",["#ff7a1a","#3a1a14","#d4d8de","#f2efe6"]],
   herb_marshwort:["herb",["#6fbf5a","#3f7a3a","#6b4a2a","#c8e8a0"]], herb_emberleaf:["herb",["#e07a3a","#a0402c","#6b4a2a","#f7d35a"]], herb_bitterroot:["herb",["#b09a5a","#6b5a2a","#4a2e16","#e0d4a0"]],
   herb_moonmoss:["herb",["#9fb4d8","#5a6a9a","#3a4a6a","#e6eef8"]], herb_frostcap:["herb",["#a8e0f0","#5aa7c8","#4a6a7a","#ffffff"]], herb_stormpetal:["herb",["#9a7ae8","#5a3a9a","#3a2a5a","#d8c8f8"]], herb_duskbloom:["herb",["#d24a8a","#7a1a4a","#3a1a2a","#f6b0d4"]],
@@ -4667,18 +4689,20 @@ function drawVoyageScene(now) {
 }
 
 let lastSig = "";
-let chatShown = false;
+let chatShown = false, frShown = false;
 function render() {
   renderTabs(); renderBuffs(); renderSheet();
   // while the chat is on screen, don't rebuild the page (it would wipe your typing and close the phone keyboard)
   if (tab === "chat" && chatShown && $("chatBody")) { lastSig = signature(); return; }
-  chatShown = tab === "chat";
+  if (tab === "friends" && frShown && $("frBody")) { lastSig = signature(); return; }
+  chatShown = tab === "chat"; frShown = tab === "friends";
   let h = "";
   if (tab === "skills") h = overviewPanel();
   else if (tab === "bank") h = bankPanel();
   else if (tab === "more") h = morePanel();
   else if (tab === "daily") h = `<div class="pagehead"><h2>Challenges</h2><span>${3 - dailyLeft()} / 3 today</span></div>` + dailyPanel();
   else if (tab === "chat") h = chatPanel();
+  else if (tab === "friends") h = friendsPanel();
   else if (tab === "mini") h = `<div class="pagehead"><h2>Minigames</h2><span>Hands-on play</span></div>` + miniPanel();
   else if (tab === "arena") h = miniBack + `<div class="pagehead"><h2>Arena</h2><span>${arenaLeft()} / ${ARENA_DAILY} ranked left</span></div>` + arenaPanel();
   else if (tab === "roof") h = miniBack + `<div class="pagehead"><h2>Rooftop run</h2><span>Best ${fmt(roofState().best)} m</span></div>` + roofPanel();
@@ -4801,6 +4825,7 @@ document.addEventListener("click", e => {
     if (tb === "dshop") { tb = "shops"; sb = "daily"; }
     if (tb === "clog" && sb === "shop") { tb = "shops"; sb = "points"; }
     if (tb === "shops") shopSub = sb || shopSub;
+    if (tb === "friends") setTimeout(() => frLoad(), 0);
     if (tb === "chat") { chatSeen = chat.lastId; lsSet("thornwick-chat-seen", chatSeen); chat.unread = 0; setTimeout(() => { chatRender("bottom"); chatLoad(); }, 0); }
     if (tb === "combat") { combatSub = sb; eqSel = null; }
     if (tb === "clog") { logSub = sb; if (sb === "clog") clogPath = []; }
@@ -4810,6 +4835,12 @@ document.addEventListener("click", e => {
   }
   if (t.id === "hsRefresh") { hsLoad(true); return; }
   if (t.id === "chatSend") { chatSend(); return; }
+  if (t.id === "frAddBtn") { frAdd(fr.draft); return; }
+  if (t.dataset.fradd) { frAdd(t.dataset.fradd); return; }
+  if (t.dataset.frhide) { frHidden = [...new Set(frHidden.concat(t.dataset.frhide))]; lsSet("thornwick-friends-hidden", frHidden); renderRail(); frRender(); return; }
+  if (t.dataset.frsel) { fr.sel = fr.sel === t.dataset.frsel ? null : t.dataset.frsel; fr.confirm = null; frRender(); return; }
+  if (t.dataset.frrm) { if (fr.confirm === t.dataset.frrm) frRemove(t.dataset.frrm); else { fr.confirm = t.dataset.frrm; frRender(); } return; }
+  if (t.dataset.frmsg) { chat.draft = "@" + t.dataset.frmsg + " "; chatSeen = chat.lastId; chat.unread = 0; tab = "chat"; render(); setTimeout(() => { chatRender("bottom"); chatLoad(); const i = $("chatInput"); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 0); window.scrollTo(0, 0); return; }
   if (t.id === "chatOlder") { chatLoad(true); return; }
   if (t.dataset.chatdel) { chatDelete(+t.dataset.chatdel); return; }
   if (t.dataset.chatname) { chat.sel = chat.sel === t.dataset.chatname ? null : t.dataset.chatname; chatRender("keep"); return; }
@@ -4922,10 +4953,11 @@ document.addEventListener("toggle", e => { const el = e.target; if (el.classList
 document.addEventListener("change", e => { if (e.target.id === "autoChop") { state.opts.autoChop = e.target.checked; save(); } if (e.target.id === "hsSkill") { hs.skill = e.target.value; hs.rows = null; hsLoad(true); }
   if (e.target.id === "lookGear") { state.look = Object.assign({}, state.look, { gear: e.target.checked }); after(); }
   if (e.target.dataset && e.target.dataset.lookslot) { const sl = e.target.dataset.lookslot, L = Object.assign({}, state.look); L.show = Object.assign({}, L.show); if (e.target.value) L.show[sl] = e.target.value; else delete L.show[sl]; state.look = L; after(); } });
+document.addEventListener("change", e => { if (e.target.id === "frAlerts") { state.opts.frAlerts = e.target.checked; save(); } });
 document.addEventListener("change", e => { if (e.target.id === "autoPot") { state.opts.autoPot = e.target.checked; toast(e.target.checked ? "Auto-drink on: combat potions stay topped up while you fight" : "Auto-drink off"); save(); } });
 document.addEventListener("toggle", e => { if (e.target && e.target.id === "eqStats") state.opts.eqStats = e.target.open; }, true);
-document.addEventListener("input", e => { if (e.target.id === "chatInput") { chat.draft = e.target.value.slice(0, 200); const c = $("chatCount"); if (c) c.textContent = `${chat.draft.length}/200`; return; } if (e.target.id === "bankSearch") { bankSearch = e.target.value; const el = $("bankItems"); if (el) el.innerHTML = bankItemsHtml(); return; } if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "loginName") nameInput(e.target.value); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
-document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "chatInput") { e.preventDefault(); chatSend(); return; } if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "loginName") saveUsername(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
+document.addEventListener("input", e => { if (e.target.id === "frInput") { fr.draft = e.target.value; return; } if (e.target.id === "chatInput") { chat.draft = e.target.value.slice(0, 200); const c = $("chatCount"); if (c) c.textContent = `${chat.draft.length}/200`; return; } if (e.target.id === "bankSearch") { bankSearch = e.target.value; const el = $("bankItems"); if (el) el.innerHTML = bankItemsHtml(); return; } if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "loginName") nameInput(e.target.value); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
+document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "chatInput") { e.preventDefault(); chatSend(); return; } if (e.target.id === "frInput") { e.preventDefault(); frAdd(fr.draft); return; } if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "loginName") saveUsername(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
 
 /* ================= CLOUD SAVE (Supabase) =================
    Sign in with an emailed code; the save lives in the `saves` table (one row per player).
@@ -4979,7 +5011,7 @@ async function accessToken() {
   return refreshing;
 }
 function signOutLocal(msg) {
-  cm.s = null; cm.rev = null; cm.synced = null; cm.hsName = null; cm.hsXp = null; saveMeta(); hs.rows = null;
+  cm.s = null; cm.rev = null; cm.synced = null; cm.hsName = null; cm.hsXp = null; saveMeta(); hs.rows = null; fr.rows = null; fr.at = 0; fr.online = null;
   const wasOpen = loginOpen();
   cloud.step = "out"; cloud.codeDraft = ""; cloud.msg = msg || ""; render();
   if (started) showLogin(); else if (wasOpen) renderLogin();
@@ -5227,7 +5259,7 @@ setInterval(() => { if (!document.hidden) push(); }, 60000);
 const hs = { skill: "overall", rows: null, at: 0, loading: false, err: "", nameDraft: "", nameMsg: "", saving: false };
 const HS_SKILLS = () => ["overall", ...Object.keys(SKILLS)];
 const totalXp = () => Math.floor(Object.keys(SKILLS).reduce((a, k) => a + (state.xp[k] || 0), 0));
-const hsStats = () => ({ total_level: totalLevel(), total_xp: totalXp(), combat_level: combatLevel(), xp: Object.fromEntries(Object.keys(SKILLS).map(k => [k, Math.floor(state.xp[k] || 0)])), updated_at: new Date().toISOString() });
+const hsStats = () => ({ total_level: totalLevel(), total_xp: totalXp(), combat_level: combatLevel(), doing: doingText(), xp: Object.fromEntries(Object.keys(SKILLS).map(k => [k, Math.floor(state.xp[k] || 0)])), updated_at: new Date().toISOString() });
 async function hsLoad(force) {
   if (!cloudOn || hs.loading) return;
   if (!force && hs.rows && Date.now() - hs.at < 60000 && hs.rowsFor === hs.skill) return;
@@ -5256,8 +5288,9 @@ let hsNameAsked = false;
 async function hsSync() {
   if (!cloudOn || !cm.s) return;
   if (!cm.hsName) { if (!naming() && !hsNameAsked) { hsNameAsked = true; if (await nameCheck() === false) askName(); } return; }
-  const st = hsStats(); if (st.total_xp === cm.hsXp) return;
-  try { await api(`/rest/v1/hiscores?user_id=eq.${cm.s.uid}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: st }); cm.hsXp = st.total_xp; saveMeta(); } catch (e) {}
+  // also refresh every couple of minutes so friends can see you're online
+  const st = hsStats(); if (st.total_xp === cm.hsXp && st.doing === cm.hsDoing && Date.now() - (cm.hsAt || 0) < 110000) return;
+  try { await api(`/rest/v1/hiscores?user_id=eq.${cm.s.uid}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: st }); cm.hsXp = st.total_xp; cm.hsDoing = st.doing; cm.hsAt = Date.now(); saveMeta(); } catch (e) {}
 }
 function hsRender() { if (tab === "more" && moreSub === "hiscores" && $("hsBody")) { const f = document.activeElement && document.activeElement.id; $("hsBody").innerHTML = hiscoresBody(); if (f && $(f)) $(f).focus({ preventScroll: true }); } }
 function hiscoresPanel() {
@@ -6416,13 +6449,13 @@ function chatBody() {
     if (day !== lastDay) { h += `<div class="cday">${new Date(m.created_at).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}</div>`; lastDay = day; }
     const mine = chat.mine.has(m.id);
     h += `<div class="cmsg ${mine ? "me" : ""}"><div class="ch"><button class="cname" data-chatname="${esc(m.name)}" ${mine ? "disabled" : ""}>${esc(m.name)}</button><span class="clvl" title="Total level">${fmt(m.lvl)}</span><span class="ctime" title="${esc(new Date(m.created_at).toLocaleString())}">${chatAgo(m.created_at)}</span>${mine ? `<button class="cdel" data-chatdel="${m.id}" aria-label="Delete your message" title="Delete">×</button>` : ""}</div><div class="cb">${esc(m.body)}</div></div>`;
-    if (chat.sel === m.name && !mine && m === list.filter(x => x.name === chat.sel).slice(-1)[0]) h += `<div class="cact"><span>${esc(m.name)}</span><button class="btn" data-chatmute="${esc(m.name)}">Mute</button><button class="btn" data-chatclose="1">Cancel</button></div>`;
+    if (chat.sel === m.name && !mine && m === list.filter(x => x.name === chat.sel).slice(-1)[0]) h += `<div class="cact"><span>${esc(m.name)}</span>${cm.s && cm.hsName ? frIsFriend(m.name) ? `<span class="frtag">Friend</span>` : `<button class="btn" data-fradd="${esc(m.name)}">Add friend</button>` : ""}<button class="btn" data-chatmute="${esc(m.name)}">Mute</button><button class="btn" data-chatclose="1">Cancel</button></div>`;
   }
   h += `</div>`;
   if (chat.err) h += `<p class="cerr">${esc(chat.err)}</p>`;
   if (!cm.s) h += `<div class="ccompose locked"><span>Sign in to join the chat.</span><button class="btn solid" id="hsSignIn">Sign in</button></div>`;
   else h += `<div class="ccompose"><input id="chatInput" maxlength="200" placeholder="${cm.hsName ? `Say something as ${esc(cm.hsName)}…` : "Say something…"}" value="${esc(chat.draft)}" autocomplete="off" enterkeyhint="send" aria-label="Message"><button class="btn solid" id="chatSend" ${chat.sending ? "disabled" : ""}>${chat.sending ? "…" : "Send"}</button></div>
-    <div class="cfoot"><span id="chatCount">${chat.draft.length}/200</span><span>${cm.hsName ? "" : `You'll need a <button class="linkbtn" id="pickName">username</button> to post. `}Be kind: messages are public and saved. Tap a name to mute someone.</span></div>`;
+    <div class="cfoot"><span id="chatCount">${chat.draft.length}/200</span><span>${cm.hsName ? "" : `You'll need a <button class="linkbtn" id="pickName">username</button> to post. `}Be kind: messages are public and saved. Tap a name to add a friend or mute someone.</span></div>`;
   if (chatMuted.length) h += `<p class="note">${chatMuted.length} muted ${chatMuted.length === 1 ? "player" : "players"}: ${chatMuted.map(n => `${esc(n)} <button class="linkbtn" data-chatunmute="${esc(n)}">unmute</button>`).join(", ")}</p>`;
   return h;
 }
@@ -6443,9 +6476,106 @@ function chatRender(scroll) {
 }
 function chatTick() {
   if (!cloudOn || !started) return;
+  fr.tick++;
+  if (cm.s && cm.hsName && ((tab === "friends" && !document.hidden && fr.tick % 3 === 0) || fr.tick % 8 === 0)) frLoad();
   chat.tick++;
   const open = tab === "chat" && !document.hidden;
   if (open || chat.tick % 15 === 0) chatLoad();
+}
+
+/* ================= FRIENDS =================
+   Supabase table friends + rpc friends_list / friend_add / friend_remove (user ids never reach the page).
+   One-way like RuneScape: you add people; they see you under "Added you" and can add you back.
+   Online = their hiscores row was refreshed in the last 3 minutes (hsSync does that while the game is open). */
+const fr = { rows: null, loading: false, err: "", msg: "", at: 0, draft: "", sel: null, confirm: null, busy: false, tick: 0, online: null };
+const FR_ONLINE_MS = 3 * 60000;
+let frHidden = lsGet("thornwick-friends-hidden", []);
+const frOnline = r => !!r.updated_at && Date.now() - new Date(r.updated_at).getTime() < FR_ONLINE_MS;
+const frList = () => (fr.rows || []).filter(r => r.i_added);
+const frRequests = () => (fr.rows || []).filter(r => r.they_added && !r.i_added && !frHidden.includes(r.name));
+const frIsFriend = name => frList().some(r => r.name.toLowerCase() === String(name || "").toLowerCase());
+function doingText() {
+  const a = state.active && findAction(state.active.skill, state.active.id);
+  if (!a) return "Idle";
+  return (state.active.skill === "combat" ? "Fighting " + a.name.replace(/^./, c => c.toLowerCase()) : `${a.name} · ${skillName(state.active.skill)}`).slice(0, 60);
+}
+async function frLoad() {
+  if (!cloudOn || !cm.s || !cm.hsName || fr.loading) return;
+  fr.loading = true; if (!fr.at) frRender();
+  try {
+    const rows = await api("/rest/v1/rpc/friends_list", { method: "POST", body: {} }, true);
+    const prev = fr.rows; fr.rows = rows || []; fr.at = Date.now(); fr.err = "";
+    const nowOn = new Set(frList().filter(frOnline).map(r => r.name));
+    if (prev && fr.online) {
+      if (state.opts.frAlerts !== false) { const was = new Set(prev.filter(r => r.i_added).map(r => r.name)); for (const n of nowOn) if (was.has(n) && !fr.online.has(n)) toast(`${n} is online`); }
+      const had = new Set(prev.filter(r => r.they_added).map(r => r.name));
+      for (const r of frRequests()) if (!had.has(r.name)) toast(`${r.name} added you as a friend`, true);
+    }
+    fr.online = nowOn;
+  } catch (e) { fr.err = e.status === 0 ? "Can't reach the friends list right now." : (e.msg || "Friends list error"); }
+  fr.loading = false; renderRail(); frRender();
+}
+function frSay(m) { fr.msg = m; const el = $("frMsg"); if (el) el.textContent = m; }
+async function frAdd(raw) {
+  const name = cleanName(raw);
+  if (!cm.s) return frSay("Sign in to add friends.");
+  if (!name) return frSay("Type a username to add.");
+  if (fr.busy) return;
+  fr.busy = true; frSay("Adding…");
+  try {
+    const real = await api("/rest/v1/rpc/friend_add", { method: "POST", body: { p_name: name } }, true);
+    fr.draft = ""; fr.msg = ""; toast(`Added ${real || name} as a friend`);
+    frHidden = frHidden.filter(n => n !== real); lsSet("thornwick-friends-hidden", frHidden);
+    fr.busy = false; await frLoad(); if (tab === "chat") chatRender("keep"); return;
+  } catch (e) { frSay(e.status === 0 ? "Can't reach the server right now." : (e.msg || "Couldn't add that player.")); if (tab === "chat") toast(fr.msg); }
+  fr.busy = false;
+}
+async function frRemove(name) {
+  try { await api("/rest/v1/rpc/friend_remove", { method: "POST", body: { p_name: name } }, true); toast(`Removed ${name}`); fr.sel = null; fr.confirm = null; await frLoad(); }
+  catch (e) { frSay(e.msg || "Couldn't remove that player."); }
+}
+const frSeen = r => frOnline(r) ? "Online" : r.updated_at ? "Last seen " + ago(new Date(r.updated_at).getTime()) : "Not seen yet";
+function frHead() { if (!fr.rows) return ""; const n = frList().filter(frOnline).length; return `${n} online · ${frList().length} ${frList().length === 1 ? "friend" : "friends"}`; }
+function frRow(r, req) {
+  const on = frOnline(r), open = fr.sel === r.name && !req;
+  let h = `<div class="frrow ${on ? "on" : ""} ${open ? "open" : ""}">`;
+  h += `<button class="frmain" ${req ? "" : `data-frsel="${esc(r.name)}" aria-expanded="${open}"`}><span class="frdot" aria-hidden="true"></span><span class="frtxt"><b>${esc(r.name)}</b><span>${on ? esc(r.doing || "Idle") : `${frSeen(r)}${r.doing && r.doing !== "Idle" ? " · " + esc(r.doing) : ""}`}</span></span><span class="clvl" title="Total level">${fmt(r.total_level || 0)}</span></button>`;
+  if (req) h += `<div class="frreq"><button class="btn solid" data-fradd="${esc(r.name)}">Add back</button><button class="btn" data-frhide="${esc(r.name)}">Hide</button></div>`;
+  if (open) {
+    const xp = r.xp || {};
+    h += `<div class="frmore"><div class="frstat">${on ? "Online now" : frSeen(r)} · Combat <b>${r.combat_level || 3}</b> · Total <b>${fmt(r.total_level || 0)}</b>${r.they_added ? ` · <span class="frtag">Friends with you</span>` : ""}</div>
+      <div class="frskills">${Object.keys(SKILLS).map(k => `<span title="${esc(SKILLS[k].name)}: ${fmt(xp[k] || 0)} xp">${icon(k)}<b>${levelOf(xp[k] || 0)}</b></span>`).join("")}</div>
+      <div class="frbtns"><button class="btn" data-frmsg="${esc(r.name)}">Message in chat</button><button class="btn ${fr.confirm === r.name ? "danger" : ""}" data-frrm="${esc(r.name)}">${fr.confirm === r.name ? "Tap again to remove" : "Remove"}</button></div></div>`;
+  }
+  return h + `</div>`;
+}
+function friendsBody() {
+  if (!cm.s) return `<div class="hsme"><span>Sign in to keep a friends list and see when your friends are playing.</span><button class="btn solid" id="hsSignIn">Sign in</button></div>`;
+  if (!cm.hsName) return `<div class="hsme"><span>Choose a username to use the friends list.</span><button class="btn solid" id="pickName">Choose username</button></div>`;
+  let h = `<div class="fradd"><input class="cin" id="frInput" maxlength="12" placeholder="Add a friend by username" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-label="Friend's username" value="${esc(fr.draft)}"><button class="btn solid" id="frAddBtn" ${fr.busy ? "disabled" : ""}>Add</button></div>
+    <p class="lmsg frmsg" id="frMsg" role="status">${esc(fr.msg)}</p>`;
+  if (fr.err) h += `<p class="cerr">${esc(fr.err)}</p>`;
+  if (!fr.rows) return h + `<p class="note">${fr.loading ? "Loading your friends…" : ""}</p>`;
+  const req = frRequests();
+  if (req.length) h += `<h3 class="frh">Added you <span>${req.length}</span></h3>` + req.map(r => frRow(r, true)).join("");
+  const list = frList().slice().sort((a, b) => (frOnline(b) - frOnline(a)) || (new Date(b.updated_at || 0) - new Date(a.updated_at || 0)) || a.name.localeCompare(b.name));
+  h += `<h3 class="frh">Friends</h3>`;
+  h += list.length ? list.map(r => frRow(r)).join("") : `<div class="empty">No friends yet. Add someone by their username above, or tap a name in Chat.</div>`;
+  h += `<label class="frset"><input type="checkbox" id="frAlerts" ${state.opts.frAlerts !== false ? "checked" : ""}> Tell me when a friend comes online</label>`;
+  h += `<p class="note">Your friends can see when you're online, what you're training and your levels. Anyone you add sees you under "Added you".</p>`;
+  return h;
+}
+function friendsPanel() {
+  if (!cloudOn) return `<div class="pagehead"><h2>Friends</h2></div><div class="empty">Friends work in the online version of Thornwick.</div>`;
+  if (cm.s && cm.hsName && !fr.at && !fr.loading) setTimeout(() => frLoad(), 0);
+  return `<div class="pagehead"><h2>Friends</h2><span id="frCount">${frHead()}</span></div><div id="frBody">${friendsBody()}</div>`;
+}
+// redraw just the friends page (keeps your typing)
+function frRender() {
+  const el = $("frBody"); if (tab !== "friends" || !el) return;
+  const f = document.activeElement && document.activeElement.id;
+  el.innerHTML = friendsBody(); const c = $("frCount"); if (c) c.textContent = frHead();
+  if (f && $(f)) { $(f).focus({ preventScroll: true }); if (f === "frInput") { const i = $(f); i.setSelectionRange(i.value.length, i.value.length); } }
 }
 
 /* ================= LOGIN SCREEN ================= */
@@ -6561,9 +6691,9 @@ function begin() {
   render(); renderNow();
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
-  if (cloudOn) { setInterval(chatTick, 4000); setTimeout(() => chatLoad(), 3000); }
+  if (cloudOn) { setInterval(chatTick, 4000); setTimeout(() => chatLoad(), 3000); setTimeout(() => frLoad(), 4500); }
 }
-window.__thornwick = { get state() { return state; }, sceneDrops: () => { const now = performance.now(), a = scene.anims.find(x => x.k === "xpdrop" && now >= x.start); return a ? (now - a.start) / a.dur : 0; }, roofPayout, roofTime, roofGen, roofJump, roofSpeed, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, render, frLoad, hsSync, fr, sceneDrops: () => { const now = performance.now(), a = scene.anims.find(x => x.k === "xpdrop" && now >= x.start); return a ? (now - a.start) / a.dur : 0; }, roofPayout, roofTime, roofGen, roofJump, roofSpeed, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
