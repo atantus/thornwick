@@ -506,6 +506,14 @@ body.noscroll{overflow:hidden}
 .frbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px} .frbtns .btn{min-height:38px} .btn.danger{border-color:var(--danger);color:var(--danger)}
 .frtag{font-size:.72rem;font-weight:700;color:#8fd08f;border:1px solid #5fd06855;border-radius:999px;padding:1px 7px}
 .frset{display:flex;align-items:center;gap:8px;margin:14px 0 4px;font-size:.88rem}
+.rchests{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0}
+.rchest{display:flex;flex-direction:column;align-items:center;gap:2px;width:104px;padding:10px 6px;border:1px solid var(--line);border-radius:14px;background:#ffffff06;color:inherit;font:inherit;cursor:pointer;transition:transform .15s}
+.rchest:hover{transform:translateY(-2px)} .rchest .ico{width:56px;height:56px} .rchest span{font-family:var(--f-num);font-size:.78rem} .rchest em{font-style:normal;font-size:.7rem;color:var(--muted)}
+.rchest.rare{border-color:#ff3a3a;background:#ff3a3a14;box-shadow:0 0 0 1px #ff3a3a88,0 0 22px #ff3a3a66;animation:rglow 1.3s ease-in-out infinite alternate} .rchest.rare em{color:#ff8a7a;font-weight:700}
+@keyframes rglow{from{box-shadow:0 0 0 1px #ff3a3a88,0 0 10px #ff3a3a44}to{box-shadow:0 0 0 2px #ff3a3a,0 0 30px #ff3a3a99}}
+.ropen{border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0} .ropen.rare{border-color:#ff3a3a;box-shadow:0 0 24px #ff3a3a55} .ropen b{font-size:1.05rem} .ropen.rare b{color:#ff8a7a}
+.raidloot .pop{animation:lootpop .35s ease-out both} @keyframes lootpop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.rchest.rare,.raidloot .pop{animation:none}}
 .raidrun{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin:10px 0} .raidrun div{border:1px solid var(--line);border-radius:10px;padding:6px 10px;display:flex;flex-direction:column} .raidrun span{font-size:.72rem;color:var(--muted)} .raidrun b{font-family:var(--f-num);font-size:1rem}
 .raidrooms{display:flex;flex-direction:column;gap:6px;margin:10px 0}
 .raidroom{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px 12px} .raidroom.cur{border-color:#5ae0d0;background:#5ae0d012} .raidroom.done{opacity:.6}
@@ -2417,6 +2425,14 @@ function raidPanel() {
   const st = raidStats(), R = state.raid, lock = raidLocked(), inRaid = R && state.active && RAID_BY_ID[state.active.id];
   let h = `<div class="pagehead"><h2>The Gloamspire</h2><span>${fmt(st.kc)} ${st.kc === 1 ? "clear" : "clears"}</span></div>`;
   h += `<p class="note">A raid for seasoned fighters: four rooms in a row, then a chest. Bring food and potions, and set up your melee, ranged and magic loadouts first. The more you kill and the less damage you take, the better your chance of a <b style="color:var(--rare)">purple chest</b>. If you're knocked out, the raid ends with nothing.</p>`;
+  const chests = state.raidChests || [];
+  if (raidOpened) { const c = raidOpened;
+    h += `<div class="ropen ${c.rare ? "rare" : ""}"><b>${c.purple ? `Purple! ${esc(ITEMS[c.purple].name)}` : c.rare ? "A rare find!" : "Chest opened"}</b><div class="raidloot">${Object.entries(c.items).map(([k, q], i) => `<span class="pop ${k === c.purple || k === "pet_gloamling" || k === "dragonstone" ? "got" : ""}" style="animation-delay:${i * 0.12}s">${icon(k)}${q > 1 ? fmt(q) + " " : ""}${esc(ITEMS[k].name)}</span>`).join("")}</div><button class="lnk" id="raidOpenedOk">Done</button></div>`; }
+  if (chests.length) {
+    h += `<h3>Unopened chests <span>${chests.length}${chests.some(c => c.rare) ? " · one is glowing red!" : ""}</span></h3><div class="rchests">` +
+      chests.map(c => `<button class="rchest ${c.rare ? "rare" : ""}" data-rchest="${c.id}" aria-label="Open chest${c.rare ? " (glowing red)" : ""}">${icon(c.rare ? "gloam_chest_red" : "gloam_chest")}<span>${fmt(c.pts)} pts</span><em>Tap to open</em></button>`).join("") +
+      `</div>${chests.length > 1 ? `<div class="row"><button class="btn" id="raidOpenAll">Open all</button></div>` : ""}`;
+  }
   if (R) {
     h += `<canvas id="scene" class="scene" role="img" aria-label="Raid battle"></canvas>`;
     h += `<div class="raidrun"><div><span>Room</span><b>${R.room + 1} / ${RAID_ROOMS.length}</b></div><div><span>Points (incl. speed bonus)</span><b id="raidPts">${fmt(raidPoints())}</b></div><div><span>Purple chance</span><b id="raidChance">${(raidChance(raidPoints()) * 100).toFixed(1)}%</b></div><div><span>Damage taken</span><b id="raidTaken">${fmt(R.taken)}</b></div><div><span>Time</span><b id="raidTime">${fmtSecs(Math.round(R.rounds * ROUND_MS / 1000))}</b></div></div>`;
@@ -2429,7 +2445,7 @@ function raidPanel() {
   else h += `<div class="row">${inRaid ? "" : `<button class="btn solid" id="raidResume">Resume raid</button>`}<button class="btn" id="raidLeave">Leave raid</button></div>${inRaid ? "" : `<p class="note">The raid is paused while you do something else.</p>`}`;
   h += `<label class="frset"><input type="checkbox" id="raidSwap" ${state.opts.raidSwap !== false ? "checked" : ""}> Switch to the loadout each room is weak to (if that loadout is ready)</label>`;
   if (st.last) { const L = st.last;
-    h += `<h3>Last raid</h3><p class="note">${fmt(L.pts)} points · ${fmtSecs(L.secs)} · ${fmt(L.taken)} damage taken${L.purple ? ` · <b style="color:var(--rare)">Purple: ${esc(ITEMS[L.purple].name)}</b>` : ""}</p><div class="raidloot">${Object.entries(L.items).map(([k, q]) => `<span>${icon(k)}${q > 1 ? fmt(q) + " " : ""}${esc(ITEMS[k].name)}</span>`).join("")}</div>`; }
+    h += `<h3>Last raid</h3><p class="note">${fmt(L.pts)} points · ${fmtSecs(L.secs)} · ${fmt(L.taken)} damage taken${L.sealed ? (L.rare ? ` · <b style="color:#ff5a5a">chest glowing red, still sealed</b>` : " · chest still sealed") : L.purple ? ` · <b style="color:var(--rare)">Purple: ${esc(ITEMS[L.purple].name)}</b>` : ""}</p><div class="raidloot">${Object.entries(L.items).map(([k, q]) => `<span>${icon(k)}${q > 1 ? fmt(q) + " " : ""}${esc(ITEMS[k].name)}</span>`).join("")}</div>`; }
   const pw = RAID_PURPLE.reduce((n, e) => n + e.weight, 0), ex = raidChance(16000);
   h += `<h3>Purple chest <span>about 1 in ${Math.round(1 / ex)} at 16,000 points</span></h3><div class="raidloot">` + RAID_PURPLE.map(e => `<span class="${has(e.item) ? "got" : ""}">${icon(e.item)}${esc(ITEMS[e.item].name)} <em>1/${fmt(Math.round(pw / e.weight / ex))}</em></span>`).join("") + `<span>${icon("pet_gloamling")}${esc(ITEMS.pet_gloamling.name)} <em>1/${fmt(1 / RAID_PET)}</em></span></div>`;
   h += `<p class="note">Purple chance = points ÷ ${fmt(RAID_PURPLE_DIV)} (max ${RAID_PURPLE_CAP * 100}%). Points: sentinels ${RAID_BY_ID.gloam_sentinel.pts}, thralls ${RAID_BY_ID.gloam_thrall.pts}, the ward ${RAID_BY_ID.gloam_rift.pts}, Vesper ${RAID_BY_ID.vesper.pts}, minus 2 per damage taken, plus a speed bonus (2 per second under 30 minutes). Extra thralls give no points. Every clear also gives 2–4 rolls on the common chest (gloam essence, runite, death runes, magic logs, duskbloom, sharks, diamonds…).</p>`;
@@ -2499,24 +2515,39 @@ function raidFail(sum) {
   log("Knocked out in the <b>Gloamspire</b>. Raid failed.", "r");
   state.raid = null;
 }
+// The loot is rolled now but stays in a sealed chest until you open it on the raid page.
+// A chest with a rare inside (a purple, the pet or a dragonstone) glows red.
 function raidFinish(sum) {
-  const R = state.raid, st = raidStats(), pts = raidPoints(), got = {};
-  const give = (k, q) => { trackedAdd("raid-gloamspire", k, q); sum.items[k] = (sum.items[k] || 0) + q; got[k] = (got[k] || 0) + q; };
+  const R = state.raid, st = raidStats(), pts = raidPoints(), items = {};
+  const put = (k, q) => { items[k] = (items[k] || 0) + q; };
   let purple = null;
   if (Math.random() < raidChance(pts) * (1 + 0.05 * apLvl("luck"))) {
-    purple = rollTable(RAID_PURPLE.map(e => ({ ...e, min: 1, max: 1 }))).item; give(purple, 1);
+    purple = rollTable(RAID_PURPLE.map(e => ({ ...e, min: 1, max: 1 }))).item; put(purple, 1);
     st.purples++; if (purple === "gloamreaper") st.scythes++;
-    sum.rare.push(ITEMS[purple].name); sum.uniques = (sum.uniques || []).concat(ITEMS[purple].name);
   }
   const rolls = 2 + (pts >= 12000 ? 1 : 0) + (pts >= 16000 ? 1 : 0);
-  for (let i = 0; i < rolls; i++) { const r = rollTable(RAID_COMMON); give(r.item, r.qty); if (ITEMS[r.item].rare) sum.rare.push(ITEMS[r.item].name); }
-  if (Math.random() < RAID_PET && !has("pet_gloamling")) { give("pet_gloamling", 1); sum.uniques = (sum.uniques || []).concat(ITEMS.pet_gloamling.name); }
+  for (let i = 0; i < rolls; i++) { const r = rollTable(RAID_COMMON); put(r.item, r.qty); }
+  if (Math.random() < RAID_PET && !has("pet_gloamling") && !(state.raidChests || []).some(c => c.items.pet_gloamling)) put("pet_gloamling", 1);
+  const rare = !!(purple || items.pet_gloamling || items.dragonstone);
   st.kc++; const secs = Math.round(R.rounds * ROUND_MS / 1000); if (!st.best || secs < st.best) st.best = secs;
-  st.last = { pts, secs, taken: R.taken, purple, items: got, at: Date.now() };
-  sum.notes.push(`Gloamspire complete in ${fmtSecs(secs)} with ${fmt(pts)} points${purple ? `. A purple chest: ${ITEMS[purple].name}!` : ""}`);
-  log(`Completed the <b>Gloamspire</b> (${fmt(pts)} points)${purple ? `: <b>${esc(ITEMS[purple].name)}</b>` : ""}`, purple ? "r" : "l");
+  (state.raidChests = state.raidChests || []).push({ id: st.kc + "-" + Date.now().toString(36), pts, secs, purple, rare, items, at: Date.now() });
+  st.last = { pts, secs, taken: R.taken, purple: null, rare, items: {}, at: Date.now(), sealed: true };
+  sum.notes.push(`Gloamspire complete in ${fmtSecs(secs)} with ${fmt(pts)} points.${rare ? " A red light glows from your chest!" : " Open your chest on the raid page"}`);
+  if (rare) { sum.rare.push("Glowing raid chest"); toast("Your Gloamspire chest is glowing red!", true); }
+  log(`Completed the <b>Gloamspire</b> (${fmt(pts)} points)${rare ? ". <b>The chest glows red!</b>" : ""}`, rare ? "r" : "l");
   state.raid = null; state.active = null; state.fight = null;
 }
+let raidOpened = null;   // the chest you just opened, shown on the raid page
+function raidOpen(id) {
+  const list = state.raidChests || [], i = list.findIndex(c => c.id === id); if (i < 0) return;
+  const c = list.splice(i, 1)[0];
+  for (const [k, q] of Object.entries(c.items)) trackedAdd("raid-gloamspire", k, q);
+  raidOpened = c; const st = raidStats(); st.last = Object.assign({}, st.last, { purple: c.purple, items: c.items, sealed: false });
+  if (c.purple) { toast(`Purple! ${ITEMS[c.purple].name}`, true); log(`Opened a Gloamspire chest: <b>${esc(ITEMS[c.purple].name)}</b>`, "r"); }
+  if (c.items.pet_gloamling) toast("The Gloamling crawls out of the chest and follows you!", true);
+  save(); render();
+}
+function raidOpenAll() { for (const c of (state.raidChests || []).slice()) raidOpen(c.id); }
 const fmtSecs = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 /* ================= SLAYER ================= */
@@ -2887,7 +2918,7 @@ function hideLevel() {
 /* Structure signature: the panel is only rebuilt when this changes. Everything else updates in place. */
 function signature() {
   const now = Date.now();
-  return JSON.stringify([tab, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
+  return JSON.stringify([tab, (state.raidChests || []).length, Object.keys(SKILLS).map(lvl), Object.keys(state.bank).sort(), state.active,
     state.patches.map(p => p && [p.crop, p.fert, now >= p.readyAt]), state.opts, state.feed.length && state.feed[0].t, saveDraft !== null, cloud.step, state.daily && state.daily.day, state.daily && state.daily.list ? state.daily.list.map(c => c.done).join() : "", state.weekly && state.weekly.list ? state.weekly.list.map(c => c.done).join() + state.weekly.week + !!(state.weekly.boss && state.weekly.boss.done) : "", state.dspecial && state.dspecial.day + state.dspecial.bought, tab === "dshop" || tab === "daily" ? qty(TOK) : 0, railKey(), tab === "shops" ? [shopSub, storeSec, storeMult, qty(TOK), qty(GLORY), state.slayer.points, apBalance(), JSON.stringify(state.apUp), state.dspecial && state.dspecial.bought, traderBoat] : 0, tab === "mini" ? [arenaLeft(), roofState().runs, roofState().best, qty(GLORY)] : 0, tab === "arena" ? [qty(GLORY), arena.opps ? arena.opps.map(o => o.name).join() : "", arena.fight ? [arena.fight.round, arena.fight.over] : 0, arenaState().fights] : 0, tab === "roof" ? [roof.last && roof.last.t, roofState().runs] : 0, logSub, tab === "clog" && logSub !== "clog" ? JSON.stringify(state.ach) + apBalance() + JSON.stringify(state.apUp) : 0, JSON.stringify(state.look), newsUnseen(), CLUE_TIERS.map(t => { const c = state.clues.held[t]; return [c ? c.step + c.cur.id : 0, qty("clue_reward_" + t)]; }), state.active && state.active.id, state.slayer.task && state.slayer.task.mon, SLAYER_SHOP.map(e => state.slayer.points >= e.price), state.slayer.points >= SKIP_COST, !!state.fight, state.hp <= 0, Object.keys(state.buffs), state.barrels.map(p => p && [p.brew, now >= p.readyAt]), Object.entries(state.boats).map(([k, t]) => [k, t && t.dest, t && now >= t.readyAt]), state.upgrades, traderBoat, bankSub, bankFilter, badges(), moreSub, bankSel, claimable(), state.loadouts, combatSub, eqSel, (tab === "more" && moreSub === "quests") ? QUESTS.map(q => questProgress(q)[0]) : 0, Object.keys(state.clog).length, clogPath, Object.values(state.clogSrc).reduce((n, e) => n + Object.keys(e).length, 0)]);
 }
 
@@ -2934,7 +2965,7 @@ const RAIL = [
 const railKey = () => tab === "raid" ? "raid:" : tab === "chat" ? "chat:" : tab === "friends" ? "friends:" : tab === "daily" ? "daily:" : tab === "shops" ? "shops:" : tab === "arena" || tab === "roof" || tab === "mini" ? "mini:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
 function renderRail() {
   const b = badges(), cur = railKey(); let h = "", g = "";
-  const badge = { "chat:": tab === "chat" ? 0 : chat.unread, "friends:": frRequests().length + pmUnread(), "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
+  const badge = { "raid:": (state.raidChests || []).length, "chat:": tab === "chat" ? 0 : chat.unread, "friends:": frRequests().length + pmUnread(), "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
   for (const [id, label, ic, tb, sub, grp] of RAIL) {
     if (grp !== g) { h += `${g ? '<span class="sep"></span>' : ""}<h4>${grp}</h4>`; g = grp; }
     const key = tb + ":" + sub, n = badge[key], dot = key === "more:news" && newsUnseen();
@@ -3584,6 +3615,10 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 51, date: "14 Oct 2026", title: "Raid chests", items: [
+    "Finishing the Gloamspire now leaves a sealed chest on the raid page. Tap it to open it and see your loot pop out.",
+    "If there's something rare inside (a purple, the Gloamling pet or a dragonstone), the chest glows red before you open it.",
+    "Chests from raids that ran while you were away wait for you to open them. The Raid menu shows how many are waiting, and \"Open all\" opens the lot." ] },
   { v: 50, date: "14 Oct 2026", title: "Raid: The Gloamspire", items: [
     "Thornwick's first raid. Find it under Combat › Raid. You need combat level 85 and Slayer 60 to enter.",
     "Four rooms in a row: armoured sentinels that only fear magic, a thrall nest that keeps spawning if you're slow, a torn ward you stitch shut with Crafting and Enchanting, and Vesper, the Gloam Warden, whose weakness changes as she weakens.",
@@ -4338,6 +4373,7 @@ const IC = {
 };
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
+  gloam_chest:["chest",["#3a3550","#1e1a2e","#c8c0e8","#5ae0d0"]], gloam_chest_red:["chest",["#5a1e24","#2e0f12","#ffb0a0","#ff3a3a"]],
   gloamreaper:["scythe",["#c8c0e8","#5ae0d0","#5ae0d0","#000"]], gloam_essence:["orb",["#2a2440","#14101f","#5ae0d0","#000"]],
   gloam_helm:["helm",["#3a3550","#1e1a2e","#5ae0d0","#000"]], gloam_body:["body",["#3a3550","#1e1a2e","#5ae0d0","#000"]], gloam_legs:["legs",["#3a3550","#1e1a2e","#5ae0d0","#000"]],
   gloam_kiteshield:["kite",["#3a3550","#1e1a2e","#5ae0d0","#000"]], pet_gloamling:["pet",["#2a2440","#14101f","#000","#5ae0d0"]],
@@ -5514,6 +5550,9 @@ document.addEventListener("click", e => {
   if (t.id === "hsRefresh") { hsLoad(true); return; }
   if (t.id === "chatSend") { chatSend(); return; }
   if (t.id === "raidStart") { raidStart(); return; }
+  if (t.dataset.rchest) { raidOpen(t.dataset.rchest); return; }
+  if (t.id === "raidOpenAll") { raidOpenAll(); return; }
+  if (t.id === "raidOpenedOk") { raidOpened = null; render(); return; }
   if (t.id === "raidResume") { raidResume(); return; }
   if (t.id === "raidLeave") { if (t.dataset.sure) raidLeave(); else { t.dataset.sure = "1"; t.textContent = "Tap again to leave"; } return; }
   if (t.id === "frAddBtn") { frAdd(fr.draft); return; }
