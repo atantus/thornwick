@@ -506,6 +506,13 @@ body.noscroll{overflow:hidden}
 .frbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px} .frbtns .btn{min-height:38px} .btn.danger{border-color:var(--danger);color:var(--danger)}
 .frtag{font-size:.72rem;font-weight:700;color:#8fd08f;border:1px solid #5fd06855;border-radius:999px;padding:1px 7px}
 .frset{display:flex;align-items:center;gap:8px;margin:14px 0 4px;font-size:.88rem}
+.raidrun{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin:10px 0} .raidrun div{border:1px solid var(--line);border-radius:10px;padding:6px 10px;display:flex;flex-direction:column} .raidrun span{font-size:.72rem;color:var(--muted)} .raidrun b{font-family:var(--f-num);font-size:1rem}
+.raidrooms{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.raidroom{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px 12px} .raidroom.cur{border-color:#5ae0d0;background:#5ae0d012} .raidroom.done{opacity:.6}
+.raidroom .rn{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#ffffff10;font-weight:800;flex:none} .raidroom.cur .rn{background:#5ae0d0;color:#0b0b0d}
+.raidroom .rt{flex:1;display:flex;flex-direction:column;min-width:0} .raidroom .rt span{font-size:.8rem;color:var(--muted)} .raidroom .rl{color:var(--text,#f2efe6)!important;margin-top:2px}
+.raidroom .rw{font-style:normal;font-weight:600;font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 8px;white-space:nowrap;margin-left:4px;vertical-align:1px}
+.raidloot{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0} .raidloot span{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:4px 8px;font-size:.82rem} .raidloot span.got{border-color:var(--rare)} .raidloot em{font-style:normal;color:var(--muted);font-family:var(--f-num);font-size:.72rem} .raidloot .ico{width:22px;height:22px}
 .frtabs{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;margin:0 0 12px}
 .frtabs button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;border:0;border-radius:9px;background:none;color:var(--muted);font:inherit;font-weight:700;cursor:pointer}
 .frtabs button[aria-selected="true"]{background:var(--ember);color:var(--bg)} .frtabs .badge{position:static}
@@ -871,6 +878,13 @@ const ITEMS = {
   mire_greaves:  { name: "Mire greaves",    desc: "Bog horror unique. Legs, Defence 35.", rare: true, sell: 6000 },
   gargant_maul:  { name: "Gargant maul",    desc: "Stone gargant unique. Weapon, Attack 60. Hits very hard.", rare: true, sell: 20000 },
   voidlash:      { name: "Voidlash",        desc: "Void stalker unique. Weapon, Attack 75. Very accurate.", rare: true, sell: 40000 },
+  gloam_essence: { name: "Gloam essence",   desc: "Shadowy fuel from the Gloamspire. The Gloamreaper uses one per swing for its extra hits.", sell: 15 },
+  gloam_helm:    { name: "Gloam helm",      desc: "Gloamspire unique. Head, Defence 36, Melee strength +4 (needs Defence 85). Full Gloam set: +5% melee damage.", rare: true, sell: 120000 },
+  gloam_body:    { name: "Gloam body",      desc: "Gloamspire unique. Body, Defence 94, Melee strength +6 (needs Defence 85). Full Gloam set: +5% melee damage.", rare: true, sell: 200000 },
+  gloam_legs:    { name: "Gloam legs",      desc: "Gloamspire unique. Legs, Defence 58, Melee strength +5 (needs Defence 85). Full Gloam set: +5% melee damage.", rare: true, sell: 150000 },
+  gloam_kiteshield:{ name: "Gloam kiteshield", desc: "Gloamspire unique. Shield, Defence 56 (needs Defence 85). The best shield in Thornwick.", rare: true, sell: 140000 },
+  gloamreaper:   { name: "Gloamreaper",     desc: "Gloamspire unique. Two-handed scythe, Attack 85. Hits three times (100%, 50%, 25%) against bosses and big monsters, using a gloam essence per swing. The best melee weapon in Thornwick.", rare: true, sell: 900000 },
+  pet_gloamling: { name: "Gloamling",       desc: "Gloamspire pet. A scrap of living shadow with two bright eyes.", rare: true },
   hide:          { name: "Hide",            desc: "A rough animal hide. Tan it into leather with Crafting.", sell: 6 },
   leather:       { name: "Leather",         desc: "Tanned hide, ready to craft.", sell: 14 },
   leather_cowl:  { name: "Leather cowl",    desc: "Crafted. Head, Defence 3.", sell: 10 },
@@ -1506,6 +1520,31 @@ const MONSTERS = [
     table:[{item:null,weight:8},{item:"coins",weight:40,min:1200,max:3000},{item:"death_rune",weight:15,min:12,max:30},{item:"runite_bar",weight:10,min:1,max:3},{item:"runite_ore",weight:8,min:2,max:3},{item:"uncut_diamond",weight:6,min:1,max:1},{item:"casket",weight:6,min:1,max:2},{item:"magic_seed",weight:3,min:1,max:1}],
     uniques:[{item:"riftfang",chance:1/240},{item:"pet_riftling",chance:1/4000}] },
 ];
+/* ================= RAID: THE GLOAMSPIRE =================
+   A solo idle raid: four rooms in a row, then a chest. Raid monsters live in RAID_MONS (not MONSTERS), so they never
+   show in the Fight list, Slayer tasks or the Boss of the week. Points come from what you kill, minus damage taken;
+   points set the chance of the rare (purple) chest. Knocked out = the raid ends with nothing. */
+const RAID_MONS = [
+  { id:"gloam_sentinel", name:"Gloam sentinel", raid:true, weak:"magic", resist:0.55, lvl:85, hp:340, att:100, def:125, max:22, pts:680, always:[], table:[], uniques:[] },
+  { id:"gloam_thrall",   name:"Gloam thrall",   raid:true, weak:"ranged", lvl:85, hp:90,  att:96,  def:80,  max:18, pts:180, always:[], table:[], uniques:[] },
+  { id:"gloam_rift",     name:"Torn ward",      raid:true, raidSkill:true, lvl:85, hp:260, att:0, def:0, max:0, pts:2500, always:[], table:[], uniques:[] },
+  { id:"vesper",         name:"Vesper, the Gloam Warden", raid:true, boss:true, weak:"melee", resist:0.6, lvl:85, hp:2600, att:112, def:110, max:28, special:45, pts:7800, always:[], table:[], uniques:[] },
+];
+const RAID_ROOMS = [
+  { id:"sentinels", name:"Sentinel hall",   mon:"gloam_sentinel", count:6,  desc:"Armoured sentinels that shrug off everything except magic." },
+  { id:"thralls",   name:"Thrall nest",     mon:"gloam_thrall",   count:14, desc:"Weak to ranged. Another thrall crawls out every 12 rounds, so kill them fast." },
+  { id:"ward",      name:"The torn ward",   mon:"gloam_rift",     count:1,  desc:"Stitch the ward shut with Crafting and Enchanting. Rune essence speeds it up." },
+  { id:"vesper",    name:"Vesper's throne", mon:"vesper",         count:1,  desc:"Weak to melee, then ranged below 2/3 hp, then magic below 1/3. A crushing blow every 6th round." },
+];
+const RAID_REQ = { combat: 85, slayer: 60 }, RAID_PURPLE_DIV = 400000, RAID_PURPLE_CAP = 0.25, RAID_PET = 1 / 650;
+const RAID_PURPLE = [{ item:"gloam_helm", weight:3 }, { item:"gloam_legs", weight:3 }, { item:"gloam_kiteshield", weight:3 }, { item:"gloam_body", weight:2 }, { item:"gloamreaper", weight:1 }];
+const RAID_COMMON = [
+  { item:"coins", weight:20, min:20000, max:50000 }, { item:"gloam_essence", weight:16, min:150, max:400 }, { item:"runite_bar", weight:12, min:3, max:8 },
+  { item:"death_rune", weight:12, min:80, max:200 }, { item:"magic_logs", weight:10, min:30, max:60 }, { item:"herb_duskbloom", weight:10, min:5, max:12 },
+  { item:"shark", weight:10, min:15, max:30 }, { item:"cut_diamond", weight:6, min:1, max:2 }, { item:"magic_seed", weight:3, min:1, max:2 }, { item:"dragonstone", weight:1, min:1, max:1 },
+];
+const RAID_BY_ID = Object.fromEntries(RAID_MONS.map(m => [m.id, m]));
+
 // Skilling pets: one per skill. Rolled per action, so the odds depend on time spent, not on how fast the action is.
 const SKILL_PETS = { woodcutting:"pet_twiglet", firemaking:"pet_cinder", farming:"pet_burrow", fishing:"pet_puffin", cooking:"pet_crumb", mining:"pet_pebble", smithing:"pet_clinker", fletching:"pet_quill", crafting:"pet_stitch", enchanting:"pet_glimmer", brewing:"pet_hops", agility:"pet_scamper", thieving:"pet_fidget", slayer:"pet_grimling" };
 const PET_HOURS = 60;               // average hours of training per pet at a mid-level action
@@ -1547,7 +1586,7 @@ const SLAYER_SHOP = [
 ];
 const SKIP_COST = 30, SLAYER_XP = 6;   // Slayer xp per monster hitpoint, on task
 // Gear: best piece you own and meet the level for is used automatically
-const WEAPONS = [ ["riftfang",80,80,72], ["thornlash_blade",60,60,56], ["lizard_glaive",20,23,19], ["pvp_greatsword",75,70,68], ["pvp_warblade",60,56,58], ["pvp_sabre",40,44,34], ["dawnforged_blade",75,72,66], ["voidlash",75,74,58], ["gilded_scimitar",65,58,50], ["voidreaver",70,66,60], ["gargant_maul",60,44,64], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
+const WEAPONS = [ ["gloamreaper",85,78,84], ["riftfang",80,80,72], ["thornlash_blade",60,60,56], ["lizard_glaive",20,23,19], ["pvp_greatsword",75,70,68], ["pvp_warblade",60,56,58], ["pvp_sabre",40,44,34], ["dawnforged_blade",75,72,66], ["voidlash",75,74,58], ["gilded_scimitar",65,58,50], ["voidreaver",70,66,60], ["gargant_maul",60,44,64], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
 const ARMOURS = [ ["lizardscale_body",20,34], ["hardleather_body",10,18], ["cinderscale_body",65,90], ["champ_body",65,88], ["pit_body",40,64], ["colossus_plate",70,95], ["troll_hide",60,85], ["runite_platebody",55,72], ["cobalt_platebody",40,60], ["drake_scale",50,75], ["mithril_platebody",30,46], ["steel_platebody",20,32], ["iron_platebody",10,21], ["leather_body",1,8] ]; // id, defence req, defence bonus
 const PETS = ["pet_spiderling","pet_thornling","pet_wyvernling","pet_riftling","pet_chick","pet_goblin","pet_magpie","pet_giant","pet_squire","pet_drakeling","pet_troll","pet_wraith","pet_colossus","pet_gull","pet_parrot"];
 const FOOD = { eel:26, anglerfish:22, shark:20, sunfruit:18, swordfish:14, lobster:12, salmon:9, trout:7, baked_potato:4, cooked_chicken:3, shrimp:3, ship_biscuit:2 };
@@ -1784,7 +1823,7 @@ function logSrc(src, item, q) {
 }
 function trackedAdd(src, item, q) { trackedDrop = true; add(item, q); trackedDrop = false; logSrc(src, item, q); }
 const ACTIONS = { brewing: POTIONS, fletching: FLETCH, crafting: CRAFT, enchanting: ENCHANT, mining: ROCKS, smithing: SMITH, combat: MONSTERS, woodcutting: TREES, firemaking: FIRES, fishing: SPOTS, cooking: RECIPES, agility: COURSES, thieving: TARGETS };
-const findAction = (skill, id) => (ACTIONS[skill] || []).find(a => a.id === id);
+const findAction = (skill, id) => (skill === "combat" && RAID_BY_ID[id]) || (ACTIONS[skill] || []).find(a => a.id === id);
 const cropById = id => CROPS.find(c => c.id === id);
 const totalLevel = () => Object.keys(SKILLS).reduce((s, k) => s + lvl(k), 0);
 
@@ -1841,6 +1880,8 @@ Object.assign(GEAR, {
   pit_helm:{ slot:"head", req:["defence", 40], def:22 }, pit_legs:{ slot:"legs", req:["defence", 40], def:38 }, pit_shield:{ slot:"shield", req:["defence", 40], def:32 },
   champ_helm:{ slot:"head", req:["defence", 65], def:32 }, champ_legs:{ slot:"legs", req:["defence", 65], def:52 }, champ_shield:{ slot:"shield", req:["defence", 65], def:44 },
   bandit_mask:{ slot:"head", def:2 }, smuggler_coat:{ slot:"body", def:15 },
+  gloam_helm:{ slot:"head", req:["defence", 85], def:36, mstr:4 }, gloam_body:{ slot:"body", req:["defence", 85], def:94, mstr:6 }, gloam_legs:{ slot:"legs", req:["defence", 85], def:58, mstr:5 },
+  gloam_kiteshield:{ slot:"shield", req:["defence", 85], def:56 },
   leather_cowl:{ slot:"head", def:3 }, leather_chaps:{ slot:"legs", def:5 }, silk_cape:{ slot:"cape", def:3 }, batwing_cape:{ slot:"cape", def:6 }, void_cloak:{ slot:"cape", def:14 },
   shellguard:{ slot:"shield", req:["defence", 20], def:22 }, spined_helm:{ slot:"head", req:["defence", 50], def:30 }, stone_greaves:{ slot:"legs", req:["defence", 55], def:46 },
   emberscale_legs:{ slot:"legs", req:["defence", 65], def:56 }, wyvernbone_helm:{ slot:"head", req:["defence", 75], def:38 }, rift_buckler:{ slot:"shield", req:["defence", 80], def:52 },
@@ -1862,6 +1903,7 @@ Object.assign(GEAR, {
   kindling_amulet:{ slot:"amulet" }, seam_amulet:{ slot:"amulet" }, plenty_amulet:{ slot:"amulet" }, deep_amulet:{ slot:"amulet" }, knight_oath:{ slot:"amulet" }, silver_locket:{ slot:"amulet" },
   tide_ring:{ slot:"ring" }, roots_ring:{ slot:"ring" }, fury_ring:{ slot:"ring" }, wealth_ring:{ slot:"ring" }, forester_ring:{ slot:"ring" }, gold_signet:{ slot:"ring" },
 });
+Object.assign(GEAR.gloamreaper, { twoH: true, hits: [1, 0.5, 0.25] });
 const loadout = () => { const k = state.opts.ctype || "melee"; return (state.loadouts[k] = state.loadouts[k] || {}); };
 const canWear = id => { const g = GEAR[id]; return !!g && has(id) && (!g.req || lvl(g.req[0]) >= g.req[1]); };
 const eq = slot => { const id = loadout()[slot]; return id && canWear(id) ? id : null; };
@@ -1925,21 +1967,31 @@ function attackRoll() {
   if (t === "magic") return (lvl("magic") + 9) * ((staff() ? staff()[2] : 0) + mageAcc() + 64);
   return (lvl("attack") + 8 + (state.opts.style === "attack" ? 3 : 0)) * ((weapon() ? weapon()[2] : 0) + 64);
 }
-const playerAcc = m => Math.min(0.98, potAcc() * (worn("knight_oath") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1) * (m.weak === ctype() ? 1.3 : 1) * hitChance(attackRoll(), (m.def + 9) * 64));
+const playerAcc = m => Math.min(0.98, potAcc() * (worn("knight_oath") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1) * (m.weak === ctype() ? 1.3 : m.resist || 1) * hitChance(attackRoll(), (m.def + 9) * 64));
 function baseMax() {
   const t = ctype();
   if (t === "ranged") return 0.5 + (lvl("ranged") + 8) * ((arrow() ? arrow()[1] : 0) + 64) / 640;
   if (t === "magic") return spellOf().max + (has("archmage_staff") && lvl("magic") >= 45 ? 2 : 0);
-  return 0.5 + (lvl("strength") + 8 + (state.opts.style === "strength" ? 3 : 0)) * ((weapon() ? weapon()[3] : 0) + 64) / 640;
+  return 0.5 + (lvl("strength") + 8 + (state.opts.style === "strength" ? 3 : 0)) * ((weapon() ? weapon()[3] : 0) + meleeStr() + 64) / 640;
 }
 // mage armour: magic accuracy and % magic damage from worn robes (magic loadout)
 const mageAcc = () => SLOTS.reduce((n, sl) => n + ((GEAR[eq(sl)] || {}).macc || 0), 0);
 const fullVoid = () => ["voidweave_hood", "voidweave_robe", "voidweave_skirt"].every(worn);
+const meleeStr = () => SLOTS.reduce((n, sl) => n + ((GEAR[eq(sl)] || {}).mstr || 0), 0);
+const fullGloam = () => ["gloam_helm", "gloam_body", "gloam_legs"].every(worn);
+// the scythe hits three times (100/50/25%) against big foes, using one gloam essence per swing
+const bigFoe = m => !!(m.boss || m.hp >= 150);
+function swingHits(m, sum) {
+  const g = GEAR[eq("weapon")];
+  if (!g || !g.hits || ctype() !== "melee" || !bigFoe(m) || !has("gloam_essence")) return [1];
+  add("gloam_essence", -1); sum.items.gloam_essence = (sum.items.gloam_essence || 0) - 1;
+  return g.hits;
+}
 const rangeAcc = () => SLOTS.reduce((n, sl) => n + ((GEAR[eq(sl)] || {}).racc || 0), 0);
 const fullStorm = () => ["stormhide_cowl", "stormhide_body", "stormhide_chaps"].every(worn);
 const rangeDmg = () => SLOTS.reduce((n, sl) => n + ((GEAR[eq(sl)] || {}).rdmg || 0), 0) + (fullStorm() ? 5 : 0);
 const mageDmg = () => SLOTS.reduce((n, sl) => n + ((GEAR[eq(sl)] || {}).mdmg || 0), 0) + (fullVoid() ? 5 : 0);
-const playerMax = () => 1 + Math.max(1, Math.floor(baseMax() * (ctype() === "magic" ? 1 + mageDmg() / 100 : ctype() === "ranged" ? 1 + rangeDmg() / 100 : 1) * potMax() * (worn("fury_ring") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1)));
+const playerMax = () => 1 + Math.max(1, Math.floor(baseMax() * (ctype() === "magic" ? 1 + mageDmg() / 100 : ctype() === "ranged" ? 1 + rangeDmg() / 100 : fullGloam() ? 1.05 : 1) * potMax() * (worn("fury_ring") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1)));
 const foeAcc = m => potDef() * hitChance((m.att + 9) * 64, (lvl("defence") + 8 + (state.opts.style === "defence" ? 3 : 0)) * (defBonus() + 64)) * (has("warding_charm") ? 0.85 : 1) * (worn("knight_oath") ? 0.9 : 1) * (worn("gaze_amulet") ? 0.95 : 1);
 const bestFood = () => Object.keys(FOOD).find(has);
 const foodCount = () => Object.keys(FOOD).reduce((s, f) => s + qty(f), 0);
@@ -1951,7 +2003,9 @@ function regen(ms) {
   state.regen += ms * (has("drake_heart") ? 2 : 1); const n = Math.floor(state.regen / REGEN_MS); state.regen -= n * REGEN_MS; state.hp = Math.min(maxHp(), state.hp + n);
 }
 function fightRound(m, sum) {
-  if (!state.fight || state.fight.id !== m.id) state.fight = { id: m.id, mhp: m.hp };
+  if (m.raid && !state.raid) { state.active = null; state.fight = null; return true; }
+  if (!state.fight || state.fight.id !== m.id) state.fight = { id: m.id, mhp: m.raid && state.raid.mhp ? state.raid.mhp : m.hp };
+  if (m.raid) { raidPrep(m, sum); if (m.raidSkill) return raidWardRound(m, sum); }
   regen(roundMs());
   if (state.fight.resting) { if (state.hp >= maxHp()) state.fight.resting = false; return true; }
   autoPotions();
@@ -1965,9 +2019,10 @@ function fightRound(m, sum) {
   // you attack
   let landed = 0;
   const helm = onTask(m) && worn("slayer_helm") ? 1.15 : 1;
-  if (Math.random() < Math.min(0.98, playerAcc(m) * helm)) {
-    const dmg = Math.min(state.fight.mhp, Math.floor(Math.random() * (Math.floor(playerMax() * helm) + 1)));
-    landed = dmg;
+  for (const mult of swingHits(m, sum)) {
+    if (state.fight.mhp <= 0 || !(Math.random() < Math.min(0.98, playerAcc(m) * helm))) continue;
+    const dmg = Math.min(state.fight.mhp, Math.floor(Math.random() * (Math.floor(playerMax() * helm * mult) + 1)));
+    landed += dmg;
     if (dmg > 0) {
       state.fight.mhp -= dmg;
       const skill = t === "ranged" ? "ranged" : t === "magic" ? "magic" : state.opts.style;
@@ -1977,6 +2032,7 @@ function fightRound(m, sum) {
   // xp drops for the scene: what each skill actually gained this hit (after all bonuses)
   const xpGot = XPS.map((k, i) => [k, (state.xp[k] || 0) - xp0[i]]).filter(([, v]) => v >= 0.5).map(([k, v]) => [k, Math.round(v)]);
   fx({ t:"swing", dmg: landed, ctype: t, spell: t === "magic" ? spellOf().id : null, mon: m.id, xp: xpGot });
+  if (m.raid && state.fight.mhp <= 0) { fx({ t:"kill", mon: m.id }); state.kills[m.id] = (state.kills[m.id] || 0) + 1; raidKill(m, sum); return true; }
   if (state.fight.mhp <= 0) {
     fx({ t:"kill", mon: m.id });
     state.kills[m.id] = (state.kills[m.id] || 0) + 1; sum.kills = (sum.kills || 0) + 1;
@@ -1996,14 +2052,16 @@ function fightRound(m, sum) {
   }
   // it swings back
   let taken = 0;
-  if (Math.random() < foeAcc(m)) { taken = Math.floor(Math.random() * (m.max + 1)); state.hp -= taken; }
+  const mmax = m.special && state.raid && state.raid.roomRounds % 6 === 0 ? m.special : m.max;
+  if (Math.random() < foeAcc(m)) { taken = Math.floor(Math.random() * (mmax + 1)); state.hp -= taken; }
+  if (m.raid) { state.raid.taken += taken; state.raid.mhp = state.fight.mhp; }
   fx({ t:"hurt", dmg: taken, mon: m.id });
   // auto-eat
   while (state.hp > 0 && state.hp <= maxHp() * EAT_AT && bestFood()) {
     const f = bestFood(); add(f, -1); const heal = Math.round((FOOD[f] + (has("drake_heart") ? 2 : 0) + 2 * apLvl("rations")) * (buffOn("p_mend") ? 1.5 : 1)); fx({ t:"eat", heal }); state.hp = Math.min(maxHp(), state.hp + heal); sum.items[f] = (sum.items[f] || 0) - 1; sum.ate = (sum.ate || 0) + 1;
   }
-  if (state.hp <= 0) { state.hp = 0; state.fight = null; sum.notes.push(`${m.name} knocked you out. Rest to recover hitpoints`); state.active = null; return true; }
-  if (state.hp <= maxHp() * 0.3 && !bestFood()) { state.fight.resting = true; state.fight.mhp = m.hp; sum.rests = (sum.rests || 0) + 1; }
+  if (state.hp <= 0) { state.hp = 0; state.fight = null; if (m.raid) raidFail(sum); else sum.notes.push(`${m.name} knocked you out. Rest to recover hitpoints`); state.active = null; return true; }
+  if (state.hp <= maxHp() * 0.3 && !bestFood()) { state.fight.resting = true; if (!m.raid) state.fight.mhp = m.hp; sum.rests = (sum.rests || 0) + 1; }
   return true;
 }
 const buffOn = id => (state.buffs[id] || 0) > 0;
@@ -2093,7 +2151,7 @@ function gainXp(skill, x, sum) {
 }
 
 /* ================= PETS ================= */
-const allPets = () => [...PETS, ...Object.values(SKILL_PETS), "pet_sniffer", "pet_tock", "pet_lumen", "pet_brawler", "pet_scamp"];
+const allPets = () => [...PETS, ...Object.values(SKILL_PETS), "pet_gloamling", "pet_sniffer", "pet_tock", "pet_lumen", "pet_brawler", "pet_scamp"];
 function givePet(skill, sum) {
   const pet = SKILL_PETS[skill]; if (!pet || has(pet)) return;
   add(pet, 1); sum.items[pet] = (sum.items[pet] || 0) + 1;
@@ -2353,6 +2411,113 @@ function clueGo(tier) {
   state.active = { skill: c.cur.skill, id: c.cur.id }; state.progress = 0;
   if (c.cur.skill === "combat") { state.fight = null; tab = "combat"; combatSub = "fight"; } else tab = c.cur.skill;
 }
+
+/* ================= RAID LOGIC ================= */
+function raidPanel() {
+  const st = raidStats(), R = state.raid, lock = raidLocked(), inRaid = R && state.active && RAID_BY_ID[state.active.id];
+  let h = `<div class="pagehead"><h2>The Gloamspire</h2><span>${fmt(st.kc)} ${st.kc === 1 ? "clear" : "clears"}</span></div>`;
+  h += `<p class="note">A raid for seasoned fighters: four rooms in a row, then a chest. Bring food and potions, and set up your melee, ranged and magic loadouts first. The more you kill and the less damage you take, the better your chance of a <b style="color:var(--rare)">purple chest</b>. If you're knocked out, the raid ends with nothing.</p>`;
+  if (R) {
+    h += `<canvas id="scene" class="scene" role="img" aria-label="Raid battle"></canvas>`;
+    h += `<div class="raidrun"><div><span>Room</span><b>${R.room + 1} / ${RAID_ROOMS.length}</b></div><div><span>Points (incl. speed bonus)</span><b id="raidPts">${fmt(raidPoints())}</b></div><div><span>Purple chance</span><b id="raidChance">${(raidChance(raidPoints()) * 100).toFixed(1)}%</b></div><div><span>Damage taken</span><b id="raidTaken">${fmt(R.taken)}</b></div><div><span>Time</span><b id="raidTime">${fmtSecs(Math.round(R.rounds * ROUND_MS / 1000))}</b></div></div>`;
+  }
+  h += `<div class="raidrooms">` + RAID_ROOMS.map((r, i) => { const m = RAID_BY_ID[r.mon], cur = R && R.room === i, done = R && R.room > i;
+    return `<div class="raidroom ${cur ? "cur" : ""} ${done ? "done" : ""}"><div class="rn">${done ? "✓" : i + 1}</div><div class="rt"><b>${esc(r.name)} <em class="rw">${m.raidSkill ? "Skilling" : m.id === "vesper" ? "Changes weakness" : `Weak to ${CTYPES[m.weak].toLowerCase()}`}</em></b><span>${esc(r.desc)}</span>
+      ${cur ? `<span class="rl">${m.raidSkill ? `Ward left: <b id="raidHp">${Math.max(0, Math.ceil(state.fight ? state.fight.mhp : m.hp))} / ${m.hp}</b>` : `${r.count > 1 ? `Left: <b id="raidLeft">${fmt(R.left)}</b> · ` : ""}HP <b id="raidHp">${state.fight ? `${Math.max(0, state.fight.mhp)} / ${m.hp}` : `${m.hp}`}</b>`} <span id="raidPhase" class="ok">${m.id === "vesper" ? `weak to ${vesperWeak()}` : ""}</span></span>` : ""}</div></div></div>`; }).join("") + `</div>`;
+  if (lock) h += `<p class="note lock">${lock} to enter.</p>`;
+  else if (!R) h += `<div class="row"><button class="btn solid" id="raidStart">Enter the Gloamspire</button></div>${bestFood() ? "" : `<p class="note lock">You have no food. Take some, or you'll have to rest mid-raid.</p>`}`;
+  else h += `<div class="row">${inRaid ? "" : `<button class="btn solid" id="raidResume">Resume raid</button>`}<button class="btn" id="raidLeave">Leave raid</button></div>${inRaid ? "" : `<p class="note">The raid is paused while you do something else.</p>`}`;
+  h += `<label class="frset"><input type="checkbox" id="raidSwap" ${state.opts.raidSwap !== false ? "checked" : ""}> Switch to the loadout each room is weak to (if that loadout is ready)</label>`;
+  if (st.last) { const L = st.last;
+    h += `<h3>Last raid</h3><p class="note">${fmt(L.pts)} points · ${fmtSecs(L.secs)} · ${fmt(L.taken)} damage taken${L.purple ? ` · <b style="color:var(--rare)">Purple: ${esc(ITEMS[L.purple].name)}</b>` : ""}</p><div class="raidloot">${Object.entries(L.items).map(([k, q]) => `<span>${icon(k)}${q > 1 ? fmt(q) + " " : ""}${esc(ITEMS[k].name)}</span>`).join("")}</div>`; }
+  const pw = RAID_PURPLE.reduce((n, e) => n + e.weight, 0), ex = raidChance(16000);
+  h += `<h3>Purple chest <span>about 1 in ${Math.round(1 / ex)} at 16,000 points</span></h3><div class="raidloot">` + RAID_PURPLE.map(e => `<span class="${has(e.item) ? "got" : ""}">${icon(e.item)}${esc(ITEMS[e.item].name)} <em>1/${fmt(Math.round(pw / e.weight / ex))}</em></span>`).join("") + `<span>${icon("pet_gloamling")}${esc(ITEMS.pet_gloamling.name)} <em>1/${fmt(1 / RAID_PET)}</em></span></div>`;
+  h += `<p class="note">Purple chance = points ÷ ${fmt(RAID_PURPLE_DIV)} (max ${RAID_PURPLE_CAP * 100}%). Points: sentinels ${RAID_BY_ID.gloam_sentinel.pts}, thralls ${RAID_BY_ID.gloam_thrall.pts}, the ward ${RAID_BY_ID.gloam_rift.pts}, Vesper ${RAID_BY_ID.vesper.pts}, minus 2 per damage taken, plus a speed bonus (2 per second under 30 minutes). Extra thralls give no points. Every clear also gives 2–4 rolls on the common chest (gloam essence, runite, death runes, magic logs, duskbloom, sharks, diamonds…).</p>`;
+  h += `<h3>Records</h3><div class="raidrun"><div><span>Clears</span><b>${fmt(st.kc)}</b></div><div><span>Best time</span><b>${st.best ? fmtSecs(st.best) : "–"}</b></div><div><span>Purples</span><b>${fmt(st.purples)}</b></div><div><span>Gloamreapers</span><b>${fmt(st.scythes)}</b></div></div>`;
+  return h;
+}
+const raidRoom = () => state.raid ? RAID_ROOMS[state.raid.room] : null;
+const raidStats = () => (state.raidStats = state.raidStats || { kc: 0, best: 0, purples: 0, scythes: 0, last: null });
+function raidLocked() {
+  const out = [];
+  if (combatLevel() < RAID_REQ.combat) out.push(`combat level ${RAID_REQ.combat}`);
+  if (lvl("slayer") < RAID_REQ.slayer) out.push(`Slayer ${RAID_REQ.slayer}`);
+  return out.length ? "Needs " + out.join(" and ") : "";
+}
+const raidChance = pts => Math.min(RAID_PURPLE_CAP, Math.max(0, pts) / RAID_PURPLE_DIV);
+// points: kills and the ward, minus 2 per damage taken, plus a speed bonus that runs out after 30 minutes
+const raidSecs = () => state.raid ? Math.round(state.raid.rounds * ROUND_MS / 1000) : 0;
+const raidPoints = () => state.raid ? Math.max(0, state.raid.pts - 2 * state.raid.taken + Math.max(0, 1800 - raidSecs()) * 2) : 0;
+const vesperWeak = () => { const f = (state.fight && state.fight.id === "vesper" ? state.fight.mhp : state.raid && raidRoom() && raidRoom().mon === "vesper" && state.raid.mhp ? state.raid.mhp : RAID_BY_ID.vesper.hp) / RAID_BY_ID.vesper.hp; return f > 2 / 3 ? "melee" : f > 1 / 3 ? "ranged" : "magic"; };
+// switch to the loadout this room is weak to (if that loadout can attack); otherwise stay put
+function raidSwap(weak) {
+  if (state.opts.raidSwap === false || !weak) return;
+  const cur = state.opts.ctype || "melee"; if (cur === weak) return;
+  state.opts.ctype = weak; if (ctype() !== weak || attackBlock()) state.opts.ctype = cur;
+}
+function raidEnterRoom() {
+  const r = raidRoom(), m = RAID_BY_ID[r.mon];
+  state.raid.left = r.count; state.raid.roomRounds = 0; state.raid.mhp = null; state.fight = null;
+  state.active = { skill: "combat", id: m.id }; state.progress = 0;
+  if (m.id === "vesper") m.weak = "melee";
+  raidSwap(m.weak);
+}
+function raidStart() {
+  const lock = raidLocked(); if (lock) return toast(lock);
+  state.raid = { room: 0, pts: 0, taken: 0, rounds: 0, roomRounds: 0, left: 0, mhp: null };
+  raidEnterRoom(); toast("You climb into the Gloamspire…"); render();
+}
+function raidResume() { if (!state.raid) return; const m = RAID_BY_ID[raidRoom().mon]; if (m.id === "vesper") m.weak = vesperWeak(); state.active = { skill: "combat", id: m.id }; state.progress = 0; raidSwap(m.id === "vesper" ? vesperWeak() : m.weak); render(); }
+function raidLeave() { if (!state.raid) return; if (state.active && RAID_BY_ID[state.active.id]) state.active = null; state.raid = null; state.fight = null; toast("You left the Gloamspire. Nothing was kept."); render(); }
+// each round in the raid: time, thrall spawns, Vesper's phases
+function raidPrep(m, sum) {
+  const R = state.raid; R.rounds++; R.roomRounds++;
+  if (m.id === "gloam_thrall" && R.roomRounds % 12 === 0 && R.left < 20) R.left++;
+  if (m.id === "vesper") { const w = vesperWeak(); if (m.weak !== w) { m.weak = w; raidSwap(w); } }
+}
+function raidWardRound(m, sum) {
+  regen(roundMs());
+  let p = 2 + (lvl("crafting") + lvl("enchanting")) / 30;
+  if (has("rune_essence")) { add("rune_essence", -1); sum.items.rune_essence = (sum.items.rune_essence || 0) - 1; p *= 1.5; }
+  state.fight.mhp -= p; state.raid.mhp = state.fight.mhp;
+  gainXp("crafting", 30, sum); gainXp("enchanting", 30, sum);
+  fx({ t:"swing", dmg: Math.round(p), ctype: "magic", spell: "wind", mon: m.id, xp: [["crafting", 30], ["enchanting", 30]] });
+  if (state.fight.mhp <= 0) { fx({ t:"kill", mon: m.id }); raidKill(m, sum); }
+  return true;
+}
+function raidKill(m, sum) {
+  const R = state.raid; R.left--;
+  if (m.id !== "gloam_thrall" || (R.thrallPts = (R.thrallPts || 0) + 1) <= RAID_ROOMS[1].count) R.pts += m.pts;   // extra thralls that crawled out give no points R.mhp = null; state.fight = null;
+  if (R.left > 0) return;
+  R.room++;
+  if (R.room >= RAID_ROOMS.length) return raidFinish(sum);
+  sum.notes.push(`Gloamspire: ${RAID_ROOMS[R.room - 1].name} cleared. On to ${RAID_ROOMS[R.room].name}`);
+  raidEnterRoom();
+}
+function raidFail(sum) {
+  sum.notes.push("You were knocked out in the Gloamspire. The raid is over and nothing was kept");
+  log("Knocked out in the <b>Gloamspire</b>. Raid failed.", "r");
+  state.raid = null;
+}
+function raidFinish(sum) {
+  const R = state.raid, st = raidStats(), pts = raidPoints(), got = {};
+  const give = (k, q) => { trackedAdd("raid-gloamspire", k, q); sum.items[k] = (sum.items[k] || 0) + q; got[k] = (got[k] || 0) + q; };
+  let purple = null;
+  if (Math.random() < raidChance(pts) * (1 + 0.05 * apLvl("luck"))) {
+    purple = rollTable(RAID_PURPLE.map(e => ({ ...e, min: 1, max: 1 }))).item; give(purple, 1);
+    st.purples++; if (purple === "gloamreaper") st.scythes++;
+    sum.rare.push(ITEMS[purple].name); sum.uniques = (sum.uniques || []).concat(ITEMS[purple].name);
+  }
+  const rolls = 2 + (pts >= 12000 ? 1 : 0) + (pts >= 16000 ? 1 : 0);
+  for (let i = 0; i < rolls; i++) { const r = rollTable(RAID_COMMON); give(r.item, r.qty); if (ITEMS[r.item].rare) sum.rare.push(ITEMS[r.item].name); }
+  if (Math.random() < RAID_PET && !has("pet_gloamling")) { give("pet_gloamling", 1); sum.uniques = (sum.uniques || []).concat(ITEMS.pet_gloamling.name); }
+  st.kc++; const secs = Math.round(R.rounds * ROUND_MS / 1000); if (!st.best || secs < st.best) st.best = secs;
+  st.last = { pts, secs, taken: R.taken, purple, items: got, at: Date.now() };
+  sum.notes.push(`Gloamspire complete in ${fmtSecs(secs)} with ${fmt(pts)} points${purple ? `. A purple chest: ${ITEMS[purple].name}!` : ""}`);
+  log(`Completed the <b>Gloamspire</b> (${fmt(pts)} points)${purple ? `: <b>${esc(ITEMS[purple].name)}</b>` : ""}`, purple ? "r" : "l");
+  state.raid = null; state.active = null; state.fight = null;
+}
+const fmtSecs = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 /* ================= SLAYER ================= */
 const onTask = m => !!(state.slayer && state.slayer.task && state.slayer.task.mon === m.id && state.slayer.task.left > 0);
@@ -2733,7 +2898,7 @@ const SKILL_GROUPS = [
 ];
 const SECTIONS = [["skills","Skills","✦"],["combat","Combat","⚔"],["clog","Log","▤"],["bank","Bank","◫"],["more","More","≡"]];
 const NAV_ICON = { skills:"skills", combat:"attack", clog:"more", bank:"bank", more:"cog" };
-const sectionOf = t => ["combat","clog","bank","more","daily","shops","arena","roof","mini","chat","friends"].includes(t) ? t : "skills";
+const sectionOf = t => ["combat","clog","bank","more","daily","shops","arena","roof","mini","chat","friends","raid"].includes(t) ? t : "skills";
 function badges() {
   const now = Date.now();
   return {
@@ -2755,6 +2920,7 @@ const RAIL = [
   ["nav-combat", "Fight", "attack", "combat", "fight", "Combat"],
   ["csub-gear", "Equipment", "defence", "combat", "gear", "Combat"],
   ["csub-look", "Look", "wayfarer_hat", "combat", "look", "Combat"],
+  ["csub-raid", "Raid", "gloamreaper", "raid", "", "Combat"],
   ["nav-bank", "Bank", "bank", "bank", "", "Items"],
   ["nav-clog", "Collection log", "more", "clog", "clog", "Log"],
   ["lsub-ach", "Achievements", "trophy_kills", "clog", "ach", "Log"],
@@ -2765,7 +2931,7 @@ const RAIL = [
   ["msub-activity", "Activity", "captain_compass", "more", "activity", "More"],
   ["msub-help", "Help & save", "cog", "more", "help", "More"],
 ];
-const railKey = () => tab === "chat" ? "chat:" : tab === "friends" ? "friends:" : tab === "daily" ? "daily:" : tab === "shops" ? "shops:" : tab === "arena" || tab === "roof" || tab === "mini" ? "mini:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
+const railKey = () => tab === "raid" ? "raid:" : tab === "chat" ? "chat:" : tab === "friends" ? "friends:" : tab === "daily" ? "daily:" : tab === "shops" ? "shops:" : tab === "arena" || tab === "roof" || tab === "mini" ? "mini:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
 function renderRail() {
   const b = badges(), cur = railKey(); let h = "", g = "";
   const badge = { "chat:": tab === "chat" ? 0 : chat.unread, "friends:": frRequests().length + pmUnread(), "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
@@ -3096,6 +3262,8 @@ function clogTree() {
   return [
     { id: "monsters", name: "Monsters", entries: MONSTERS.map(m => ({ id: "mon-" + m.id, name: m.name, tracked: true, sub: `${fmt(state.kills[m.id] || 0)} kills`,
         items: [...m.always.map(e => ({ item: e.item, rate: "Always" })), ...tableItems(m.table, "per kill"), ...uniq(m.uniques, "per kill")] })) },
+    { id: "raids", name: "Raids", entries: [{ id: "raid-gloamspire", name: "The Gloamspire", tracked: true, sub: `${fmt(raidStats().kc)} clears`,
+        items: [...RAID_PURPLE.map(e => ({ item: e.item, rate: "purple chest", unique: true })), { item: "pet_gloamling", rate: `1/${1 / RAID_PET} per clear`, unique: true }, ...RAID_COMMON.map(e => ({ item: e.item, rate: "common chest" }))] }] },
     { id: "voyages", name: "Voyages", entries: VOYAGES.map(v => ({ id: "voy-" + v.id, name: v.name, tracked: true, sub: `${VOYAGE_TYPES[v.type]} · ${fmt(state.islands[v.id] || 0)} trips`,
         items: [...tableItems(v.table, "per roll"), ...uniq(v.uniques, "per trip")] })) },
     { id: "skilling", name: "Skilling", entries: [
@@ -3315,13 +3483,13 @@ function loadoutSeg() {
 function gearStats(id) {
   const g = GEAR[id]; if (!g) return "";
   const p = [];
-  if (g.acc) p.push(`${g.type === "magic" ? "Magic acc" : "Acc"} +${g.acc}`); if (g.str) p.push(`Str +${g.str}`); if (g.rstr) p.push(`Ranged str +${g.rstr}`); if (g.def) p.push(`Def +${g.def}`); if (g.macc) p.push(`Magic acc +${g.macc}`); if (g.racc) p.push(`Ranged acc +${g.racc}`); if (g.rdmg) p.push(`Ranged dmg +${g.rdmg}%`); if (g.mdmg) p.push(`Magic dmg +${g.mdmg}%`);
+  if (g.acc) p.push(`${g.type === "magic" ? "Magic acc" : "Acc"} +${g.acc}`); if (g.str) p.push(`Str +${g.str}`); if (g.rstr) p.push(`Ranged str +${g.rstr}`); if (g.def) p.push(`Def +${g.def}`); if (g.macc) p.push(`Magic acc +${g.macc}`); if (g.racc) p.push(`Ranged acc +${g.racc}`); if (g.mstr) p.push(`Melee str +${g.mstr}`); if (g.hits) p.push("hits 3 times on big foes"); if (g.rdmg) p.push(`Ranged dmg +${g.rdmg}%`); if (g.mdmg) p.push(`Magic dmg +${g.mdmg}%`);
   if (g.twoH) p.push("two-handed");
   if (!p.length) p.push(ITEMS[id].desc.replace(/^(Enchanted|Worn|[A-Z][a-z]+ [a-z ]*unique)\.\s*/, ""));
   return p.join(" · ");
 }
 // one number per item for sorting: melee acc+str, bows/staffs accuracy, arrows strength, armour defence
-const gearScore = id => { const g = GEAR[id] || {}; return (g.acc || 0) + (g.str || 0) + (g.rstr || 0) + (g.def || 0) + (ctype() === "magic" ? (g.macc || 0) + (g.mdmg || 0) * 3 : ctype() === "ranged" ? (g.racc || 0) + (g.rdmg || 0) * 3 : 0); };
+const gearScore = id => { const g = GEAR[id] || {}; return (g.acc || 0) + (g.str || 0) + (g.rstr || 0) + (g.def || 0) + (ctype() === "magic" ? (g.macc || 0) + (g.mdmg || 0) * 3 : ctype() === "ranged" ? (g.racc || 0) + (g.rdmg || 0) * 3 : (g.mstr || 0) * 3); };
 const gearLvl = id => ((GEAR[id] || {}).req || [0, 0])[1];
 function gearPanel() {
   const cell = sl => { const id = eq(sl), set = loadout()[sl], broken = set && !id;
@@ -3349,11 +3517,11 @@ function gearPanel() {
   } else h += `<p class="note">Tap a slot to see what you can wear there.</p>`;
   // stats live at the bottom, folded away unless you open them
   const acc = ctype() === "ranged" ? (bow() ? bow()[2] : 0) + rangeAcc() : ctype() === "magic" ? (staff() ? staff()[2] : 0) + mageAcc() : (weapon() ? weapon()[2] : 0);
-  const str = ctype() === "ranged" ? (arrow() ? arrow()[1] : 0) : ctype() === "magic" ? 0 : (weapon() ? weapon()[3] : 0);
+  const str = ctype() === "ranged" ? (arrow() ? arrow()[1] : 0) : ctype() === "magic" ? 0 : (weapon() ? weapon()[3] : 0) + meleeStr();
   h += `<details class="eqstats" id="eqStats" ${state.opts.eqStats ? "open" : ""}><summary><span>${CTYPES[ctype()]} stats</span><span class="sumline">Max hit <b>${playerMax()}</b> · Def <b>+${defBonus()}</b></span></summary>
       <div class="stat"><span>Max hit</span><b class="num">${playerMax()}</b></div>
       <div class="stat"><span>Accuracy bonus</span><b class="num">+${acc}</b></div>
-      ${ctype() === "magic" ? `<div class="stat"><span>Magic damage</span><b class="num">+${mageDmg()}%${fullVoid() ? " (Voidweave set)" : ""}</b></div>` : ctype() === "ranged" ? `<div class="stat"><span>Ranged strength</span><b class="num">+${str}</b></div><div class="stat"><span>Ranged damage</span><b class="num">+${rangeDmg()}%${fullStorm() ? " (Stormhide set)" : ""}</b></div>` : `<div class="stat"><span>Strength bonus</span><b class="num">+${str}</b></div>`}
+      ${ctype() === "magic" ? `<div class="stat"><span>Magic damage</span><b class="num">+${mageDmg()}%${fullVoid() ? " (Voidweave set)" : ""}</b></div>` : ctype() === "ranged" ? `<div class="stat"><span>Ranged strength</span><b class="num">+${str}</b></div><div class="stat"><span>Ranged damage</span><b class="num">+${rangeDmg()}%${fullStorm() ? " (Stormhide set)" : ""}</b></div>` : `<div class="stat"><span>Strength bonus</span><b class="num">+${str}${fullGloam() ? " (+5% Gloam set)" : ""}</b></div>`}
       <div class="stat"><span>Defence bonus</span><b class="num">+${defBonus()}</b></div>
       ${arenaPow() > 1 || arenaDr() > 0 ? `<div class="stat"><span>Arena (dmg / taken)</span><b class="num">+${Math.round((arenaPow() - 1) * 100)}% / −${Math.round(arenaDr() * 100)}%</b></div>` : ""}
       <p class="note">Each loadout keeps its own gear. Rings, amulets and capes only work while worn.</p></details>`;
@@ -3416,6 +3584,12 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 50, date: "14 Oct 2026", title: "Raid: The Gloamspire", items: [
+    "Thornwick's first raid. Find it under Combat › Raid. You need combat level 85 and Slayer 60 to enter.",
+    "Four rooms in a row: armoured sentinels that only fear magic, a thrall nest that keeps spawning if you're slow, a torn ward you stitch shut with Crafting and Enchanting, and Vesper, the Gloam Warden, whose weakness changes as she weakens.",
+    "Turn on loadout switching and the raid swaps to the right loadout for each room, so it runs while you're away. Get knocked out and the raid ends with nothing.",
+    "Points (kills, minus damage taken, plus a speed bonus) set your chance of a purple chest, about 1 in 25 for a strong run. Purples: the Gloam helm, body and legs (melee strength, +5% melee damage as a set), the Gloam kiteshield and, rarest of all, the Gloamreaper.",
+    "The Gloamreaper is a two-handed scythe that hits three times (100%, 50%, 25%) against bosses and big monsters, using a gloam essence per swing. Every clear also gives a common chest, and there's a raid pet, a Hiscores board for clears, and a Collection log page." ] },
   { v: 49, date: "14 Oct 2026", title: "Gem cutting", items: [
     "Crafting can now cut gems: sapphire (level 20), emerald (27), ruby (34), diamond (43) and dragonstone (55).",
     "Cut gems sell for 2.5× the uncut price. There's a chance to crack the gem while cutting, which shrinks as your Crafting level rises (down to 2%).",
@@ -4128,6 +4302,7 @@ const ITEM_TPL = {
   arrow: ["........111.",".........11.","........B.1.",".......B....","......B.....",".....B......","....B.......","4..B........","44B.........",".44.........","4.4.........","............"],
   bow: ["....11......","...1.W......","..1..W......","..1..W......",".1...W......",".1...W......",".1...W......","..1..W......","..1..W......","...1.W......","....11......","............"],
   staff: ["......444...",".....44344..","......444...",".......1....","......1.....",".....1......","....1.......","...1........","..1.........",".1..........","............","............"],
+  scythe: ["...11111....", ".11222211...", "12......1B..", "1........B..", "........B...", ".......B....", "......B.....", ".....B......", "....B.......", "...B........", "..3B........", ".33........."],
   sword: ["..........11",".........112","........112.",".......112..","......112...","..4..112....","...4112.....","....412.....","...B444.....","..BB..4.....",".BB.........","BB.........."],
   club: ["........22..",".......2112.","......211112","......211112",".....2B2112.","....B..22...","...B........","..B.........",".B..........","B...........","............","............"],
   body: ["............","..111..111..",".1111111111.","113111111311","11.111111.11","11.131131.11","22.111111.22","...111111...","...122221...","...111111...","...222222...","............"],
@@ -4163,6 +4338,9 @@ const IC = {
 };
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
+  gloamreaper:["scythe",["#c8c0e8","#5ae0d0","#5ae0d0","#000"]], gloam_essence:["orb",["#2a2440","#14101f","#5ae0d0","#000"]],
+  gloam_helm:["helm",["#3a3550","#1e1a2e","#5ae0d0","#000"]], gloam_body:["body",["#3a3550","#1e1a2e","#5ae0d0","#000"]], gloam_legs:["legs",["#3a3550","#1e1a2e","#5ae0d0","#000"]],
+  gloam_kiteshield:["kite",["#3a3550","#1e1a2e","#5ae0d0","#000"]], pet_gloamling:["pet",["#2a2440","#14101f","#000","#5ae0d0"]],
   cut_sapphire:["gem",["#5a8aff","#1f3a9a","#d8e6ff","#ffffff"]], cut_emerald:["gem",["#4ae07a","#127a3a","#d0ffe0","#ffffff"]], cut_ruby:["gem",["#ff3a4a","#9a1020","#ffd0d4","#ffffff"]],
   cut_diamond:["gem",["#ffffff","#a8c8e8","#e8f8ff","#7fd8ff"]], cut_dragonstone:["gem",["#d050ff","#6a1a9a","#f8d0ff","#ffffff"]], crushed_gem:["pile",["#b0b0c0","#6a6a7a","#e0e0f0","#000"]],
   hide:["pile",["#a0784a","#5a3e22","#c8a070","#000"]], leather:["pile",["#8a5a2a","#4a2e16","#b07a3e","#000"]],
@@ -4306,6 +4484,57 @@ const icon = (key, cls) => { const u = iconURL(key); return u ? `<img class="ico
 // A 1-pixel black outline is added automatically. px = screen pixels per sprite pixel.
 const SKIN = "#f2c08e";
 const SPRITES = {
+  gloam_sentinel: { px: 7, pal: { a:"#3a3550", A:"#1e1a2e", g:"#5ae0d0", s:"#8a84a8" }, grid: [
+    "....aaaa....",
+    "...aAAAAa...",
+    "...aAggAa...",
+    "...aAAAAa...",
+    ".ssaaaaaass.",
+    "sAsaAAAAasAs",
+    "s.aaagaaaa.s",
+    "s.aAAAAAAa.s",
+    "...aaaaaa...",
+    "...aa..aa...",
+    "..AAA..AAA..",
+  ] },
+  gloam_thrall: { px: 7, pal: { t:"#2a2440", T:"#14101f", e:"#5ae0d0", c:"#c8c0e8" }, grid: [
+    "............",
+    "....tttt....",
+    "...tettet...",
+    "...tttttt...",
+    "..tTttttTt..",
+    ".tt.tttt.tt.",
+    "c...tttt...c",
+    "...tTttTt...",
+    "...t....t...",
+    "..tT....Tt..",
+  ] },
+  gloam_rift: { px: 6, pal: { v:"#14101f", p:"#7a4ad0", g:"#5ae0d0", w:"#e8f8ff" }, grid: [
+    "....pppp....",
+    "...pvvvvp...",
+    "..pvvgvvvp..",
+    ".pvvgwgvvvp.",
+    ".pvgwwwgvvp.",
+    ".pvvgwgvvvp.",
+    "..pvvgvvvp..",
+    "...pvvvvp...",
+    "....pvvp....",
+    ".....pp.....",
+  ] },
+  vesper: { px: 6, pal: { c:"#3a3550", C:"#1e1a2e", g:"#5ae0d0", s:"#d8d0f0", k:"#0b0b0d", r:"#c8c0e8" }, grid: [
+    "..s.cccc.s..",
+    "..sccccccs..",
+    "..ccgccgcc..",
+    "...cccccc...",
+    "..CCcrrcCC..",
+    ".CCCCCCCCCC.",
+    "CCcCCCCCCcCC",
+    "C.cCCggCCc.C",
+    "r..CCCCCC..r",
+    "r..CC..CC..r",
+    ".r.CC..CC...",
+    "..CCC..CCC..",
+  ] },
   cave_spider: { px: 7, pal: { s:"#5a4646", S:"#2e2222", e:"#ff3030", l:"#7a6a6a" }, grid: [
     "............",
     "..l......l..",
@@ -5147,13 +5376,14 @@ function render() {
   else if (tab === "daily") h = `<div class="pagehead"><h2>Challenges</h2><span>${3 - dailyLeft()} / 3 today</span></div>` + dailyPanel();
   else if (tab === "chat") h = chatPanel();
   else if (tab === "friends") h = friendsPanel();
+  else if (tab === "raid") h = raidPanel();
   else if (tab === "mini") h = `<div class="pagehead"><h2>Minigames</h2><span>Hands-on play</span></div>` + miniPanel();
   else if (tab === "arena") h = miniBack + `<div class="pagehead"><h2>Arena</h2><span>${arenaLeft()} / ${ARENA_DAILY} ranked left</span></div>` + arenaPanel();
   else if (tab === "roof") h = miniBack + `<div class="pagehead"><h2>Rooftop run</h2><span>Best ${fmt(roofState().best)} m</span></div>` + roofPanel();
   else if (tab === "shops") h = shopsPanel();
   else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "ach" ? "Achievements" : logSub === "shop" ? "Point shop" : "Collection log"}</h2><span>${logSub === "ach" ? fmt(achPoints()) + " points" : logSub === "shop" ? fmt(apBalance()) + " to spend" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
 ` + (logSub === "ach" ? achPanel() : logSub === "shop" ? apShopPanel() : clogPanel());
-  else if (tab === "combat") h = combatPanel();
+  else if (tab === "combat") h = (state.raid ? `<div class="hsme"><span>You're in the Gloamspire: ${esc(raidRoom().name)} (room ${state.raid.room + 1} of ${RAID_ROOMS.length})</span><button class="btn solid" data-nav="raid:">Go to raid</button></div>` : "") + combatPanel();
   else if (tab === "seafaring") h = backBtn() + skillHead("seafaring") + `<canvas id="vscene" class="scene" style="height:230px" role="img" aria-label="Your boats at sea"></canvas>` + seafaringPanel();
   else if (tab === "farming") h = backBtn() + skillHead("farming") + farmingPanel();
   else if (tab === "brewing") h = backBtn() + skillHead("brewing") + brewingPanel();
@@ -5174,6 +5404,10 @@ function render() {
 
 /* Cheap in-place refresh, safe to run every frame */
 function update() {
+  if (tab === "raid" && state.raid) { const R = state.raid, set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+    set("raidLeft", fmt(Math.max(0, R.left))); set("raidPts", fmt(raidPoints())); set("raidTaken", fmt(R.taken)); set("raidTime", fmtSecs(Math.round(R.rounds * ROUND_MS / 1000)));
+    set("raidChance", (raidChance(raidPoints()) * 100).toFixed(1) + "%"); set("raidHp", state.fight ? `${Math.max(0, Math.ceil(state.fight.mhp))} / ${RAID_BY_ID[raidRoom().mon].hp}` : "");
+    set("raidPhase", raidRoom().mon === "vesper" ? `weak to ${vesperWeak()}` : ""); }
   if (tab === "daily" && state.daily.list) document.querySelectorAll(".daily[data-ch]").forEach(el => { const k = el.dataset.ch, c = k[0] === "b" ? state.weekly.boss : (k[0] === "w" ? state.weekly : state.daily).list[+k.slice(1)]; if (!c) return; const prog = Math.min(c.n, dailyProgress(c)); const sp = el.querySelector(".pg"); if (sp && !c.done) sp.textContent = `${fmt(prog)} / ${fmt(c.n)}`; const bar = el.querySelector(".tbar i"); if (bar) bar.style.width = (c.done ? 100 : prog / c.n * 100) + "%"; });
   for (const t of CLUE_TIERS) { const c = state.clues.held[t];
     document.querySelectorAll(`[data-clueprog="${t}"]`).forEach(el => el.style.width = c ? (100 * c.cur.have / c.cur.n) + "%" : "0");
@@ -5279,6 +5513,9 @@ document.addEventListener("click", e => {
   }
   if (t.id === "hsRefresh") { hsLoad(true); return; }
   if (t.id === "chatSend") { chatSend(); return; }
+  if (t.id === "raidStart") { raidStart(); return; }
+  if (t.id === "raidResume") { raidResume(); return; }
+  if (t.id === "raidLeave") { if (t.dataset.sure) raidLeave(); else { t.dataset.sure = "1"; t.textContent = "Tap again to leave"; } return; }
   if (t.id === "frAddBtn") { frAdd(fr.draft); return; }
   if (t.dataset.fradd) { frAdd(t.dataset.fradd); return; }
   if (t.dataset.frhide) { frHidden = [...new Set(frHidden.concat(t.dataset.frhide))]; lsSet("thornwick-friends-hidden", frHidden); renderRail(); frRender(); return; }
@@ -5402,6 +5639,7 @@ document.addEventListener("toggle", e => { const el = e.target; if (el.classList
 document.addEventListener("change", e => { if (e.target.id === "autoChop") { state.opts.autoChop = e.target.checked; save(); } if (e.target.id === "hsSkill") { hs.skill = e.target.value; hs.rows = null; hsLoad(true); }
   if (e.target.id === "lookGear") { state.look = Object.assign({}, state.look, { gear: e.target.checked }); after(); }
   if (e.target.dataset && e.target.dataset.lookslot) { const sl = e.target.dataset.lookslot, L = Object.assign({}, state.look); L.show = Object.assign({}, L.show); if (e.target.value) L.show[sl] = e.target.value; else delete L.show[sl]; state.look = L; after(); } });
+document.addEventListener("change", e => { if (e.target.id === "raidSwap") { state.opts.raidSwap = e.target.checked; save(); } });
 document.addEventListener("change", e => { if (e.target.id === "useCut") { state.opts.useCut = e.target.checked; save(); render(); } });
 document.addEventListener("change", e => { if (e.target.id === "frAlerts") { state.opts.frAlerts = e.target.checked; save(); } });
 document.addEventListener("change", e => { if (e.target.id === "autoPot") { state.opts.autoPot = e.target.checked; toast(e.target.checked ? "Auto-drink on: combat potions stay topped up while you fight" : "Auto-drink off"); save(); } });
@@ -5707,9 +5945,9 @@ setInterval(() => { if (!document.hidden) push(); }, 60000);
 /* ================= HISCORES ================= */
 // Boards live in Supabase (table hiscores + function hiscores_top). Anyone can view; signed-in players with a name are listed.
 const hs = { skill: "overall", rows: null, at: 0, loading: false, err: "", nameDraft: "", nameMsg: "", saving: false };
-const HS_SKILLS = () => ["overall", ...Object.keys(SKILLS)];
+const HS_SKILLS = () => ["overall", ...Object.keys(SKILLS), "gloamspire"];
 const totalXp = () => Math.floor(Object.keys(SKILLS).reduce((a, k) => a + (state.xp[k] || 0), 0));
-const hsStats = () => ({ total_level: totalLevel(), total_xp: totalXp(), combat_level: combatLevel(), doing: doingText(), xp: Object.fromEntries(Object.keys(SKILLS).map(k => [k, Math.floor(state.xp[k] || 0)])), updated_at: new Date().toISOString() });
+const hsStats = () => ({ total_level: totalLevel(), total_xp: totalXp(), combat_level: combatLevel(), doing: doingText(), xp: Object.assign(Object.fromEntries(Object.keys(SKILLS).map(k => [k, Math.floor(state.xp[k] || 0)])), { gloamspire: raidStats().kc }), updated_at: new Date().toISOString() });
 async function hsLoad(force) {
   if (!cloudOn || hs.loading) return;
   if (!force && hs.rows && Date.now() - hs.at < 60000 && hs.rowsFor === hs.skill) return;
@@ -5745,7 +5983,7 @@ async function hsSync() {
 function hsRender() { if (tab === "more" && moreSub === "hiscores" && $("hsBody")) { const f = document.activeElement && document.activeElement.id; $("hsBody").innerHTML = hiscoresBody(); if (f && $(f)) $(f).focus({ preventScroll: true }); } }
 function hiscoresPanel() {
   setTimeout(() => hsLoad(false), 0);
-  const opts = HS_SKILLS().map(k => `<option value="${k}" ${hs.skill === k ? "selected" : ""}>${k === "overall" ? "Overall" : SKILLS[k].name}</option>`).join("");
+  const opts = HS_SKILLS().map(k => `<option value="${k}" ${hs.skill === k ? "selected" : ""}>${k === "overall" ? "Overall" : k === "gloamspire" ? "Gloamspire clears" : SKILLS[k].name}</option>`).join("");
   return `<div class="hshead"><label class="lbl" for="hsSkill">Board</label><select id="hsSkill" class="cin hssel">${opts}</select><button class="btn" id="hsRefresh">Refresh</button></div><div id="hsBody">${hiscoresBody()}</div>`;
 }
 function hiscoresBody() {
@@ -5766,7 +6004,7 @@ function hiscoresBody() {
   const sk = hs.skill, overall = sk === "overall";
   h += `<table class="hst"><thead><tr><th>#</th><th>Name</th><th>${overall ? "Total" : "Level"}</th><th>XP</th></tr></thead><tbody>` + hs.rows.map((r, i) => {
     const gap = i > 0 && r.rank > hs.rows[i - 1].rank + 1 && r.is_me ? `<tr class="gap"><td colspan="4">…</td></tr>` : "";
-    const lv = overall ? r.total_level : levelOf(r.xp);
+    const lv = overall ? r.total_level : hs.skill === "gloamspire" ? r.xp : levelOf(r.xp);
     return gap + `<tr class="${r.is_me ? "me" : ""}"><td class="num">${fmt(r.rank)}</td><td>${r.rank <= 3 ? ["🥇","🥈","🥉"][r.rank - 1] + " " : ""}${esc(r.name)}</td><td class="num">${fmt(lv)}</td><td class="num">${fmt(r.xp)}</td></tr>`;
   }).join("") + `</tbody></table><p class="note">${hs.loading ? "Updating…" : `Updated ${ago(hs.at)}.`} Your entry updates when your game syncs, about once a minute.</p>`;
   return h;
