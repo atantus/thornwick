@@ -2430,7 +2430,7 @@ function raidPanel() {
     h += `<div class="ropen ${c.rare ? "rare" : ""}"><b>${c.purple ? `Purple! ${esc(ITEMS[c.purple].name)}` : c.rare ? "A rare find!" : "Chest opened"}</b><div class="raidloot">${Object.entries(c.items).map(([k, q], i) => `<span class="pop ${k === c.purple || k === "pet_gloamling" || k === "dragonstone" ? "got" : ""}" style="animation-delay:${i * 0.12}s">${icon(k)}${q > 1 ? fmt(q) + " " : ""}${esc(ITEMS[k].name)}</span>`).join("")}</div><button class="lnk" id="raidOpenedOk">Done</button></div>`; }
   if (chests.length) {
     h += `<h3>Unopened chests <span>${chests.length}${chests.some(c => c.rare) ? " · one is glowing red!" : ""}</span></h3><div class="rchests">` +
-      chests.map(c => `<button class="rchest ${c.rare ? "rare" : ""}" data-rchest="${c.id}" aria-label="Open chest${c.rare ? " (glowing red)" : ""}">${icon(c.rare ? "gloam_chest_red" : "gloam_chest")}<span>${fmt(c.pts)} pts</span><em>Tap to open</em></button>`).join("") +
+      chests.map(c => `<button class="rchest ${c.rare ? "rare" : ""}" data-rchest="${c.id}" aria-label="Open chest${c.rare ? " (glowing red)" : ""}">${icon(c.rare ? "gloam_chest_red" : "gloam_chest")}<em>Tap to open</em></button>`).join("") +
       `</div>${chests.length > 1 ? `<div class="row"><button class="btn" id="raidOpenAll">Open all</button></div>` : ""}`;
   }
   if (R) {
@@ -3615,6 +3615,8 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 52, date: "14 Oct 2026", title: "Cleaner raid chests", items: [
+    "Unopened raid chests no longer show the points from their raid, just the chest itself." ] },
   { v: 51, date: "14 Oct 2026", title: "Raid chests", items: [
     "Finishing the Gloamspire now leaves a sealed chest on the raid page. Tap it to open it and see your loot pop out.",
     "If there's something rare inside (a purple, the Gloamling pet or a dragonstone), the chest glows red before you open it.",
