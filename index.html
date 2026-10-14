@@ -1335,9 +1335,9 @@ const GEODE_TABLE = [
 const PICKAXES = [["forgefire_pickaxe",0.7,70],["runite_pickaxe",0.7],["cobalt_pickaxe",0.75],["adamantite_pickaxe",0.78],["mithril_pickaxe",0.8],["steel_pickaxe",0.85],["iron_pickaxe",0.9],["bronze_pickaxe",0.95]];
 // Smithing: furnace (bars) then anvil (gear). Firemaking makes smelting faster.
 const SMITH = [];
-[["bronze",1,"Bronze bar",{copper_ore:1, tin_ore:1},6.2],["iron",15,"Iron bar",{iron_ore:1},12.5],["steel",30,"Steel bar",{iron_ore:1, coal:2},17.5],["mithril",50,"Mithril bar",{mithril_ore:1, coal:4},30],["adamantite",60,"Adamantite bar",{adamantite_ore:1, coal:5},34],["cobalt",70,"Cobalt bar",{cobalt_ore:1, coal:6},37.5],["runite",85,"Runite bar",{runite_ore:1, coal:8},50]]
+[["bronze",1,"Bronze bar",{copper_ore:1, tin_ore:1},6.2],["iron",15,"Iron bar",{iron_ore:1},12.5],["steel",30,"Steel bar",{iron_ore:1, coal:2},17.5],["mithril",50,"Mithril bar",{mithril_ore:1, coal:4},35],["adamantite",60,"Adamantite bar",{adamantite_ore:1, coal:5},50],["cobalt",70,"Cobalt bar",{cobalt_ore:1, coal:6},70],["runite",85,"Runite bar",{runite_ore:1, coal:8},100]]
   .forEach(([m, l, n, inputs, xp]) => SMITH.push({ id:`${m}_bar`, section:"Furnace", name:`Smelt ${n.toLowerCase()}`, lvl:l, time:2.4, xp, inputs, out:`${m}_bar`, smelt:true }));
-[["bronze",1,12.5],["iron",15,25],["steel",30,37.5],["mithril",50,50],["adamantite",60,56],["cobalt",70,62.5],["runite",85,75]].forEach(([m, l, xpb]) => {
+[["bronze",1,12.5],["iron",15,25],["steel",30,37.5],["mithril",50,60],["adamantite",60,85],["cobalt",70,120],["runite",85,170]].forEach(([m, l, xpb]) => {
   const cap = m[0].toUpperCase() + m.slice(1);
   [["axe",0,1],["sword",3,1],["full_helm",7,2],["pickaxe",4,2],["kiteshield",12,3],["platelegs",16,3],["platebody",17,5]].forEach(([kind, add, bars]) => {
     if (m === "bronze" && kind === "platebody") return; // leather is the starter body
@@ -3732,6 +3732,10 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 57, date: "14 Oct 2026", title: "Faster high-level Smithing", items: [
+    "Smelting gives more xp from mithril up: mithril 35 (was 30), adamantite 50 (34), cobalt 70 (37.5), runite 100 (50).",
+    "The anvil gives more xp per bar used: mithril 60 (was 50), adamantite 85 (56), cobalt 120 (62.5), runite 170 (75). A runite platebody is now 850 xp.",
+    "Overall you need about half as many bars to get from 50 to 99 Smithing." ] },
   { v: 56, date: "14 Oct 2026", title: "Faster high-level Mining", items: [
     "Mining from mithril upwards is much quicker. Mithril: 100 xp per ore (was 80) and mines faster. Adamantite: 150 xp (was 110). Cobalt: 220 xp (was 140). Runite: 320 xp (was 200).",
     "The higher veins also take less time per ore, so you get more ore an hour too. Overall, level 50 to 99 Mining takes about half as long as before." ] },
