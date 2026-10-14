@@ -889,6 +889,18 @@ const ITEMS = {
   wisp_pendant:  { name: "Wisp pendant",    desc: "Crafted. Amulet, Defence 4. +5% Slayer xp while worn.", sell: 1000 },
   gaze_amulet:   { name: "Basilisk gaze amulet", desc: "Crafted. Amulet, Defence 8. Monsters hit you 5% less often while worn.", sell: 3000 },
   dragon_amulet: { name: "Dragonstone amulet", desc: "Crafted. Amulet, Defence 16. +5% combat xp while worn.", sell: 90000 },
+  trailhide_cowl: { name: "Trailhide cowl", desc: "Crafted ranged armour. Head, Defence 3, Ranged accuracy +4.", sell: 24 },
+  trailhide_chaps: { name: "Trailhide chaps", desc: "Crafted ranged armour. Legs, Defence 5, Ranged accuracy +6.", sell: 40 },
+  trailhide_body: { name: "Trailhide body", desc: "Crafted ranged armour. Body, Defence 7, Ranged accuracy +8.", sell: 60 },
+  marshstalker_cowl: { name: "Marshstalker cowl", desc: "Crafted ranged armour. Head, Defence 8, Ranged accuracy +9. +2% ranged damage. Needs Ranged 25.", sell: 392 },
+  marshstalker_chaps: { name: "Marshstalker chaps", desc: "Crafted ranged armour. Legs, Defence 12, Ranged accuracy +12. +2% ranged damage. Needs Ranged 25.", sell: 480 },
+  marshstalker_body: { name: "Marshstalker body", desc: "Crafted ranged armour. Body, Defence 16, Ranged accuracy +16. +3% ranged damage. Needs Ranged 25.", sell: 578 },
+  shardscale_cowl: { name: "Shardscale cowl", desc: "Crafted ranged armour. Head, Defence 13, Ranged accuracy +14. +3% ranged damage. Needs Ranged 50.", sell: 1404 },
+  shardscale_chaps: { name: "Shardscale chaps", desc: "Crafted ranged armour. Legs, Defence 19, Ranged accuracy +18. +4% ranged damage. Needs Ranged 50.", sell: 1568 },
+  shardscale_body: { name: "Shardscale body", desc: "Crafted ranged armour. Body, Defence 26, Ranged accuracy +24. +5% ranged damage. Needs Ranged 50.", sell: 1800 },
+  stormhide_cowl: { name: "Stormhide cowl", desc: "Crafted ranged armour. Head, Defence 18, Ranged accuracy +20. +4% ranged damage. Needs Ranged 70. Full set: +5% more ranged damage.", sell: 3120 },
+  stormhide_chaps: { name: "Stormhide chaps", desc: "Crafted ranged armour. Legs, Defence 26, Ranged accuracy +26. +5% ranged damage. Needs Ranged 70. Full set: +5% more ranged damage.", sell: 3444 },
+  stormhide_body: { name: "Stormhide body", desc: "Crafted ranged armour. Body, Defence 34, Ranged accuracy +32. +7% ranged damage. Needs Ranged 70. Full set: +5% more ranged damage.", sell: 3784 },
   wizard_hood: { name: "Wizard hood", desc: "Crafted mage armour. Head, Defence 2, Magic accuracy +4.", sell: 32 },
   wizard_skirt: { name: "Wizard robe skirt", desc: "Crafted mage armour. Legs, Defence 3, Magic accuracy +6.", sell: 50 },
   wizard_robe: { name: "Wizard robe top", desc: "Crafted mage armour. Body, Defence 4, Magic accuracy +8.", sell: 72 },
@@ -1348,6 +1360,18 @@ const CRAFT = [
   { id:"emberscale_legs",  section:"Monster crafts",name:"Emberscale legs",     lvl:70, time:3.2, xp:330, inputs:{ ember_scale:8, cobalt_bar:2 },          out:"emberscale_legs" },
   { id:"wyvernbone_helm",  section:"Monster crafts",name:"Wyvernbone helm",     lvl:78, time:3.2, xp:400, inputs:{ wyvern_bone:5, runite_bar:1 },          out:"wyvernbone_helm" },
   { id:"rift_buckler",     section:"Monster crafts",name:"Rift buckler",        lvl:90, time:3.4, xp:560, inputs:{ rift_tooth:8, runite_bar:3 },           out:"rift_buckler" },
+  { id:"trailhide_cowl", section:"Ranged armour", name:"Trailhide cowl", lvl:7, time:3.0, xp:52, inputs:{ leather:2, iron_bar:1 }, out:"trailhide_cowl" },
+  { id:"trailhide_chaps", section:"Ranged armour", name:"Trailhide chaps", lvl:9, time:3.0, xp:70, inputs:{ leather:3, iron_bar:1 }, out:"trailhide_chaps" },
+  { id:"trailhide_body", section:"Ranged armour", name:"Trailhide body", lvl:11, time:3.0, xp:90, inputs:{ leather:4, iron_bar:1 }, out:"trailhide_body" },
+  { id:"marshstalker_cowl", section:"Ranged armour", name:"Marshstalker cowl", lvl:28, time:3.0, xp:146, inputs:{ lizard_scale:2, leather:2, steel_bar:1 }, out:"marshstalker_cowl" },
+  { id:"marshstalker_chaps", section:"Ranged armour", name:"Marshstalker chaps", lvl:31, time:3.0, xp:170, inputs:{ lizard_scale:3, leather:3, steel_bar:1 }, out:"marshstalker_chaps" },
+  { id:"marshstalker_body", section:"Ranged armour", name:"Marshstalker body", lvl:34, time:3.0, xp:193, inputs:{ lizard_scale:4, leather:4, steel_bar:1 }, out:"marshstalker_body" },
+  { id:"shardscale_cowl", section:"Ranged armour", name:"Shardscale cowl", lvl:53, time:3.0, xp:258, inputs:{ gargant_shard:2, leather:2, skyfeather:10 }, out:"shardscale_cowl" },
+  { id:"shardscale_chaps", section:"Ranged armour", name:"Shardscale chaps", lvl:56, time:3.0, xp:282, inputs:{ gargant_shard:3, leather:3, skyfeather:15 }, out:"shardscale_chaps" },
+  { id:"shardscale_body", section:"Ranged armour", name:"Shardscale body", lvl:60, time:3.0, xp:310, inputs:{ gargant_shard:4, leather:4, skyfeather:20 }, out:"shardscale_body" },
+  { id:"stormhide_cowl", section:"Ranged armour", name:"Stormhide cowl", lvl:79, time:3.0, xp:376, inputs:{ wyvern_bone:2, leather:4, skyfeather:20 }, out:"stormhide_cowl" },
+  { id:"stormhide_chaps", section:"Ranged armour", name:"Stormhide chaps", lvl:83, time:3.0, xp:404, inputs:{ wyvern_bone:3, leather:6, skyfeather:30 }, out:"stormhide_chaps" },
+  { id:"stormhide_body", section:"Ranged armour", name:"Stormhide body", lvl:87, time:3.0, xp:432, inputs:{ wyvern_bone:4, leather:8, skyfeather:40 }, out:"stormhide_body" },
   { id:"wizard_hood", section:"Mage armour", name:"Wizard hood", lvl:8, time:3.0, xp:56, inputs:{ spider_silk:2, air_rune:10 }, out:"wizard_hood" },
   { id:"wizard_skirt", section:"Mage armour", name:"Wizard robe skirt", lvl:10, time:3.0, xp:75, inputs:{ spider_silk:3, air_rune:15 }, out:"wizard_skirt" },
   { id:"wizard_robe", section:"Mage armour", name:"Wizard robe top", lvl:12, time:3.0, xp:94, inputs:{ spider_silk:4, air_rune:20 }, out:"wizard_robe" },
@@ -1809,6 +1833,7 @@ Object.assign(GEAR, {
   leather_cowl:{ slot:"head", def:3 }, leather_chaps:{ slot:"legs", def:5 }, silk_cape:{ slot:"cape", def:3 }, batwing_cape:{ slot:"cape", def:6 }, void_cloak:{ slot:"cape", def:14 },
   shellguard:{ slot:"shield", req:["defence", 20], def:22 }, spined_helm:{ slot:"head", req:["defence", 50], def:30 }, stone_greaves:{ slot:"legs", req:["defence", 55], def:46 },
   emberscale_legs:{ slot:"legs", req:["defence", 65], def:56 }, wyvernbone_helm:{ slot:"head", req:["defence", 75], def:38 }, rift_buckler:{ slot:"shield", req:["defence", 80], def:52 },
+  trailhide_cowl:{ slot:"head", req:["ranged", 1], def:3, racc:4 }, trailhide_chaps:{ slot:"legs", req:["ranged", 1], def:5, racc:6 }, trailhide_body:{ slot:"body", req:["ranged", 1], def:7, racc:8 }, marshstalker_cowl:{ slot:"head", req:["ranged", 25], def:8, racc:9, rdmg:2 }, marshstalker_chaps:{ slot:"legs", req:["ranged", 25], def:12, racc:12, rdmg:2 }, marshstalker_body:{ slot:"body", req:["ranged", 25], def:16, racc:16, rdmg:3 }, shardscale_cowl:{ slot:"head", req:["ranged", 50], def:13, racc:14, rdmg:3 }, shardscale_chaps:{ slot:"legs", req:["ranged", 50], def:19, racc:18, rdmg:4 }, shardscale_body:{ slot:"body", req:["ranged", 50], def:26, racc:24, rdmg:5 }, stormhide_cowl:{ slot:"head", req:["ranged", 70], def:18, racc:20, rdmg:4 }, stormhide_chaps:{ slot:"legs", req:["ranged", 70], def:26, racc:26, rdmg:5 }, stormhide_body:{ slot:"body", req:["ranged", 70], def:34, racc:32, rdmg:7 },
   wizard_hood:{ slot:"head", req:["magic", 1], def:2, macc:4 }, wizard_skirt:{ slot:"legs", req:["magic", 1], def:3, macc:6 }, wizard_robe:{ slot:"body", req:["magic", 1], def:4, macc:8 }, moonweave_hood:{ slot:"head", req:["magic", 25], def:6, macc:9, mdmg:2 }, moonweave_skirt:{ slot:"legs", req:["magic", 25], def:9, macc:12, mdmg:2 }, moonweave_robe:{ slot:"body", req:["magic", 25], def:12, macc:16, mdmg:3 }, wispweave_hood:{ slot:"head", req:["magic", 50], def:10, macc:14, mdmg:3 }, wispweave_skirt:{ slot:"legs", req:["magic", 50], def:15, macc:18, mdmg:4 }, wispweave_robe:{ slot:"body", req:["magic", 50], def:20, macc:24, mdmg:5 }, voidweave_hood:{ slot:"head", req:["magic", 70], def:14, macc:20, mdmg:4 }, voidweave_skirt:{ slot:"legs", req:["magic", 70], def:21, macc:26, mdmg:5 }, voidweave_robe:{ slot:"body", req:["magic", 70], def:28, macc:32, mdmg:7 },
   wisp_pendant:{ slot:"amulet", def:4 }, gaze_amulet:{ slot:"amulet", def:8 }, dragon_amulet:{ slot:"amulet", def:16 },
   silk_hood:{ slot:"head", def:6 }, marsh_cloak:{ slot:"cape", def:6 }, ogre_helm:{ slot:"head", req:["defence", 30], def:18 }, ironhide_shield:{ slot:"shield", req:["defence", 30], def:28 },
@@ -1885,7 +1910,7 @@ const armour = () => { const b = eq("body"); return b ? [b, 0, defBonus()] : (de
 const hitChance = (A, D) => A > D ? 1 - (D + 2) / (2 * (A + 1)) : A / (2 * (D + 1));
 function attackRoll() {
   const t = ctype();
-  if (t === "ranged") return (lvl("ranged") + 8 + (state.opts.rstyle === "accurate" ? 3 : 0)) * ((bow() ? bow()[2] : 0) + 64);
+  if (t === "ranged") return (lvl("ranged") + 8 + (state.opts.rstyle === "accurate" ? 3 : 0)) * ((bow() ? bow()[2] : 0) + rangeAcc() + 64);
   if (t === "magic") return (lvl("magic") + 9) * ((staff() ? staff()[2] : 0) + mageAcc() + 64);
   return (lvl("attack") + 8 + (state.opts.style === "attack" ? 3 : 0)) * ((weapon() ? weapon()[2] : 0) + 64);
 }
@@ -1899,8 +1924,11 @@ function baseMax() {
 // mage armour: magic accuracy and % magic damage from worn robes (magic loadout)
 const mageAcc = () => SLOTS.reduce((n, sl) => n + ((GEAR[eq(sl)] || {}).macc || 0), 0);
 const fullVoid = () => ["voidweave_hood", "voidweave_robe", "voidweave_skirt"].every(worn);
+const rangeAcc = () => SLOTS.reduce((n, sl) => n + ((GEAR[eq(sl)] || {}).racc || 0), 0);
+const fullStorm = () => ["stormhide_cowl", "stormhide_body", "stormhide_chaps"].every(worn);
+const rangeDmg = () => SLOTS.reduce((n, sl) => n + ((GEAR[eq(sl)] || {}).rdmg || 0), 0) + (fullStorm() ? 5 : 0);
 const mageDmg = () => SLOTS.reduce((n, sl) => n + ((GEAR[eq(sl)] || {}).mdmg || 0), 0) + (fullVoid() ? 5 : 0);
-const playerMax = () => 1 + Math.max(1, Math.floor(baseMax() * (ctype() === "magic" ? 1 + mageDmg() / 100 : 1) * potMax() * (worn("fury_ring") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1)));
+const playerMax = () => 1 + Math.max(1, Math.floor(baseMax() * (ctype() === "magic" ? 1 + mageDmg() / 100 : ctype() === "ranged" ? 1 + rangeDmg() / 100 : 1) * potMax() * (worn("fury_ring") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1)));
 const foeAcc = m => potDef() * hitChance((m.att + 9) * 64, (lvl("defence") + 8 + (state.opts.style === "defence" ? 3 : 0)) * (defBonus() + 64)) * (has("warding_charm") ? 0.85 : 1) * (worn("knight_oath") ? 0.9 : 1) * (worn("gaze_amulet") ? 0.95 : 1);
 const bestFood = () => Object.keys(FOOD).find(has);
 const foodCount = () => Object.keys(FOOD).reduce((s, f) => s + qty(f), 0);
@@ -2797,7 +2825,7 @@ function actionList(skill) {
       : skill === "thieving" ? `<span class="ok">${Math.round(thieveChance(a) * 100)}% success</span> · stun ${(stunMs(a) / 1000).toFixed(1)}s · ${a.loot.filter(e => e.item !== "coins").map(e => ITEMS[e.item].name.toLowerCase()).join(", ") || a.loot[0].min + " coins"}`
       : skill === "mining" ? `${t}s · <span class="num" data-q="${a.item}"></span> in bank · geode 1/${Math.round(1 / geodeChance(a))}`
       : skill === "enchanting" ? `${a.section === "Jewellery" || a.section === "Staffs" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Enchanted. ", ""))}</span>${has(a.out) ? " (owned)" : ""}<br>` : ""}${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
-      : skill === "smithing" || skill === "fletching" || skill === "brewing" || skill === "crafting" ? `${skill === "brewing" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Drink: ", "").replace(" for 15 min.", ""))}</span><br>` : skill === "crafting" && GEAR[a.out] ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Crafted. ", "").replace("Crafted from spider silk. ", "").replace("Crafted mage armour. ", ""))}</span>${has(a.out) ? " (owned)" : ""}<br>` : ""}${t}s · ${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
+      : skill === "smithing" || skill === "fletching" || skill === "brewing" || skill === "crafting" ? `${skill === "brewing" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Drink: ", "").replace(" for 15 min.", ""))}</span><br>` : skill === "crafting" && GEAR[a.out] ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Crafted. ", "").replace("Crafted from spider silk. ", "").replace("Crafted mage armour. ", "").replace("Crafted ranged armour. ", ""))}</span>${has(a.out) ? " (owned)" : ""}<br>` : ""}${t}s · ${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
       : skill === "fishing" ? `${t}s · <span class="num" data-q="${a.item}"></span> in bank · casket 1/${Math.round(1 / casketChance(a))}`
       : noLogs ? `No ${ITEMS[a.item].name.toLowerCase()}. ${a.hint || "Chop some first."}`
       : skill === "cooking" ? `${t}s · <span class="num" data-q="${a.item}"></span> to cook · burn ${Math.round(burnChance(a) * 100)}%`
@@ -3256,13 +3284,13 @@ function loadoutSeg() {
 function gearStats(id) {
   const g = GEAR[id]; if (!g) return "";
   const p = [];
-  if (g.acc) p.push(`${g.type === "magic" ? "Magic acc" : "Acc"} +${g.acc}`); if (g.str) p.push(`Str +${g.str}`); if (g.rstr) p.push(`Ranged str +${g.rstr}`); if (g.def) p.push(`Def +${g.def}`); if (g.macc) p.push(`Magic acc +${g.macc}`); if (g.mdmg) p.push(`Magic dmg +${g.mdmg}%`);
+  if (g.acc) p.push(`${g.type === "magic" ? "Magic acc" : "Acc"} +${g.acc}`); if (g.str) p.push(`Str +${g.str}`); if (g.rstr) p.push(`Ranged str +${g.rstr}`); if (g.def) p.push(`Def +${g.def}`); if (g.macc) p.push(`Magic acc +${g.macc}`); if (g.racc) p.push(`Ranged acc +${g.racc}`); if (g.rdmg) p.push(`Ranged dmg +${g.rdmg}%`); if (g.mdmg) p.push(`Magic dmg +${g.mdmg}%`);
   if (g.twoH) p.push("two-handed");
   if (!p.length) p.push(ITEMS[id].desc.replace(/^(Enchanted|Worn|[A-Z][a-z]+ [a-z ]*unique)\.\s*/, ""));
   return p.join(" · ");
 }
 // one number per item for sorting: melee acc+str, bows/staffs accuracy, arrows strength, armour defence
-const gearScore = id => { const g = GEAR[id] || {}; return (g.acc || 0) + (g.str || 0) + (g.rstr || 0) + (g.def || 0) + (ctype() === "magic" ? (g.macc || 0) + (g.mdmg || 0) * 3 : 0); };
+const gearScore = id => { const g = GEAR[id] || {}; return (g.acc || 0) + (g.str || 0) + (g.rstr || 0) + (g.def || 0) + (ctype() === "magic" ? (g.macc || 0) + (g.mdmg || 0) * 3 : ctype() === "ranged" ? (g.racc || 0) + (g.rdmg || 0) * 3 : 0); };
 const gearLvl = id => ((GEAR[id] || {}).req || [0, 0])[1];
 function gearPanel() {
   const cell = sl => { const id = eq(sl), set = loadout()[sl], broken = set && !id;
@@ -3289,12 +3317,12 @@ function gearPanel() {
     if (!opts.length) h += `<div class="empty">You don't own anything for this slot yet. ${eqSel === "head" || eqSel === "legs" || eqSel === "shield" || eqSel === "body" ? "Smithing makes armour." : eqSel === "ammo" ? "Fletching makes arrows." : eqSel === "ring" || eqSel === "amulet" ? "Enchanting makes jewellery." : eqSel === "weapon" ? "Smithing, Fletching and Enchanting make weapons." : "Look for capes from voyages, The Eyrie and quests."}</div>`;
   } else h += `<p class="note">Tap a slot to see what you can wear there.</p>`;
   // stats live at the bottom, folded away unless you open them
-  const acc = ctype() === "ranged" ? (bow() ? bow()[2] : 0) : ctype() === "magic" ? (staff() ? staff()[2] : 0) + mageAcc() : (weapon() ? weapon()[2] : 0);
+  const acc = ctype() === "ranged" ? (bow() ? bow()[2] : 0) + rangeAcc() : ctype() === "magic" ? (staff() ? staff()[2] : 0) + mageAcc() : (weapon() ? weapon()[2] : 0);
   const str = ctype() === "ranged" ? (arrow() ? arrow()[1] : 0) : ctype() === "magic" ? 0 : (weapon() ? weapon()[3] : 0);
   h += `<details class="eqstats" id="eqStats" ${state.opts.eqStats ? "open" : ""}><summary><span>${CTYPES[ctype()]} stats</span><span class="sumline">Max hit <b>${playerMax()}</b> · Def <b>+${defBonus()}</b></span></summary>
       <div class="stat"><span>Max hit</span><b class="num">${playerMax()}</b></div>
       <div class="stat"><span>Accuracy bonus</span><b class="num">+${acc}</b></div>
-      ${ctype() === "magic" ? `<div class="stat"><span>Magic damage</span><b class="num">+${mageDmg()}%${fullVoid() ? " (Voidweave set)" : ""}</b></div>` : `<div class="stat"><span>Strength bonus</span><b class="num">+${str}</b></div>`}
+      ${ctype() === "magic" ? `<div class="stat"><span>Magic damage</span><b class="num">+${mageDmg()}%${fullVoid() ? " (Voidweave set)" : ""}</b></div>` : ctype() === "ranged" ? `<div class="stat"><span>Ranged strength</span><b class="num">+${str}</b></div><div class="stat"><span>Ranged damage</span><b class="num">+${rangeDmg()}%${fullStorm() ? " (Stormhide set)" : ""}</b></div>` : `<div class="stat"><span>Strength bonus</span><b class="num">+${str}</b></div>`}
       <div class="stat"><span>Defence bonus</span><b class="num">+${defBonus()}</b></div>
       ${arenaPow() > 1 || arenaDr() > 0 ? `<div class="stat"><span>Arena (dmg / taken)</span><b class="num">+${Math.round((arenaPow() - 1) * 100)}% / −${Math.round(arenaDr() * 100)}%</b></div>` : ""}
       <p class="note">Each loadout keeps its own gear. Rings, amulets and capes only work while worn.</p></details>`;
@@ -3357,6 +3385,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 48, date: "14 Oct 2026", title: "Ranged armour", items: [
+    "Crafting now makes ranged armour too: a cowl, body and chaps in four sets. Trailhide (Crafting 7–11), Marshstalker (28–34), Shardscale (53–60) and Stormhide (79–87).",
+    "Ranged armour gives Ranged accuracy, and the higher sets add bonus ranged damage. They need a Ranged level to wear (1, 25, 50 and 70) and sit between robes and metal armour for Defence.",
+    "Made from leather plus lizard scales, gargant shards or wyvern bones (and skyfeathers for the top two sets).",
+    "Wearing the full Stormhide set adds another +5% ranged damage, for +21% in total. Equipment stats show your Ranged damage bonus on the Ranged loadout." ] },
   { v: 47, date: "14 Oct 2026", title: "Mage armour", items: [
     "Crafting now makes mage armour: a hood, robe top and robe skirt in four sets. Wizard (Crafting 8–12), Moonweave (30–36), Wispweave (55–62) and Voidweave (80–88).",
     "Robes give Magic accuracy, and the higher sets add bonus magic damage. They need a Magic level to wear (1, 25, 50 and 70) and have lower Defence than metal armour.",
@@ -4101,6 +4134,7 @@ const ITEM_ICON = {
   spined_helm:["helm",["#5a8a3a","#355a22","#e0d49a","#000"]], stone_greaves:["legs",["#8a8f96","#4e5359","#c8ccd2","#000"]],
   emberscale_legs:["legs",["#e0502a","#9a2a18","#f7c23a","#000"]], wyvernbone_helm:["helm",["#d8e4ee","#7a8a9a","#4a7ab0","#000"]], rift_buckler:["kite",["#4a1e6a","#1e0a2e","#f0f0f0","#000"]],
   wisp_pendant:["amulet",["#c8e0f0","#000","#ffffff","#8aa8c8"]], gaze_amulet:["amulet",["#c8c070","#000","#f0f040","#5a7a3a"]], dragon_amulet:["amulet",["#e8b84a","#000","#f0b0ff","#c040ff"]],
+  trailhide_cowl:["hood",["#a0784a", "#5a3e22", "#c8ccd2", "#000"]], trailhide_chaps:["legs",["#a0784a", "#5a3e22", "#c8ccd2", "#000"]], trailhide_body:["body",["#a0784a", "#5a3e22", "#c8ccd2", "#000"]], marshstalker_cowl:["hood",["#4aa05a", "#2e6a3a", "#d8d08a", "#000"]], marshstalker_chaps:["legs",["#4aa05a", "#2e6a3a", "#d8d08a", "#000"]], marshstalker_body:["body",["#4aa05a", "#2e6a3a", "#d8d08a", "#000"]], shardscale_cowl:["hood",["#8a8f96", "#4e5359", "#ff7a1a", "#000"]], shardscale_chaps:["legs",["#8a8f96", "#4e5359", "#ff7a1a", "#000"]], shardscale_body:["body",["#8a8f96", "#4e5359", "#ff7a1a", "#000"]], stormhide_cowl:["hood",["#4a7ab0", "#2a4a78", "#f7e04a", "#000"]], stormhide_chaps:["legs",["#4a7ab0", "#2a4a78", "#f7e04a", "#000"]], stormhide_body:["body",["#4a7ab0", "#2a4a78", "#f7e04a", "#000"]],
   wizard_hood:["hood",["#3a5ac8", "#1f2e70", "#f7d35a", "#000"]], wizard_skirt:["legs",["#3a5ac8", "#1f2e70", "#f7d35a", "#000"]], wizard_robe:["body",["#3a5ac8", "#1f2e70", "#f7d35a", "#000"]], moonweave_hood:["hood",["#5aa7e8", "#2f5ea8", "#e6eef8", "#000"]], moonweave_skirt:["legs",["#5aa7e8", "#2f5ea8", "#e6eef8", "#000"]], moonweave_robe:["body",["#5aa7e8", "#2f5ea8", "#e6eef8", "#000"]], wispweave_hood:["hood",["#c8e0f0", "#8aa8c8", "#7a4ad0", "#000"]], wispweave_skirt:["legs",["#c8e0f0", "#8aa8c8", "#7a4ad0", "#000"]], wispweave_robe:["body",["#c8e0f0", "#8aa8c8", "#7a4ad0", "#000"]], voidweave_hood:["hood",["#3a1e6a", "#1e0f3a", "#7dff6a", "#000"]], voidweave_skirt:["legs",["#3a1e6a", "#1e0f3a", "#7dff6a", "#000"]], voidweave_robe:["body",["#3a1e6a", "#1e0f3a", "#7dff6a", "#000"]],
   pet_stitch:["pet",["#8a6a4a","#4a3422","#000","#e3b98f"]],
   silk_hood:["hood",["#e8e4dc","#9a948a","#5a4646","#000"]], marsh_cloak:["cape",["#4aa05a","#2e6a3a","#d8d08a","#000"]], lizard_glaive:["sword",["#b0b8c0","#4aa05a","#000","#6b4a2a"]],
