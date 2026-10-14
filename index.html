@@ -715,6 +715,10 @@ const ITEMS = {
   streak_saver:  { name: "Streak saver",  desc: "Keeps your daily streak alive if you miss a day. Used automatically. Hold up to 3." },
   daybreak_hood: { name: "Daybreak hood", desc: "Daily shop. Head, Defence +3. Warm as the first light.", rare: true },
   sunrise_cape:  { name: "Sunrise cape",  desc: "Daily shop. Cape, Defence +6. Glows orange at the hem.", rare: true },
+  slayer_chest:    { name: "Slayer chest", desc: "Earned for every Slayer task. Open it for combat gear and supplies suited to your level, with a rare chance at a fire-forged tool." },
+  emberheart_axe:  { name: "Emberheart axe", desc: "Slayer chest rare. Woodcutting 70. Chops as fast as a runite axe, and 10% of the logs you cut burn on the spot for Firemaking xp and ashes.", rare: true },
+  forgefire_pickaxe: { name: "Forgefire pickaxe", desc: "Slayer chest rare. Mining 70. Mines as fast as a runite pickaxe, and 10% of the ore you mine comes out as a smelted bar, with Smithing xp.", rare: true },
+  hearthfire_rod:  { name: "Hearthfire rod", desc: "Slayer chest rare. Fishing 70. 10% of the fish you catch come out already cooked, with Cooking xp.", rare: true },
   // herbs: dropped by monsters (by monster level) and grown from wildseed
   herb_marshwort:  { name: "Marshwort",  desc: "Herb. Dropped by monsters of any level. Brewing: Attack draughts.", sell: 4 },
   herb_emberleaf:  { name: "Emberleaf",  desc: "Herb. Dropped by monsters level 10+. Brewing: Strength draughts.", sell: 8 },
@@ -1113,7 +1117,7 @@ const GEODE_TABLE = [
   { item:"skyfeather",     weight:7,  min:3,  max:6 },
   { item:"uncut_ruby",     weight:5,  min:1,  max:1 },
 ];
-const PICKAXES = [["runite_pickaxe",0.7],["cobalt_pickaxe",0.75],["mithril_pickaxe",0.8],["steel_pickaxe",0.85],["iron_pickaxe",0.9],["bronze_pickaxe",0.95]];
+const PICKAXES = [["forgefire_pickaxe",0.7,70],["runite_pickaxe",0.7],["cobalt_pickaxe",0.75],["mithril_pickaxe",0.8],["steel_pickaxe",0.85],["iron_pickaxe",0.9],["bronze_pickaxe",0.95]];
 // Smithing: furnace (bars) then anvil (gear). Firemaking makes smelting faster.
 const SMITH = [];
 [["bronze",1,"Bronze bar",{copper_ore:1, tin_ore:1},6.2],["iron",15,"Iron bar",{iron_ore:1},12.5],["steel",30,"Steel bar",{iron_ore:1, coal:2},17.5],["mithril",50,"Mithril bar",{mithril_ore:1, coal:4},30],["cobalt",70,"Cobalt bar",{cobalt_ore:1, coal:6},37.5],["runite",85,"Runite bar",{runite_ore:1, coal:8},50]]
@@ -1318,6 +1322,7 @@ const CLUE_SKILLS = ["woodcutting", "fishing", "mining", "thieving", "agility"];
 const CLUE_HOURS = { easy: 1.5, medium: 2.5, hard: 4, elite: 20 };                // average hours of skilling per clue
 // Slayer
 const SLAYER_SHOP = [
+  { item:"slayer_chest", price:45, req:1, repeat:true },
   { item:"slayer_helm", price:250, req:10 },
   { item:"bone_charm", price:150, req:20 },
   { item:"hunter_satchel", price:400, req:40 },
@@ -1465,7 +1470,7 @@ const SHOP = [
   { item:"brew_angler",   price:120, qty:1, req:["fishing",1],     sec:"brews", stack:true },
   { item:"brew_miner",    price:180, qty:1, req:["mining",1],      sec:"brews", stack:true },
 ];
-const AXES = [["runite_axe",0.7],["cobalt_axe",0.75],["mithril_axe",0.8],["steel_axe",0.85],["iron_axe",0.9],["bronze_axe",0.95]];
+const AXES = [["emberheart_axe",0.7,70],["runite_axe",0.7],["cobalt_axe",0.75],["mithril_axe",0.8],["steel_axe",0.85],["iron_axe",0.9],["bronze_axe",0.95]];
 
 const NEST_TABLE = [
   { item:"coins",         weight:50, min:20, max:80 },
@@ -1555,7 +1560,7 @@ const totalLevel = () => Object.keys(SKILLS).reduce((s, k) => s + lvl(k), 0);
 /* Skill interactions */
 function wcSpeedParts() {
   const fm = lvl("firemaking");
-  const axe = AXES.find(([id]) => has(id));
+  const axe = AXES.find(([id, , r]) => has(id) && (!r || lvl("woodcutting") >= r));
   return [
     { label: axe ? ITEMS[axe[0]].name : "No axe", mult: axe ? axe[1] : 1, on: !!axe },
     { label: `Warm hands (Firemaking ${fm})`, mult: 1 - 0.005 * fm, on: fm > 1 },
@@ -1572,7 +1577,7 @@ function actionTime(skill, a) {
   if (skill === "fishing") { if (worn("tide_ring")) t *= 0.9; if (has("tide_harpoon")) t *= 0.8; if (buffOn("angler")) t *= 0.85; }
   if (skill === "woodcutting" && buffOn("forester")) t *= 0.85;
   if (skill === "mining") { if (worn("seam_amulet")) t *= 0.9; if (buffOn("miner")) t *= 0.85; }
-  if (skill === "mining") { const p = PICKAXES.find(([id]) => has(id)); if (p) t *= p[1]; }
+  if (skill === "mining") { const p = PICKAXES.find(([id, , r]) => has(id) && (!r || lvl("mining") >= r)); if (p) t *= p[1]; }
   if (skill === "smithing" && a.smelt) t *= 1 - 0.005 * lvl("firemaking");
   if (skill === "agility" && has("golden_feather")) t *= 0.95;
   t *= 1 - 0.02 * apLvl("swift");
@@ -1756,9 +1761,18 @@ const buffOn = id => (state.buffs[id] || 0) > 0;
 const geodeChance = a => a.geode * (has("prospector_charm") ? 2 : 1) * (worn("seam_amulet") ? 1.5 : 1);
 const doubleChance = skill => (worn("plenty_amulet") ? 0.1 : 0) + (skill === "fishing" && has("tide_harpoon") ? 0.1 : 0) + (["woodcutting", "fishing", "mining"].includes(skill) ? 0.05 * apLvl("forager") : 0);
 const growMult = () => (worn("roots_ring") ? 0.75 : 1) * (1 - 0.1 * apLvl("green"));
+// Fire-forged tools from Slayer chests: each needs level 70 and has a 10% chance to process what you gather
+const TOOL_REQ = { emberheart_axe: ["woodcutting", 70], forgefire_pickaxe: ["mining", 70], hearthfire_rod: ["fishing", 70] }, FORGED_CHANCE = 0.10;
+const hasTool = id => has(id) && lvl(TOOL_REQ[id][0]) >= TOOL_REQ[id][1];
+const gotItem = (sum, k, n) => { add(k, n); sum.items[k] = (sum.items[k] || 0) + n; };
 function gather(item, sum, skill) {
   const n = Math.random() < doubleChance(skill) ? 2 : 1;
-  add(item, n); sum.items[item] = (sum.items[item] || 0) + n;
+  if (Math.random() < FORGED_CHANCE) {
+    if (skill === "woodcutting" && hasTool("emberheart_axe")) { const f = FIRES.find(x => x.item === item); if (f) { gainXp("firemaking", f.xp * n, sum); gotItem(sum, "ashes", n); sum.forged = (sum.forged || 0) + n; return; } }
+    if (skill === "mining" && hasTool("forgefire_pickaxe")) { const r = SMITH.find(x => x.smelt && x.inputs[item]); if (r) { gainXp("smithing", r.xp * n, sum); gotItem(sum, r.out, n); sum.forged = (sum.forged || 0) + n; return; } }
+    if (skill === "fishing" && hasTool("hearthfire_rod")) { const r = RECIPES.find(x => x.item === item); if (r) { gainXp("cooking", r.xp * n, sum); gotItem(sum, r.out, n); sum.forged = (sum.forged || 0) + n; return; } }
+  }
+  gotItem(sum, item, n);
 }
 const CRAFT_SKILLS = ["smithing","enchanting","fletching","brewing"];
 const smithBlock = a => { const miss = Object.entries(a.inputs).find(([k, q]) => qty(k) < q); return miss ? `Out of ${ITEMS[miss[0]].name.toLowerCase()}` : ""; };
@@ -2105,15 +2119,48 @@ function slayerKill(m, sum) {
   if (has("hunter_satchel")) pts = Math.round(pts * 1.25);
   if (apLvl("insight")) pts = Math.round(pts * 1.2);
   s.points += pts;
-  sum.notes.push(`Slayer task complete: ${s.task.total} ${m.name.toLowerCase()}. +${pts} Slayer points`);
+  const chests = s.streak % 10 === 0 ? 3 : 1; add("slayer_chest", chests); sum.items.slayer_chest = (sum.items.slayer_chest || 0) + chests;
+  sum.notes.push(`Slayer task complete: ${s.task.total} ${m.name.toLowerCase()}. +${pts} Slayer points and ${chests > 1 ? chests + " Slayer chests" : "a Slayer chest"}`);
   log(`Slayer task complete (${s.task.total} ${esc(m.name.toLowerCase())}). <b>+${pts} points</b>, streak ${s.streak}`, "l");
   s.task = null;
   if (Math.random() < PET_PER_TASK) givePet("slayer", sum);
   // carry straight on with a new task if the next one is the same monster you're fighting
 }
+// Slayer chest: 2–3 rolls of combat gear and supplies for your combat level, plus the fire-forged tools (1/100 each)
+const SCHEST_RARE = 1 / 100, SCHEST_TOOLS = ["emberheart_axe", "forgefire_pickaxe", "hearthfire_rod"];
+const SCHEST_METALS = ["iron", "steel", "mithril", "cobalt", "runite"];
+const schestTier = () => { const c = combatLevel(); return c < 25 ? 0 : c < 40 ? 1 : c < 55 ? 2 : c < 70 ? 3 : 4; };
+function slayerChestRoll() {
+  const t = schestTier(), r = Math.random() * 100, pick = a => a[Math.floor(Math.random() * a.length)];
+  if (r < 24) { // gear: your tier, sometimes one higher
+    const m = SCHEST_METALS[Math.min(4, t + (Math.random() < 0.2 ? 1 : 0))];
+    return { item: `${m}_${pick(["sword", "full_helm", "platebody", "platelegs", "kiteshield"])}`, qty: 1 };
+  }
+  if (r < 44) return { item: ["trout", "lobster", "swordfish", "shark", "shark"][t], qty: randInt(6, 12) };
+  if (r < 54) return { item: `${SCHEST_METALS[t]}_arrow`, qty: randInt(40, 100) };
+  if (r < 62) return t >= 3 ? { item: "death_rune", qty: randInt(15, 30) } : { item: "chaos_rune", qty: randInt(20, 40) };
+  if (r < 77) { const pots = POTIONS.filter(x => x.section === "Combat potions" && x.lvl <= 12 + t * 14); return { item: pick(pots).out, qty: randInt(2, 4) }; }
+  if (r < 87) return { item: pickHerb(combatLevel()), qty: randInt(3, 6) };
+  return { item: "coins", qty: randInt(300, 800) * (t + 1) };
+}
+function openSlayerChests(all) {
+  const n = all ? qty("slayer_chest") : Math.min(1, qty("slayer_chest"));
+  if (!n) return;
+  const got = {};
+  for (let k = 0; k < n; k++) {
+    add("slayer_chest", -1); state.stats.schests = (state.stats.schests || 0) + 1;
+    const rolls = [slayerChestRoll(), slayerChestRoll()]; if (Math.random() < 0.5) rolls.push(slayerChestRoll());
+    for (const tool of SCHEST_TOOLS) if (!ownedEver(tool) && !got[tool] && Math.random() < SCHEST_RARE) rolls.push({ item: tool, qty: 1 });
+    for (const d of rolls) { trackedAdd("slayerchest", d.item, d.qty); got[d.item] = (got[d.item] || 0) + d.qty; }
+  }
+  const parts = Object.entries(got).map(([k, q]) => `${q > 1 ? fmt(q) + " " : ""}${ITEMS[k].name}`);
+  const rare = Object.keys(got).some(k => SCHEST_TOOLS.includes(k));
+  toast(`${n > 1 ? n + " Slayer chests" : "Slayer chest"}: ${parts.join(", ")}`, rare);
+  log(`Opened ${n > 1 ? n + " Slayer chests" : "a Slayer chest"}: <b>${parts.join(", ")}</b>`, rare ? "r" : "");
+}
 function buySlayer(i) {
   const e = SLAYER_SHOP[i]; const s = state.slayer;
-  if (!e || s.points < e.price || lvl("slayer") < e.req || has(e.item)) return;
+  if (!e || s.points < e.price || lvl("slayer") < e.req || (!e.repeat && has(e.item))) return;
   s.points -= e.price; add(e.item, 1);
   if (GEAR[e.item]) equipItem(e.item, true);
   toast(`Bought ${ITEMS[e.item].name.toLowerCase()}`);
@@ -2410,7 +2457,7 @@ function badges() {
   return {
     skills: state.patches.filter(p => p && now >= p.readyAt).length + state.barrels.filter(p => p && now >= p.readyAt).length + Object.values(state.boats).filter(t => t && now >= t.readyAt).length,
     clog: 0,
-    bank: qty("bird_nest") + qty("casket") + qty("geode") + CLUE_TIERS.reduce((n, t) => n + qty("clue_reward_" + t), 0),
+    bank: qty("bird_nest") + qty("casket") + qty("geode") + qty("slayer_chest") + CLUE_TIERS.reduce((n, t) => n + qty("clue_reward_" + t), 0),
     combat: 0, more: claimable() + (newsUnseen() ? 1 : 0),
   };
 }
@@ -2475,13 +2522,13 @@ function skillHead(skill) {
   else if (skill === "firemaking") perks = `<span class="chip on">Each level: chop 0.5% faster</span><span class="chip on">Every burn leaves ashes</span><span class="chip ${has("ember_charm") ? "on" : ""}">Ember charm${has("ember_charm") ? ": 10% log save" : " (not owned)"}</span>`;
   else if (skill === "agility") perks = `<span class="chip on">Each level: stuns ${Math.round(Math.min(0.6, lvl("agility") * 0.01) * 100)}% shorter</span><span class="chip ${lightfootCount() ? "on" : ""}">Lightfoot ${lightfootCount()}/4</span><span class="chip ${has("lightfoot_boots") ? "on" : ""}">Boots: laps 5% faster</span>`;
   else if (skill === "thieving") perks = thieveParts(TARGETS[0]).slice(2).map(p => `<span class="chip ${p.add ? "on" : ""}">${esc(p.label)}${p.add ? ` +${Math.round(p.add * 100)}%` : ""}</span>`).join("") + `<span class="chip on">Agility ${lvl("agility")}: stun −${Math.round(Math.min(0.6, lvl("agility") * 0.01) * 100)}%</span>`;
-  else if (skill === "mining") { const p = PICKAXES.find(([id]) => has(id)); perks = `<span class="chip ${p ? "on" : ""}">${p ? ITEMS[p[0]].name + " −" + Math.round((1 - p[1]) * 100) + "% time" : "No pickaxe (smith one)"}</span><span class="chip on">Ore feeds Smithing</span>`; }
+  else if (skill === "mining") { const p = PICKAXES.find(([id, , r]) => has(id) && (!r || lvl("mining") >= r)); perks = `<span class="chip ${p ? "on" : ""}">${p ? ITEMS[p[0]].name + " −" + Math.round((1 - p[1]) * 100) + "% time" : "No pickaxe (smith one)"}</span><span class="chip on">Ore feeds Smithing</span>`; }
   else if (skill === "smithing") perks = `<span class="chip on">Firemaking ${lvl("firemaking")}: smelt ${(lvl("firemaking") * 0.5).toFixed(1)}% faster</span><span class="chip on">Makes axes, pickaxes, swords, platebodies</span><span class="chip">Monster uniques can't be smithed</span>`;
   else if (skill === "enchanting") perks = `<span class="chip on">Runes and staffs for Magic</span><span class="chip on">Gems from essence rocks (1/80) and geodes</span><span class="chip on">Jewellery works while it's in your bank</span>`;
   else if (skill === "brewing") perks = `<span class="chip on">Barrels ferment while you're away</span><span class="chip ${worn("roots_ring") ? "on" : ""}">Ring of roots${worn("roots_ring") ? ": 25% sooner" : " (Enchanting)"}</span>`;
   else if (skill === "seafaring") perks = `<span class="chip on">Voyages ${(Math.min(0.3, lvl("seafaring") * 0.005) * 100).toFixed(1)}% shorter</span><span class="chip ${has("captain_compass") ? "on" : ""}">Captain's compass${has("captain_compass") ? ": −25%" : " (Stormwrack)"}</span>`;
   else if (skill === "fletching") perks = `<span class="chip on">Bows and arrows for Ranged</span><span class="chip on">Arrows: a bar + a log makes 15</span>`;
-  else if (skill === "fishing") perks = `<span class="chip ${has("lucky_lure") ? "on" : ""}">Lucky lure${has("lucky_lure") ? ": 10% faster" : " (from caskets)"}</span><span class="chip on">Raw fish feeds Cooking</span>`;
+  else if (skill === "fishing") perks = (has("hearthfire_rod") ? `<span class="chip ${hasTool("hearthfire_rod") ? "on" : ""}">Hearthfire rod: 10% cooked${hasTool("hearthfire_rod") ? "" : " (needs Fishing 70)"}</span>` : "") + `<span class="chip ${has("lucky_lure") ? "on" : ""}">Lucky lure${has("lucky_lure") ? ": 10% faster" : " (from caskets)"}</span><span class="chip on">Raw fish feeds Cooking</span>`;
   else if (skill === "cooking") perks = `<span class="chip on">Firemaking ${lvl("firemaking")}: burn −${(lvl("firemaking") * 0.3).toFixed(1)}%</span><span class="chip on">Better logs burn longer</span><span class="chip on">Fuel: <span class="num" data-fuel></span> logs</span>`;
   else if (skill === "slayer") perks = `<span class="chip on">On task: ${SLAYER_XP} Slayer xp per monster hitpoint</span><span class="chip on">Slayer monsters need a Slayer level</span><span class="chip ${worn("slayer_helm") ? "on" : ""}">Slayer helm${worn("slayer_helm") ? ": +15% on task" : " (Slayer shop)"}</span><span class="chip ${has("echo_charm") ? "on" : ""}">Echo charm${has("echo_charm") ? ": +10% xp" : " (Gloom bats)"}</span><span class="chip ${has("bone_charm") ? "on" : ""}">Bone charm${has("bone_charm") ? ": +5% xp" : " (Slayer shop)"}</span>`;
   else perks = `<span class="chip on">Crops grow while you're away</span><span class="chip on">${FERTILISE_COST} ashes: 2× speed, +25% yield</span>`;
@@ -2581,7 +2628,7 @@ const itemOrder = {}; Object.keys(ITEMS).forEach((k, i) => itemOrder[k] = i);
 function itemCat(k) {
   const it = ITEMS[k] || {}, g = GEAR[k];
   if (["coins", "skyfeather", "doubloon", "daily_token", "glory", "streak_saver"].includes(k)) return "Currency";
-  if (["bird_nest", "casket", "geode", "treasure_map"].includes(k) || k.startsWith("clue_reward_")) return "To open";
+  if (["bird_nest", "casket", "geode", "treasure_map", "slayer_chest"].includes(k) || k.startsWith("clue_reward_")) return "To open";
   if (k.startsWith("pet_") || PETS.includes(k)) return "Pets";
   if (k.startsWith("trophy_") || k.endsWith("_trophy")) return "Trophies";
   if (it.buff || k === "vial") return "Brews & potions";
@@ -2709,7 +2756,7 @@ function slayerShopPanel() {
   const st = state.slayer, l = lvl("slayer");
   let h = `<div class="achtop">${icon("slayer")}<div><span class="ar">Slayer points</span><b class="num">${fmt(st.points)}</b><span>Earned by finishing Slayer tasks. <button class="linkbtn" id="toSlayer" data-tab="slayer">Get a task</button></span></div></div>`;
   h += `<h3>Rewards</h3><div class="actions">` + SLAYER_SHOP.map((e, i) => {
-    const owned = has(e.item), locked = l < e.req;
+    const owned = !e.repeat && has(e.item), locked = l < e.req;
     return `<button class="act" id="sbuy-${e.item}" data-sbuy="${i}" ${owned || locked || st.points < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${esc(ITEMS[e.item].name)}</span><span class="meta">${locked ? `<span class="lock">Needs Slayer ${e.req}</span>` : owned ? `<span class="ok">Owned</span> · ${esc(ITEMS[e.item].desc)}` : esc(ITEMS[e.item].desc)}</span><span class="side"><b>${e.price}</b>points</span></button>`;
   }).join("") + `</div>`;
   return h;
@@ -2792,6 +2839,7 @@ function clogTree() {
       { id: "dshop", name: "Daily shop", sub: "Daily tokens", items: [...DSHOP.filter(e => e.once).map(e => ({ item: e.item, rate: `${fmt(e.price)} tokens` })), { item: "moonlit_hood", rate: "Daily special" }, { item: "dusk_cape", rate: "Daily special" }, { item: "boss_trophy", rate: "Boss of the week" }] },
       { id: "apshop", name: "Point shop", sub: "Achievement points", items: AP_ITEMS.filter(e => e.once).map(e => ({ item: e.item, rate: `${fmt(e.price)} points` })) },
       { id: "achcapes", name: "Achievement capes", sub: "One per achievement rank", items: ACH_RANKS.map((r, i) => ({ item: capeId(i), unique: true, rate: `${fmt(r.ap)} points` })) },
+      { id: "slayerchest", name: "Slayer chest", tracked: true, sub: `${fmt(state.stats.schests || 0)} opened · gear and supplies for your combat level`, items: SCHEST_TOOLS.map(i => ({ item: i, unique: true, rate: "1/100 per chest" })) },
       { id: "slayershop", name: "Slayer shop", sub: "Slayer points", items: SLAYER_SHOP.map(e => ({ item: e.item, rate: `${e.price} points` })) },
       { id: "eyrie", name: "The Eyrie", sub: "Skyfeather shop", items: EYRIE.filter(e => e.item).map(e => ({ item: e.item, rate: `${e.price} feathers` })) },
     ] },
@@ -3078,6 +3126,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 38, date: "14 Oct 2026", title: "Slayer chests and fire-forged tools", items: [
+    "Every finished Slayer task now gives a Slayer chest (three on every 10th task in a row). You can also buy them in the Slayer shop for 45 points.",
+    "Each chest holds 2–3 combat supplies suited to your combat level: armour and weapons up to a tier ahead (iron to runite), food, arrows, runes, combat potions, herbs and coins. A way to gear up without relying on Smithing.",
+    "Very rare (1 in 100 per chest): the Emberheart axe (Woodcutting 70, 10% of logs burn for Firemaking xp), the Forgefire pickaxe (Mining 70, 10% of ore comes out smelted, with Smithing xp) and the Hearthfire rod (Fishing 70, 10% of fish come out cooked, with Cooking xp).",
+    "The axe and pickaxe are also as fast as runite tools." ] },
   { v: 37, date: "14 Oct 2026", title: "Sort your gear", items: [
     "Combat › Equipment: when you pick a slot, your items can be sorted by Best stats or by Level. Items you can wear come first, and the strongest one you can wear is tagged Best." ] },
   { v: 36, date: "14 Oct 2026", title: "Tidier Equipment screen", items: [
@@ -3249,7 +3302,7 @@ function slayerPanel() {
   h += `<div class="shoplink">${icon("coins")}<span>Spend Slayer points in the <b>Slayer shop</b>.</span><button class="btn" id="toSlayerShop" data-nav="shops:slayer">Open shop</button></div>`;
   h += `<h3>Slayer monsters</h3><div class="clog">` + MONSTERS.filter(x => x.slayer).map(x =>
     `<div class="row"><b>${esc(x.name)}</b><span><span class="${l >= x.slayer ? "got" : ""}">Slayer ${x.slayer}</span> · combat ${x.lvl} · ${x.uniques.map(u => `<span class="${got(u.item) ? "got" : ""}">${esc(ITEMS[u.item].name)} 1/${fmt(Math.round(1 / u.chance))}</span>`).join(", ")}</span></div>`).join("") + `</div>
-    <p class="note">Every kill on task gives Slayer xp as well as combat xp. Finish a task to earn points, then get a new one here. ${has(SKILL_PETS.slayer) ? "" : "Some say a small horned creature follows the most dedicated hunters…"}</p>`;
+    <p class="note">Every kill on task gives Slayer xp as well as combat xp. Finish a task to earn points and a Slayer chest (three on every 10th task in a row), then get a new one here. Open chests in the Bank. ${has(SKILL_PETS.slayer) ? "" : "Some say a small horned creature follows the most dedicated hunters…"}</p>`;
   return h;
 }
 function brewingPanel() {
@@ -3329,6 +3382,7 @@ function renderSheet() {
   if (allPets().includes(k)) b += `<button class="btn ${state.opts.follow === k ? "" : "solid"}" id="follow-${k}" data-follow="${k}">${state.opts.follow === k ? "Stop following" : "Follow me"}</button>`;
   if (GEAR[k]) b += worn(k) ? `<button class="btn" id="sheet-unequip" data-unequip="${GEAR[k].slot}">Remove (${CTYPES[state.opts.ctype || "melee"]})</button>` : `<button class="btn solid" id="sheet-equip" data-equip="${k}">Wear (${CTYPES[state.opts.ctype || "melee"]})</button>`;
   if (k === "geode") b += `<button class="btn solid" id="openg1" data-geode="1">Open</button><button class="btn" id="opengall" data-geode="all">Open all</button>`;
+  if (k === "slayer_chest") b += `<button class="btn solid" id="opens1" data-schest="1">Open</button><button class="btn" id="opensall" data-schest="all">Open all</button>`;
   if (k === "casket") b += `<button class="btn solid" id="openc1" data-casket="1">Open</button><button class="btn" id="opencall" data-casket="all">Open all</button>`;
   if (k.startsWith("clue_reward_")) { const tier = k.slice(12); b += `<button class="btn solid" id="ccopen1-${tier}" data-ccopen="${tier}">Open</button><button class="btn" id="ccopenall-${tier}" data-ccopen="${tier}" data-all="1">Open all</button>`; }
   if (k === "bird_nest") b += `<button class="btn solid" id="open1" data-open="1">Open</button><button class="btn" id="openall" data-open="all">Open all</button>`;
@@ -3677,6 +3731,7 @@ const ITEM_TPL = {
   ember: [".....3......", "....33..3...", "...3443.33..", "..3444433...", "..34114433..", ".3411111443.", ".3k1111k143.", ".3411111143.", "..34111143..", "...333333...", "............", "............"],
   mole: ["............", "............", "...111111...", "..11111111..", ".1111111111.", "441k1111111.", "4411111111..", ".1111111111.", ".1111111111.", "33.33..33...", "............", "............"],
   herb: ["............", "......11....", ".....1441...", "..11.1221...", ".1441.12.11.", ".1221.3.1441", "..12..3.1221", "...1..3..12.", "......3..1..", ".....33.....", "....333.....", "............"],
+  rod: ["..........11", ".........1.4", "........1..4", ".......1...4", "......1....4", ".....1.....4", "....1......4", "...1.......3", "..22......33", ".222........", "22..........", "2..........."],
   vial: ["............", ".....44.....", ".....44.....", "....3333....", ".....33.....", "....3113....", "...311113...", "..31111113..", "..31111223..", "..31122223..", "...322223...", "....3333...."],
   cat: ["............", "...1...1....", "...11.11....", "...11111....", "...1k1k1....", "...11211....", "....111.....", "....1111.3..", "...111111.3.", "...1111111.3", "...11111111.", "....4..4...."],
   bird: ["............", "....1111....", "...111111...", "..1W11W111..", "..1k11k111..", "..133311....", "..11WW111...", ".11WWWW11...", ".11WWWW11...", "..1WWWW1....", "...44.44....", "............"],
@@ -3756,6 +3811,7 @@ const IC = {
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
   daily_token:["coin",["#f0a33a","#8e5a1a","#fff1c8","#000"]], streak_saver:["horseshoe",["#f0a33a","#8e5a1a","#3a4048","#000"]],
+  slayer_chest:["chest",["#5a2a2e","#2e1416","#d8d0c0","#a8282a"]], emberheart_axe:["axe",["#ff7a1a","#5a1a14","#f7d35a","#d2452f"]], forgefire_pickaxe:["pickaxe",["#ff9a3a","#5a1a14","#f7d35a","#d2452f"]], hearthfire_rod:["rod",["#ff7a1a","#3a1a14","#d4d8de","#f2efe6"]],
   herb_marshwort:["herb",["#6fbf5a","#3f7a3a","#6b4a2a","#c8e8a0"]], herb_emberleaf:["herb",["#e07a3a","#a0402c","#6b4a2a","#f7d35a"]], herb_bitterroot:["herb",["#b09a5a","#6b5a2a","#4a2e16","#e0d4a0"]],
   herb_moonmoss:["herb",["#9fb4d8","#5a6a9a","#3a4a6a","#e6eef8"]], herb_frostcap:["herb",["#a8e0f0","#5aa7c8","#4a6a7a","#ffffff"]], herb_stormpetal:["herb",["#9a7ae8","#5a3a9a","#3a2a5a","#d8c8f8"]], herb_duskbloom:["herb",["#d24a8a","#7a1a4a","#3a1a2a","#f6b0d4"]],
   wildseed:["seeds",["#6fbf5a","#9a7ae8","#000","#000"]], vial:["vial",["#bfe0f6","#8ab8dc","#e6eef8","#a0682a"]],
@@ -4721,6 +4777,7 @@ document.addEventListener("click", e => {
   }
   if (t.id === "stopBtn") { state.fight = null; state.active = null; state.progress = 0; return after(); }
   if (d.open) { openNests(d.open === "all"); return after(); }
+  if (d.schest) { openSlayerChests(d.schest === "all"); return after(); }
   if (d.casket) { openCaskets(d.casket === "all"); return after(); }
   if (d.geode) { openGeodes(d.geode === "all"); return after(); }
   { // rare items need a second tap before they're sold
