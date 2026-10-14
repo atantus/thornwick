@@ -479,6 +479,14 @@ body.noscroll{overflow:hidden}
 .storemult{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 4px;font-size:.82rem;color:var(--muted)}
 .storemult button{font:inherit;font-weight:700;font-size:.8rem;min-height:34px;min-width:48px;border-radius:8px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}
 .storemult button[aria-pressed="true"]{background:var(--ember);border-color:var(--ember);color:var(--bg)}
+.chestlog{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(135deg,#ff7a1a12,transparent 60%),var(--panel)}
+.chestlog .clh{display:flex;align-items:center;gap:10px}
+.chestlog .clh .ico{width:32px;height:32px}
+.chestlog .clh b{display:block;font-size:.95rem} .chestlog .clh span{font-size:.8rem;color:var(--muted)}
+.cltools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.cltools div{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border:1px solid var(--line);border-radius:10px;background:var(--bg);opacity:.45}
+.cltools div.got{opacity:1;border-color:#ff7a1a66}
+.cltools .ico{width:32px;height:32px} .cltools b{font-size:.95rem;color:var(--fg)} .cltools span{font-size:.72rem;color:var(--muted)}
 .shoplink{display:flex;align-items:center;gap:12px;margin-top:16px;padding:12px 14px;border:1px dashed var(--ember-dim);border-radius:12px;background:var(--panel)}
 .shoplink .ico{width:28px;height:28px;flex:none} .shoplink span{flex:1;color:var(--muted);font-size:.9rem} .shoplink b{color:var(--fg)}
 .ptype{margin-top:8px}
@@ -2151,13 +2159,25 @@ function openSlayerChests(all) {
   for (let k = 0; k < n; k++) {
     add("slayer_chest", -1); state.stats.schests = (state.stats.schests || 0) + 1;
     const rolls = [slayerChestRoll(), slayerChestRoll()]; if (Math.random() < 0.5) rolls.push(slayerChestRoll());
-    if (Math.random() < SCHEST_RARE) rolls.push({ item: SCHEST_TOOLS[Math.floor(Math.random() * SCHEST_TOOLS.length)], qty: 1 });
+    if (Math.random() < SCHEST_RARE) { const tool = SCHEST_TOOLS[Math.floor(Math.random() * SCHEST_TOOLS.length)]; rolls.push({ item: tool, qty: 1 }); state.stats.schestLast = { item: tool, at: state.stats.schests, t: Date.now() }; }
     for (const d of rolls) { trackedAdd("slayerchest", d.item, d.qty); got[d.item] = (got[d.item] || 0) + d.qty; }
   }
   const parts = Object.entries(got).map(([k, q]) => `${q > 1 ? fmt(q) + " " : ""}${ITEMS[k].name}`);
   const rare = Object.keys(got).some(k => SCHEST_TOOLS.includes(k));
   toast(`${n > 1 ? n + " Slayer chests" : "Slayer chest"}: ${parts.join(", ")}`, rare);
   log(`Opened ${n > 1 ? n + " Slayer chests" : "a Slayer chest"}: <b>${parts.join(", ")}</b>`, rare ? "r" : "");
+}
+// Chest log: lifetime counts come from the collection log's per-source tally (state.clogSrc.slayerchest)
+function chestLogHtml() {
+  const opened = state.stats.schests || 0, src = state.clogSrc.slayerchest || {}, last = state.stats.schestLast;
+  const tools = SCHEST_TOOLS.map(t => [t, src[t] || 0]), total = tools.reduce((n, [, q]) => n + q, 0), expect = opened * SCHEST_RARE;
+  const gear = Object.entries(src).filter(([k]) => /_(sword|full_helm|platebody|platelegs|kiteshield)$/.test(k)).reduce((n, [, q]) => n + q, 0);
+  const pots = Object.entries(src).filter(([k]) => k.startsWith("pot_")).reduce((n, [, q]) => n + q, 0);
+  const luck = !opened ? "" : total > expect * 1.25 ? `<span class="ok">luckier than average</span>` : total < expect * 0.75 && opened >= 50 ? `<span class="lock">unluckier than average</span>` : "about average";
+  return `<div class="chestlog"><div class="clh">${icon("slayer_chest")}<div><b>Chest log</b><span>${fmt(opened)} Slayer chest${opened === 1 ? "" : "s"} opened</span></div></div>
+    <div class="cltools">${tools.map(([t, q]) => `<div class="${q ? "got" : ""}" title="${esc(ITEMS[t].name)}">${icon(t)}<b class="num">×${fmt(q)}</b><span>${esc(ITEMS[t].name.split(" ")[0])}</span></div>`).join("")}</div>
+    ${opened ? `<p class="note" style="margin:6px 0 0">${fmt(total)} fire-forged tool${total === 1 ? "" : "s"} from ${fmt(opened)} chests (about ${expect < 10 ? expect.toFixed(1) : fmt(Math.round(expect))} expected): ${luck}.${last ? ` Last: ${esc(ITEMS[last.item].name)} from chest #${fmt(last.at)}; ${fmt(opened - last.at)} chest${opened - last.at === 1 ? "" : "s"} since.` : opened ? ` ${fmt(opened)} chests without a tool so far.` : ""}</p>
+    <p class="note" style="margin:4px 0 0">Also found: ${fmt(gear)} gear pieces, ${fmt(pots)} potions and ${fmt(src.coins || 0)} coins.</p>` : `<p class="note" style="margin:6px 0 0">Finish a Slayer task to earn your first chest. Each has a 3 in 100 chance of a fire-forged tool.</p>`}</div>`;
 }
 function buySlayer(i) {
   const e = SLAYER_SHOP[i]; const s = state.slayer;
@@ -2756,6 +2776,7 @@ function shopsPanel() {
 function slayerShopPanel() {
   const st = state.slayer, l = lvl("slayer");
   let h = `<div class="achtop">${icon("slayer")}<div><span class="ar">Slayer points</span><b class="num">${fmt(st.points)}</b><span>Earned by finishing Slayer tasks. <button class="linkbtn" id="toSlayer" data-tab="slayer">Get a task</button></span></div></div>`;
+  h += chestLogHtml();
   h += `<h3>Rewards</h3><div class="actions">` + SLAYER_SHOP.map((e, i) => {
     const owned = !e.repeat && has(e.item), locked = l < e.req;
     return `<button class="act" id="sbuy-${e.item}" data-sbuy="${i}" ${owned || locked || st.points < e.price ? "disabled" : ""}><span class="nm">${icon(e.item)}${esc(ITEMS[e.item].name)}</span><span class="meta">${locked ? `<span class="lock">Needs Slayer ${e.req}</span>` : owned ? `<span class="ok">Owned</span> · ${esc(ITEMS[e.item].desc)}` : esc(ITEMS[e.item].desc)}</span><span class="side"><b>${e.price}</b>points</span></button>`;
@@ -3127,6 +3148,8 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 40, date: "14 Oct 2026", title: "Chest log", items: [
+    "A Chest log on the Slayer page and in the Slayer shop: how many Slayer chests you've opened, how many of each fire-forged tool you've ever pulled (sold spares still count), whether you're luckier than average, and how many chests since your last tool." ] },
   { v: 39, date: "14 Oct 2026", title: "Fire-forged tools can repeat", items: [
     "Slayer chests now have one rare roll (3 in 100). When it hits you get one of the three fire-forged tools, each an even 1 in 3, and you can get the same tool more than once. Spares can be sold or kept for trading." ] },
   { v: 38, date: "14 Oct 2026", title: "Slayer chests and fire-forged tools", items: [
@@ -3302,7 +3325,7 @@ function slayerPanel() {
       <div class="row"><button class="btn solid" id="slayerFight" data-slayer="fight" ${reqMet("combat", m) ? "" : "disabled"}>Fight ${esc(m.name.toLowerCase())}</button><button class="btn" id="slayerSkip" data-slayer="skip" ${st.points < SKIP_COST ? "disabled" : ""}>Skip · ${SKIP_COST} points</button></div>`;
   } else h += `<div class="taskhead">${icon("slayer")}<div><b>No task</b><span>The task master picks a monster you can handle and how many to kill.</span></div></div><div class="row"><button class="btn solid" id="slayerNew" data-slayer="new">Get a task</button></div>`;
   h += `</div><div class="perks"><span class="chip on">Points: <b class="num" data-slayerpts></b></span><span class="chip on">Tasks done: ${fmt(st.done)}</span><span class="chip on">Streak ${st.streak} (every 10th task ×5 points, 50th ×15)</span></div>`;
-  h += `<div class="shoplink">${icon("coins")}<span>Spend Slayer points in the <b>Slayer shop</b>.</span><button class="btn" id="toSlayerShop" data-nav="shops:slayer">Open shop</button></div>`;
+  h += `<div class="shoplink">${icon("coins")}<span>Spend Slayer points in the <b>Slayer shop</b>.</span><button class="btn" id="toSlayerShop" data-nav="shops:slayer">Open shop</button></div>` + chestLogHtml();
   h += `<h3>Slayer monsters</h3><div class="clog">` + MONSTERS.filter(x => x.slayer).map(x =>
     `<div class="row"><b>${esc(x.name)}</b><span><span class="${l >= x.slayer ? "got" : ""}">Slayer ${x.slayer}</span> · combat ${x.lvl} · ${x.uniques.map(u => `<span class="${got(u.item) ? "got" : ""}">${esc(ITEMS[u.item].name)} 1/${fmt(Math.round(1 / u.chance))}</span>`).join(", ")}</span></div>`).join("") + `</div>
     <p class="note">Every kill on task gives Slayer xp as well as combat xp. Finish a task to earn points and a Slayer chest (three on every 10th task in a row), then get a new one here. Open chests in the Bank. ${has(SKILL_PETS.slayer) ? "" : "Some say a small horned creature follows the most dedicated hunters…"}</p>`;
