@@ -391,6 +391,8 @@ body.noscroll{overflow:hidden}
 #login .fine.center{text-align:center;margin:0}
 #login .lcard .lmsg{min-height:1.2em;margin:10px 0 0;font-size:.85rem;color:var(--ember)}
 #login .lmsg:empty{display:none}
+#login .navail{min-height:1.2em;margin:6px 0 2px;font-size:.82rem;color:var(--muted)}
+#login .navail.ok{color:#7fd17f}#login .navail.bad{color:var(--ember)}
 .hshead{display:flex;gap:8px;align-items:center;margin-bottom:10px}
 .hshead .lbl{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .hssel{flex:1;margin:0;min-height:42px}
@@ -705,7 +707,7 @@ div.act{cursor:default}
     <canvas id="loginScene" role="img" aria-label="An archer, a warrior and a wizard resting by a campfire"></canvas>
     <div class="lcard" id="loginCard"></div>
     <button class="lnk skip" id="loginSkip">Play without an account</button>
-    <p class="fine center">Without an account, progress stays on this device only. You can sign in any time from More › Help &amp; save.</p>
+    <p class="fine center" id="loginNote">Without an account, progress stays on this device only. You can sign in any time from More › Help &amp; save.</p>
   </div>
 </div>
 
@@ -3167,6 +3169,10 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 42, date: "14 Oct 2026", title: "Usernames", items: [
+    "Signing in now asks you to choose a unique username straight after the email code. It's your name on the hiscores, in chat and in the Arena.",
+    "The box tells you as you type whether a name is free. Names are 3–12 letters, numbers, spaces, - or _, and no two players can share one (capitals don't count as different).",
+    "Already signed in without a name? You'll be asked for one next time you open the game. Players who already picked a hiscores name keep it, and you can still change yours in Hiscores." ] },
   { v: 41, date: "14 Oct 2026", title: "Global chat", items: [
     "New Chat page in the side menu: talk with everyone playing Thornwick. Messages are saved, so you can scroll back through the conversation.",
     "Sign in and choose a hiscores name to post; your total level shows next to your name. Anyone can read along.",
@@ -4918,8 +4924,8 @@ document.addEventListener("change", e => { if (e.target.id === "autoChop") { sta
   if (e.target.dataset && e.target.dataset.lookslot) { const sl = e.target.dataset.lookslot, L = Object.assign({}, state.look); L.show = Object.assign({}, L.show); if (e.target.value) L.show[sl] = e.target.value; else delete L.show[sl]; state.look = L; after(); } });
 document.addEventListener("change", e => { if (e.target.id === "autoPot") { state.opts.autoPot = e.target.checked; toast(e.target.checked ? "Auto-drink on: combat potions stay topped up while you fight" : "Auto-drink off"); save(); } });
 document.addEventListener("toggle", e => { if (e.target && e.target.id === "eqStats") state.opts.eqStats = e.target.open; }, true);
-document.addEventListener("input", e => { if (e.target.id === "chatInput") { chat.draft = e.target.value.slice(0, 200); const c = $("chatCount"); if (c) c.textContent = `${chat.draft.length}/200`; return; } if (e.target.id === "bankSearch") { bankSearch = e.target.value; const el = $("bankItems"); if (el) el.innerHTML = bankItemsHtml(); return; } if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
-document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "chatInput") { e.preventDefault(); chatSend(); return; } if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
+document.addEventListener("input", e => { if (e.target.id === "chatInput") { chat.draft = e.target.value.slice(0, 200); const c = $("chatCount"); if (c) c.textContent = `${chat.draft.length}/200`; return; } if (e.target.id === "bankSearch") { bankSearch = e.target.value; const el = $("bankItems"); if (el) el.innerHTML = bankItemsHtml(); return; } if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "loginName") nameInput(e.target.value); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
+document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "chatInput") { e.preventDefault(); chatSend(); return; } if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "loginName") saveUsername(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
 
 /* ================= CLOUD SAVE (Supabase) =================
    Sign in with an emailed code; the save lives in the `saves` table (one row per player).
@@ -4974,8 +4980,9 @@ async function accessToken() {
 }
 function signOutLocal(msg) {
   cm.s = null; cm.rev = null; cm.synced = null; cm.hsName = null; cm.hsXp = null; saveMeta(); hs.rows = null;
+  const wasOpen = loginOpen();
   cloud.step = "out"; cloud.codeDraft = ""; cloud.msg = msg || ""; render();
-  if (started) showLogin();
+  if (started) showLogin(); else if (wasOpen) renderLogin();
 }
 
 async function sendCode() {
@@ -4996,10 +5003,79 @@ async function verifyCode() {
     const j = await api("/auth/v1/verify", { method: "POST", body: { type: "email", email: cloud.email, token } }, false);
     if (cm.s && cm.s.uid !== (j.user && j.user.id)) { cm.rev = null; cm.synced = null; }
     setSession(j); cloud.step = "in"; cloud.msg = ""; cm.skip = false; saveMeta();
-    if (!loginOpen()) { render(); await cloudCheck(false, true); }
-    else { hideLogin(); toast(`Signed in as ${cloud.email}`); if (started) { render(); await cloudCheck(false, true); } else cloudThenBegin(); }
+    if (await nameCheck() === false) { cloud.busy = false; return askName(); }
+    signedIn();
   } catch (e) { cloudSay(e.status === 403 || e.status === 400 ? "That code didn't work. It may have expired; send a new one." : e.msg); }
   cloud.busy = false;
+}
+// every account needs a unique username (stored as the hiscores name)
+const NAME_RE = /^[A-Za-z0-9][A-Za-z0-9 _-]{1,10}[A-Za-z0-9]$/;
+const NAME_RESERVED = ["admin", "administrator", "mod", "moderator", "staff", "system", "thornwick", "support", "official", "dev", "developer", "owner"];
+const cleanName = v => (v || "").trim().replace(/\s+/g, " ");
+function nameProblem(name) {
+  if (!NAME_RE.test(name)) return "Use 3–12 letters, numbers, spaces, - or _. Start and end with a letter or number.";
+  if (NAME_RESERVED.includes(name.toLowerCase().replace(/[ _-]/g, ""))) return "That name is reserved. Try another.";
+  return "";
+}
+// true: has a name, false: no name yet, null: couldn't tell (offline)
+async function nameCheck() {
+  if (!cloudOn || !cm.s) return null;
+  if (cm.hsName) return true;
+  try {
+    const rows = await api(`/rest/v1/hiscores?select=name,total_xp&user_id=eq.${cm.s.uid}`);
+    if (rows && rows[0]) { cm.hsName = rows[0].name; cm.hsXp = rows[0].total_xp; saveMeta(); return true; }
+    return false;
+  } catch (e) { return null; }
+}
+const naming = () => cloud.step === "name";
+function askName() {
+  cloud.step = "name"; cloud.nameDraft = cloud.nameDraft || ""; cloud.nameOk = null; cloud.msg = "";
+  if (!loginOpen()) showLogin(); else renderLogin();
+}
+// carry on into the game once signed in and named
+function signedIn() {
+  cloud.step = "in";
+  const wasOpen = loginOpen();
+  if (wasOpen) { hideLogin(); toast(cm.hsName ? `Welcome, ${cm.hsName}` : `Signed in as ${cloud.email}`); }
+  if (started) { render(); cloudCheck(false, true); } else cloudThenBegin();
+}
+let nameTimer = null, nameAsk = 0;
+function nameInput(v) {
+  cloud.nameDraft = v; cloud.nameOk = null; clearTimeout(nameTimer);
+  const name = cleanName(v), bad = name.length >= 3 ? nameProblem(name) : "";
+  nameStatus(bad || (name.length < 3 ? "" : "Checking…"), bad ? "bad" : "");
+  if (bad || name.length < 3) return;
+  const ask = ++nameAsk;
+  nameTimer = setTimeout(async () => {
+    try {
+      const pat = name.replace(/[\\%_]/g, c => "\\" + c);
+      const rows = await api(`/rest/v1/hiscores?select=name&name=ilike.${encodeURIComponent(pat)}&limit=1`, {}, false);
+      if (ask !== nameAsk) return;
+      cloud.nameOk = !(rows && rows.length);
+      nameStatus(cloud.nameOk ? `${name} is free` : "That name is taken. Try another.", cloud.nameOk ? "ok" : "bad");
+    } catch (e) { if (ask === nameAsk) nameStatus("", ""); }
+  }, 350);
+}
+function nameStatus(t, cls) { const el = $("nameAvail"); if (el) { el.textContent = t; el.className = "navail " + (cls || ""); } }
+async function saveUsername() {
+  if (cloud.busy) return;
+  const name = cleanName(cloud.nameDraft), bad = nameProblem(name);
+  if (bad) return cloudSay(bad);
+  cloud.busy = true; cloudSay("Saving…"); const b = $("nameSave"); if (b) b.disabled = true;
+  try {
+    const body = { user_id: cm.s.uid, name, ...hsStats() };
+    await api("/rest/v1/hiscores", { method: "POST", headers: { Prefer: "return=minimal" }, body });
+    cm.hsName = name; cm.hsXp = body.total_xp; saveMeta(); cloud.msg = ""; cloud.nameDraft = ""; hs.rows = null;
+    cloud.busy = false; signedIn(); return;
+  } catch (e) {
+    if (e.code === "23505" || e.status === 409) {
+      // a row for this account may already exist (named on another device)
+      const had = await nameCheck();
+      if (had) { cloud.busy = false; signedIn(); return; }
+      cloudSay("That name is taken. Try another."); nameStatus("", "");
+    } else cloudSay(e.code === "23514" ? "Use 3–12 letters, numbers, spaces, - or _." : e.msg);
+  }
+  cloud.busy = false; const b2 = $("nameSave"); if (b2) b2.disabled = false;
 }
 async function signOut() {
   try { await api("/auth/v1/logout", { method: "POST" }); } catch (e) {}
@@ -5103,8 +5179,11 @@ async function cloudResume() {
 function cloudPanel() {
   let h = `<h3>Cloud save</h3><div class="save cloud">`;
   if (!cloudOn) return h + `<p class="note">Cloud saves aren't switched on in this copy of the game yet.</p></div>`;
-  if (cloud.step === "in") {
-    h += `<p class="note">Signed in as <b>${esc(cloud.email || "you")}</b>. Your progress uploads every minute and when you close the game, so you can carry on from any device.</p>
+  if (naming()) {
+    h += `<p class="note">Signed in as <b>${esc(cloud.email || "you")}</b>. Choose a username to finish setting up your account.</p>
+      <div class="row"><button class="btn solid" id="pickName">Choose username</button><button class="btn" id="cloudOut">Sign out</button></div>`;
+  } else if (cloud.step === "in") {
+    h += `<p class="note">Signed in as <b>${esc(cloud.email || "you")}</b>${cm.hsName ? ` (username <b>${esc(cm.hsName)}</b>)` : ""}. Your progress uploads every minute and when you close the game, so you can carry on from any device.</p>
       <p class="note">Last synced: <b id="cloudAgo">${ago(cm.at)}</b></p>
       <div class="row"><button class="btn" id="cloudSync">Sync now</button><button class="btn" id="cloudOut">Sign out</button></div>`;
   } else if (cloud.step === "code") {
@@ -5129,6 +5208,10 @@ function cloudClick(id) {
   if (id === "cloudBack" || id === "loginBack") { cloud.step = "out"; cloud.emailDraft = null; cloud.msg = ""; cloudRender(); return true; }
   if (id === "loginSend" || id === "loginResend") { sendCode(); return true; }
   if (id === "loginVerify") { verifyCode(); return true; }
+  if (id === "nameSave") { saveUsername(); return true; }
+  if (id === "nameOut") { signOut(); return true; }
+  if (id === "pickName") { askName(); return true; }
+  if (id === "loginSkip" && naming()) return true;
   if (id === "loginSkip") { cm.skip = true; saveMeta(); hideLogin(); cloud.msg = ""; if (!started) cloudThenBegin(); return true; }
   if (id === "cloudSync") { cloudSay("Syncing…"); (cm.rev ? cloudCheck(false) : push()).then(() => { if (cloud.msg === "Syncing…") cloudSay("Synced"); }); return true; }
   if (id === "cloudOut") { signOut(); return true; }
@@ -5158,7 +5241,7 @@ async function hsLoad(force) {
 }
 async function hsSaveName() {
   const name = (hs.nameDraft || "").trim().replace(/\s+/g, " ");
-  if (!/^[A-Za-z0-9][A-Za-z0-9 _-]{1,10}[A-Za-z0-9]$/.test(name)) { hs.nameMsg = "Use 3–12 letters, numbers, spaces, - or _."; return hsRender(); }
+  const bad = nameProblem(name); if (bad) { hs.nameMsg = bad; return hsRender(); }
   hs.saving = true; hs.nameMsg = "Saving…"; hsRender();
   try {
     const body = { user_id: cm.s.uid, name, ...hsStats() };
@@ -5168,9 +5251,11 @@ async function hsSaveName() {
   } catch (e) { hs.nameMsg = e.code === "23505" || e.status === 409 ? "That name is taken. Try another." : e.code === "23514" ? "Use 3–12 letters, numbers, spaces, - or _." : e.msg; }
   hs.saving = false; hsRender();
 }
+let hsNameAsked = false;
 // keep your hiscores entry up to date (called after each cloud upload)
 async function hsSync() {
-  if (!cloudOn || !cm.s || !cm.hsName) return;
+  if (!cloudOn || !cm.s) return;
+  if (!cm.hsName) { if (!naming() && !hsNameAsked) { hsNameAsked = true; if (await nameCheck() === false) askName(); } return; }
   const st = hsStats(); if (st.total_xp === cm.hsXp) return;
   try { await api(`/rest/v1/hiscores?user_id=eq.${cm.s.uid}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: st }); cm.hsXp = st.total_xp; saveMeta(); } catch (e) {}
 }
@@ -5185,7 +5270,7 @@ function hiscoresBody() {
   let h = "";
   // your entry
   if (!cm.s) h += `<div class="hsme"><span>Sign in to appear on the hiscores.</span><button class="btn solid" id="hsSignIn">Sign in</button></div>`;
-  else if (!cm.hsName || hs.renaming) h += `<div class="hsme col"><b>${hs.renaming ? "Change your hiscores name" : "Pick a hiscores name"}</b><span>3–12 letters or numbers. Everyone can see it.</span>
+  else if (!cm.hsName || hs.renaming) h += `<div class="hsme col"><b>${hs.renaming ? "Change your username" : "Pick a username"}</b><span>3–12 letters or numbers. Everyone can see it.</span>
       <div class="hsname"><input class="cin" id="hsName" maxlength="12" autocomplete="nickname" placeholder="Name" value="${esc(hs.nameDraft || (hs.renaming ? cm.hsName : ""))}"><button class="btn solid" id="hsSave" ${hs.saving ? "disabled" : ""}>Save</button>${hs.renaming ? `<button class="btn" id="hsCancel">Cancel</button>` : ""}</div>
       <span class="lmsg">${esc(hs.nameMsg)}</span></div>`;
   else {
@@ -6337,7 +6422,7 @@ function chatBody() {
   if (chat.err) h += `<p class="cerr">${esc(chat.err)}</p>`;
   if (!cm.s) h += `<div class="ccompose locked"><span>Sign in to join the chat.</span><button class="btn solid" id="hsSignIn">Sign in</button></div>`;
   else h += `<div class="ccompose"><input id="chatInput" maxlength="200" placeholder="${cm.hsName ? `Say something as ${esc(cm.hsName)}…` : "Say something…"}" value="${esc(chat.draft)}" autocomplete="off" enterkeyhint="send" aria-label="Message"><button class="btn solid" id="chatSend" ${chat.sending ? "disabled" : ""}>${chat.sending ? "…" : "Send"}</button></div>
-    <div class="cfoot"><span id="chatCount">${chat.draft.length}/200</span><span>${cm.hsName ? "" : `You'll need a <button class="linkbtn" data-nav="more:hiscores">hiscores name</button> to post. `}Be kind: messages are public and saved. Tap a name to mute someone.</span></div>`;
+    <div class="cfoot"><span id="chatCount">${chat.draft.length}/200</span><span>${cm.hsName ? "" : `You'll need a <button class="linkbtn" id="pickName">username</button> to post. `}Be kind: messages are public and saved. Tap a name to mute someone.</span></div>`;
   if (chatMuted.length) h += `<p class="note">${chatMuted.length} muted ${chatMuted.length === 1 ? "player" : "players"}: ${chatMuted.map(n => `${esc(n)} <button class="linkbtn" data-chatunmute="${esc(n)}">unmute</button>`).join(", ")}</p>`;
   return h;
 }
@@ -6368,14 +6453,22 @@ const loginOpen = () => !$("login").hidden;
 function showLogin() {
   const el = $("login"); el.hidden = false; document.body.classList.add("noscroll");
   renderLogin(); heroLoop();
-  const f = $("loginEmail") || $("loginCode"); if (f && !(window.matchMedia && matchMedia("(pointer:coarse)").matches)) f.focus();
+  const f = $("loginName") || $("loginEmail") || $("loginCode"); if (f && !(window.matchMedia && matchMedia("(pointer:coarse)").matches)) f.focus();
 }
 function hideLogin() { $("login").hidden = true; document.body.classList.remove("noscroll"); }
 function renderLogin() {
   if (!loginOpen()) return;
   const card = $("loginCard"); const focusId = document.activeElement && document.activeElement.id;
   let h;
-  if (cloud.step === "code") h = `<h2>Check your email</h2>
+  if (naming()) h = `<h2>Choose your username</h2>
+      <p>This is how other players see you on the hiscores, in chat and in the Arena. Each name is unique.</p>
+      <label class="lbl" for="loginName">Username</label>
+      <input class="cin" id="loginName" maxlength="12" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="3–12 letters or numbers">
+      <p class="navail" id="nameAvail" aria-live="polite"></p>
+      <button class="btn solid wide" id="nameSave">Start playing</button>
+      <p class="fine">Letters, numbers, spaces, - and _. You can change it later in Hiscores.</p>
+      <div class="lrow"><span></span><button class="lnk" id="nameOut">Sign out</button></div>`;
+  else if (cloud.step === "code") h = `<h2>Check your email</h2>
       <p>We sent a 6-digit code to <b>${esc(cloud.email)}</b>. Type it here; there's no need to tap the link.</p>
       <label class="lbl" for="loginCode">Code</label>
       <input class="cin code" id="loginCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••">
@@ -6390,6 +6483,8 @@ function renderLogin() {
   card.innerHTML = h + `<p class="lmsg" id="loginMsg" role="status">${esc(cloud.msg)}</p>`;
   const e = $("loginEmail"); if (e) e.value = cloud.emailDraft !== null ? cloud.emailDraft : cloud.email;
   const c = $("loginCode"); if (c) c.value = cloud.codeDraft;
+  const n = $("loginName"); if (n) n.value = cloud.nameDraft || "";
+  const sk = $("loginSkip"); if (sk) sk.hidden = naming(); const ln = $("loginNote"); if (ln) ln.hidden = naming();
   if (focusId && $(focusId)) $(focusId).focus({ preventScroll: true });
 }
 // three heroes round a campfire on the login screen
@@ -6442,7 +6537,10 @@ function start(data) {
   else { try { const raw = localStorage.getItem(SAVE_KEY); if (raw) loadObj(JSON.parse(raw)); } catch (e) {} }
   if (cloudOn) {
     render(); renderNow();
-    cloudFromLink().then(() => { if (!cm.s && !cm.skip) showLogin(); else cloudThenBegin(); });
+    cloudFromLink().then(async () => {
+      if (!cm.s) { if (!cm.skip) showLogin(); else cloudThenBegin(); return; }
+      if (await nameCheck() === false) askName(); else cloudThenBegin();
+    });
     return;
   }
   begin();
