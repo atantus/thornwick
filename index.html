@@ -1317,10 +1317,10 @@ const ROCKS = [
   { id:"tin",     name:"Tin rock",     lvl:1,  time:3.0, xp:17.5, item:"tin_ore",     geode:1/250 },
   { id:"iron",    name:"Iron rock",    lvl:15, time:4.0, xp:35,   item:"iron_ore",    geode:1/200 },
   { id:"coal",    name:"Coal seam",    lvl:30, time:5.0, xp:50,   item:"coal",        geode:1/175 },
-  { id:"mithril", name:"Mithril vein", lvl:40, time:6.0, xp:80,   item:"mithril_ore", geode:1/150 },
-  { id:"adamantite", name:"Adamantite vein", lvl:55, time:6.2, xp:110, item:"adamantite_ore", geode:1/135 },
-  { id:"cobalt",  name:"Cobalt vein",  lvl:70, time:6.5, xp:140,   item:"cobalt_ore",  geode:1/120 },
-  { id:"runite",  name:"Runite vein",  lvl:85, time:7.5, xp:200,  item:"runite_ore",  geode:1/100, gem:1/60 },
+  { id:"mithril", name:"Mithril vein", lvl:40, time:5.5, xp:100,   item:"mithril_ore", geode:1/150 },
+  { id:"adamantite", name:"Adamantite vein", lvl:55, time:5.5, xp:150, item:"adamantite_ore", geode:1/135 },
+  { id:"cobalt",  name:"Cobalt vein",  lvl:70, time:5.8, xp:220,   item:"cobalt_ore",  geode:1/120 },
+  { id:"runite",  name:"Runite vein",  lvl:85, time:6.0, xp:320,  item:"runite_ore",  geode:1/100, gem:1/60 },
 ];
 ROCKS.unshift({ id:"essence", name:"Essence rock", lvl:1, time:2.5, xp:5, item:"rune_essence", geode:1/300, gem:1/80 });
 const GEM_TABLE = [ { item:"uncut_sapphire", weight:60, min:1, max:1 }, { item:"uncut_emerald", weight:30, min:1, max:1 }, { item:"uncut_ruby", weight:10, min:1, max:1 }, { item:"uncut_diamond", weight:3, min:1, max:1 } ];
@@ -3732,6 +3732,9 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 56, date: "14 Oct 2026", title: "Faster high-level Mining", items: [
+    "Mining from mithril upwards is much quicker. Mithril: 100 xp per ore (was 80) and mines faster. Adamantite: 150 xp (was 110). Cobalt: 220 xp (was 140). Runite: 320 xp (was 200).",
+    "The higher veins also take less time per ore, so you get more ore an hour too. Overall, level 50 to 99 Mining takes about half as long as before." ] },
   { v: 55, date: "14 Oct 2026", title: "Skill capes", items: [
     "Every skill now has its own cape. Reach level 99 and claim it in Log › Skill capes.",
     "Each cape has a perk while worn: an extra log, ore or fish, never burning food, never cracking gems, faster crops, voyages and laps, more Slayer points, better melee accuracy and damage, and more.",
