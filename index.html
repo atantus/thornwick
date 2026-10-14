@@ -480,6 +480,9 @@ body.noscroll{overflow:hidden}
 .ptype .btn .ico{width:16px;height:16px}
 .subh{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:var(--fg);margin:12px 0 6px}
 .subh .ico{width:18px;height:18px}
+.toggle{display:flex;gap:10px;align-items:flex-start;margin:10px 0 4px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);cursor:pointer;font-size:.9rem}
+.toggle input{width:20px;height:20px;accent-color:var(--ember);flex:none;margin-top:1px}
+.toggle small{display:block;color:var(--muted);font-size:.78rem}
 .paytable{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
 .paytable div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:.82rem;color:var(--muted)}
 .paytable div b{color:var(--fg);font-size:1rem}
@@ -703,6 +706,26 @@ const ITEMS = {
   streak_saver:  { name: "Streak saver",  desc: "Keeps your daily streak alive if you miss a day. Used automatically. Hold up to 3." },
   daybreak_hood: { name: "Daybreak hood", desc: "Daily shop. Head, Defence +3. Warm as the first light.", rare: true },
   sunrise_cape:  { name: "Sunrise cape",  desc: "Daily shop. Cape, Defence +6. Glows orange at the hem.", rare: true },
+  // herbs: dropped by monsters (by monster level) and grown from wildseed
+  herb_marshwort:  { name: "Marshwort",  desc: "Herb. Dropped by monsters of any level. Brewing: Attack draughts.", sell: 4 },
+  herb_emberleaf:  { name: "Emberleaf",  desc: "Herb. Dropped by monsters level 10+. Brewing: Strength draughts.", sell: 8 },
+  herb_bitterroot: { name: "Bitterroot", desc: "Herb. Dropped by monsters level 20+. Brewing: Defence draughts.", sell: 14 },
+  herb_moonmoss:   { name: "Moonmoss",   desc: "Herb. Dropped by monsters level 30+. Brewing: Ranging and Magic draughts.", sell: 22 },
+  herb_frostcap:   { name: "Frostcap",   desc: "Herb. Dropped by monsters level 45+. Brewing: Swiftness and Mending tonics.", sell: 35 },
+  herb_stormpetal: { name: "Stormpetal", desc: "Herb. Dropped by monsters level 60+. Brewing: Fortune elixirs and Warlord's tonic.", sell: 55 },
+  herb_duskbloom:  { name: "Duskbloom",  desc: "Herb. Dropped by monsters level 75+. Brewing: Warlord's tonic.", sell: 90 },
+  wildseed:        { name: "Wildseed",   desc: "Plant at Farming 9 to grow a mix of wild herbs. The higher your Farming, the better the herbs.", sell: 60 },
+  vial:            { name: "Vial of springwater", desc: "Clear water in a glass vial. The base of every potion.", sell: 2 },
+  // potions: herb + catalyst + vial, mixed in Brewing. Each lasts 15 minutes.
+  pot_attack:   { name: "Attack draught",   desc: "Drink: +12% melee accuracy for 15 min.", sell: 15, buff: "p_att" },
+  pot_strength: { name: "Strength draught", desc: "Drink: +12% melee max hit for 15 min.", sell: 25, buff: "p_str" },
+  pot_defence:  { name: "Defence draught",  desc: "Drink: monsters hit you 15% less often for 15 min.", sell: 35, buff: "p_def" },
+  pot_ranging:  { name: "Ranging draught",  desc: "Drink: +10% ranged accuracy and max hit for 15 min.", sell: 50, buff: "p_rng" },
+  pot_magic:    { name: "Magic draught",    desc: "Drink: +10% magic accuracy and max hit for 15 min.", sell: 55, buff: "p_mag" },
+  pot_swift:    { name: "Swiftness tonic",  desc: "Drink: every skilling action is 8% faster for 15 min.", sell: 70, buff: "p_swift" },
+  pot_mend:     { name: "Mending tonic",    desc: "Drink: food heals 50% more in combat for 15 min.", sell: 80, buff: "p_mend" },
+  pot_fortune:  { name: "Fortune elixir",   desc: "Drink: clue scrolls turn up 25% more often for 15 min.", sell: 110, buff: "p_fortune" },
+  pot_warlord:  { name: "Warlord's tonic",  desc: "Drink: +15% accuracy and max hit with every style, and monsters hit you 15% less often, for 15 min.", sell: 200, buff: "p_war" },
   glory:         { name: "Glory", desc: "Won in the Arena. Spend it in the Glory shop." },
   arena_helm:    { name: "Gladiator's helm", desc: "Glory shop. Head, Defence +5. Dented, proudly.", rare: true },
   arena_cape:    { name: "Champion's mantle", desc: "Glory shop. Cape, Defence +8. Crimson and gold, for the crowd's favourite.", rare: true },
@@ -1113,7 +1136,8 @@ const BREWS = [
 ];
 const BARREL_LEVELS = [1, 1, 30];
 const BREW_YIELD = 3, BUFF_MS = 30 * 60000, BUFF_CAP = 4 * 3600000;
-const BUFF_NAMES = { sailor:"Voyages −15%", forester:"Chop +15%", angler:"Fish +15%", miner:"Mine +15%", thief:"Pickpocket +10%", giant:"Accuracy & hit +10%", scholar:"All xp +10%" };
+const POT_MS = 15 * 60000;
+const BUFF_NAMES = { p_att:"Attack draught", p_str:"Strength draught", p_def:"Defence draught", p_rng:"Ranging draught", p_mag:"Magic draught", p_swift:"Swiftness tonic", p_mend:"Mending tonic", p_fortune:"Fortune elixir", p_war:"Warlord's tonic", sailor:"Voyages −15%", forester:"Chop +15%", angler:"Fish +15%", miner:"Mine +15%", thief:"Pickpocket +10%", giant:"Accuracy & hit +10%", scholar:"All xp +10%" };
 // Seafaring: build boats, send them on timed voyages with food as rations
 const VOYAGE_TYPES = { fishing:"Fishing", plunder:"Plunder", explore:"Exploration", salvage:"Salvage" };
 // Black Flag Trader: per-boat upgrades bought with doubloons. Cost is multiplied by the boat's tier.
@@ -1285,6 +1309,7 @@ const ROUND_MS = 2400, EAT_AT = 0.5, REGEN_MS = 6000;
 const CROPS = [
   { id:"barley",  type:"hops", name:"Barley",     seed:"barley_seed",   lvl:8,  grow:4,  plantXp:40,  harvestXp:180,  out:"barley",   min:4,  max:8 },
   { id:"hops",    type:"hops", name:"Hops",       seed:"hop_seed",      lvl:18, grow:8,  plantXp:80,  harvestXp:360,  out:"hops",     min:4,  max:8 },
+  { id:"wildherbs",type:"herb", name:"Wild herbs", seed:"wildseed",   lvl:9,  grow:20, plantXp:90,  harvestXp:420,  out:"herb_marshwort", min:3, max:6, herbs:true },
   { id:"sunfruit",type:"bush", name:"Sunfruit",   seed:"sunfruit_seed", lvl:35, grow:30, plantXp:600, harvestXp:3600, out:"sunfruit", min:4,  max:8 },
   { id:"potato", type:"allotment", name:"Potatoes",   seed:"potato_seed", lvl:1,  grow:2,  plantXp:32,   harvestXp:120,  out:"potato",      min:3,  max:6 },
   { id:"oak",    type:"tree", name:"Oak tree",   seed:"acorn",       lvl:5,  grow:6,  plantXp:100,  harvestXp:560, out:"oak_logs",    min:10, max:15 },
@@ -1294,14 +1319,48 @@ const CROPS = [
   { id:"magic",  type:"tree", name:"Magic tree", seed:"magic_seed",  lvl:75, grow:70, plantXp:1800, harvestXp:12000, out:"magic_logs", min:8,  max:12 },
 ]; // grow is in minutes
 const PATCH_LEVELS = [1, 1, 10, 25];
+// Herbs: [id, monster level that starts dropping it (also the Farming level for wild herb patches)]
+const HERBS = [["herb_marshwort", 1], ["herb_emberleaf", 10], ["herb_bitterroot", 20], ["herb_moonmoss", 30], ["herb_frostcap", 45], ["herb_stormpetal", 60], ["herb_duskbloom", 75]];
+// pick a herb up to `lvl`, favouring the three best tiers you can get
+function pickHerb(lvl) {
+  const av = HERBS.filter(([, l]) => lvl >= l); if (!av.length) return HERBS[0][0];
+  const w = av.map((_, i) => [4, 3, 2][av.length - 1 - i] || 1);
+  let r = Math.random() * w.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < av.length; i++) if ((r -= w[i]) < 0) return av[i][0];
+  return av[av.length - 1][0];
+}
+// Potions (Brewing). No cleaning or unfinished potions: herb + catalyst + vial of springwater.
+const POTIONS = [
+  { id:"attack",   section:"Combat potions",  name:"Attack draught",   lvl:3,  time:1.8, xp:25,  inputs:{ herb_marshwort:1, copper_ore:1, vial:1 }, out:"pot_attack" },
+  { id:"strength", section:"Combat potions",  name:"Strength draught", lvl:12, time:1.8, xp:40,  inputs:{ herb_emberleaf:1, ashes:1, vial:1 }, out:"pot_strength" },
+  { id:"defence",  section:"Combat potions",  name:"Defence draught",  lvl:22, time:1.8, xp:55,  inputs:{ herb_bitterroot:1, iron_ore:1, vial:1 }, out:"pot_defence" },
+  { id:"ranging",  section:"Combat potions",  name:"Ranging draught",  lvl:32, time:1.8, xp:70,  inputs:{ herb_moonmoss:1, skyfeather:1, vial:1 }, out:"pot_ranging" },
+  { id:"magic",    section:"Combat potions",  name:"Magic draught",    lvl:38, time:1.8, xp:80,  inputs:{ herb_moonmoss:1, uncut_sapphire:1, vial:1 }, out:"pot_magic" },
+  { id:"swift",    section:"Utility potions", name:"Swiftness tonic",  lvl:48, time:2.0, xp:100, inputs:{ herb_frostcap:1, bat_wing:1, vial:1 }, out:"pot_swift" },
+  { id:"mend",     section:"Combat potions",  name:"Mending tonic",    lvl:55, time:2.0, xp:115, inputs:{ herb_frostcap:1, salmon:1, vial:1 }, out:"pot_mend" },
+  { id:"fortune",  section:"Utility potions", name:"Fortune elixir",   lvl:63, time:2.2, xp:135, inputs:{ herb_stormpetal:1, pearl:1, vial:1 }, out:"pot_fortune" },
+  { id:"warlord",  section:"Combat potions",  name:"Warlord's tonic",  lvl:72, time:2.4, xp:170, inputs:{ herb_duskbloom:1, herb_stormpetal:1, gargant_shard:1, vial:1 }, out:"pot_warlord" },
+];
+// combat potion multipliers (Warlord's tonic replaces the single-style ones)
+const potAcc = () => buffOn("p_war") ? 1.15 : ctype() === "melee" ? (buffOn("p_att") ? 1.12 : 1) : ctype() === "ranged" ? (buffOn("p_rng") ? 1.1 : 1) : (buffOn("p_mag") ? 1.1 : 1);
+const potMax = () => buffOn("p_war") ? 1.15 : ctype() === "melee" ? (buffOn("p_str") ? 1.12 : 1) : ctype() === "ranged" ? (buffOn("p_rng") ? 1.1 : 1) : (buffOn("p_mag") ? 1.1 : 1);
+const potDef = () => buffOn("p_war") || buffOn("p_def") ? 0.85 : 1;
+// keep combat potions topped up while fighting (option on the Brewing page)
+function autoPotions() {
+  if (!state.opts.autoPot) return;
+  if (has("pot_warlord")) { if (!buffOn("p_war")) drink("pot_warlord", true); return; }
+  if (buffOn("p_war")) return;
+  const t = ctype(), want = (t === "melee" ? ["pot_attack", "pot_strength"] : t === "ranged" ? ["pot_ranging"] : ["pot_magic"]).concat(["pot_defence", "pot_mend"]);
+  for (const k of want) if (has(k) && !buffOn(ITEMS[k].buff)) drink(k, true);
+}
 // crop sections, in the order they're shown: [type, name, icon]
-const CROP_TYPES = [["allotment", "Allotments", "potato_seed"], ["hops", "Hops", "hop_seed"], ["bush", "Bushes", "sunfruit_seed"], ["tree", "Trees", "acorn"]];
+const CROP_TYPES = [["allotment", "Allotments", "potato_seed"], ["hops", "Hops", "hop_seed"], ["herb", "Herbs", "wildseed"], ["bush", "Bushes", "sunfruit_seed"], ["tree", "Trees", "acorn"]];
 const cropOfSeed = seed => CROPS.find(c => c.seed === seed);
 const FERTILISE_COST = 10;
 
 // General store (Shops › General store). Prices are about 3–4× what the item sells for, so nothing can be
 // bought and sold back for profit. sec = store section; stack items can be bought ×1/×10/×100.
-const STORE_SECS = [["seeds", "Seeds", "potato_seed"], ["food", "Food", "trout"], ["ammo", "Arrows & runes", "fire_rune"], ["weapons", "Weapons", "steel_sword"], ["armour", "Armour", "iron_platebody"], ["tools", "Tools", "iron_pickaxe"], ["brews", "Brews", "brew_forester"]];
+const STORE_SECS = [["seeds", "Seeds", "potato_seed"], ["food", "Food", "trout"], ["ammo", "Arrows & runes", "fire_rune"], ["weapons", "Weapons", "steel_sword"], ["armour", "Armour", "iron_platebody"], ["tools", "Tools", "iron_pickaxe"], ["brews", "Brewing", "vial"]];
 const SHOP = [
   { item:"potato_seed", price:10,   qty:5, req:["farming",1], sec:"seeds", stack:true },
   { item:"willow_seed", price:90,   qty:1, req:["farming",15], sec:"seeds", stack:true },
@@ -1365,6 +1424,8 @@ const SHOP = [
   { item:"steel_pickaxe",   price:440,  req:["mining",20], sec:"tools" },
   { item:"mithril_pickaxe", price:1200, req:["mining",30], sec:"tools" },
   // brews
+  { item:"vial", price:6, qty:1, req:["brewing",1], sec:"brews", stack:true },
+  { item:"wildseed", price:600, qty:1, req:["farming",9], sec:"seeds", stack:true },
   { item:"brew_forester", price:80,  qty:1, req:["woodcutting",1], sec:"brews", stack:true },
   { item:"brew_angler",   price:120, qty:1, req:["fishing",1],     sec:"brews", stack:true },
   { item:"brew_miner",    price:180, qty:1, req:["mining",1],      sec:"brews", stack:true },
@@ -1451,7 +1512,7 @@ function logSrc(src, item, q) {
   if (first) { const where = clogEntryName(src); toast(`New collection log item: ${ITEMS[item].name}`, true); log(`New collection log item: <b>${ITEMS[item].name}</b> (${where})`, "r"); }
 }
 function trackedAdd(src, item, q) { trackedDrop = true; add(item, q); trackedDrop = false; logSrc(src, item, q); }
-const ACTIONS = { fletching: FLETCH, enchanting: ENCHANT, mining: ROCKS, smithing: SMITH, combat: MONSTERS, woodcutting: TREES, firemaking: FIRES, fishing: SPOTS, cooking: RECIPES, agility: COURSES, thieving: TARGETS };
+const ACTIONS = { brewing: POTIONS, fletching: FLETCH, enchanting: ENCHANT, mining: ROCKS, smithing: SMITH, combat: MONSTERS, woodcutting: TREES, firemaking: FIRES, fishing: SPOTS, cooking: RECIPES, agility: COURSES, thieving: TARGETS };
 const findAction = (skill, id) => (ACTIONS[skill] || []).find(a => a.id === id);
 const cropById = id => CROPS.find(c => c.id === id);
 const totalLevel = () => Object.keys(SKILLS).reduce((s, k) => s + lvl(k), 0);
@@ -1480,6 +1541,7 @@ function actionTime(skill, a) {
   if (skill === "smithing" && a.smelt) t *= 1 - 0.005 * lvl("firemaking");
   if (skill === "agility" && has("golden_feather")) t *= 0.95;
   t *= 1 - 0.02 * apLvl("swift");
+  if (buffOn("p_swift")) t *= 0.92;
   return t * 1000;
 }
 const burnChance = a => Math.max(0, a.burn - Math.max(0, lvl("cooking") - a.lvl) * 0.02 - lvl("firemaking") * 0.003) * (has("chef_gauntlets") ? 0.5 : 1);
@@ -1580,15 +1642,15 @@ function attackRoll() {
   if (t === "magic") return (lvl("magic") + 9) * ((staff() ? staff()[2] : 0) + 64);
   return (lvl("attack") + 8 + (state.opts.style === "attack" ? 3 : 0)) * ((weapon() ? weapon()[2] : 0) + 64);
 }
-const playerAcc = m => Math.min(0.98, (worn("knight_oath") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1) * (m.weak === ctype() ? 1.3 : 1) * hitChance(attackRoll(), (m.def + 9) * 64));
+const playerAcc = m => Math.min(0.98, potAcc() * (worn("knight_oath") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1) * (m.weak === ctype() ? 1.3 : 1) * hitChance(attackRoll(), (m.def + 9) * 64));
 function baseMax() {
   const t = ctype();
   if (t === "ranged") return 0.5 + (lvl("ranged") + 8) * ((arrow() ? arrow()[1] : 0) + 64) / 640;
   if (t === "magic") return spellOf().max + (has("archmage_staff") && lvl("magic") >= 45 ? 2 : 0);
   return 0.5 + (lvl("strength") + 8 + (state.opts.style === "strength" ? 3 : 0)) * ((weapon() ? weapon()[3] : 0) + 64) / 640;
 }
-const playerMax = () => 1 + Math.max(1, Math.floor(baseMax() * (worn("fury_ring") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1)));
-const foeAcc = m => hitChance((m.att + 9) * 64, (lvl("defence") + 8 + (state.opts.style === "defence" ? 3 : 0)) * (defBonus() + 64)) * (has("warding_charm") ? 0.85 : 1) * (worn("knight_oath") ? 0.9 : 1);
+const playerMax = () => 1 + Math.max(1, Math.floor(baseMax() * potMax() * (worn("fury_ring") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1)));
+const foeAcc = m => potDef() * hitChance((m.att + 9) * 64, (lvl("defence") + 8 + (state.opts.style === "defence" ? 3 : 0)) * (defBonus() + 64)) * (has("warding_charm") ? 0.85 : 1) * (worn("knight_oath") ? 0.9 : 1);
 const bestFood = () => Object.keys(FOOD).find(has);
 const foodCount = () => Object.keys(FOOD).reduce((s, f) => s + qty(f), 0);
 const reqMet = (skill, a) => skill === "combat" ? combatLevel() >= a.lvl && (!a.slayer || lvl("slayer") >= a.slayer) : lvl(skill) >= a.lvl;
@@ -1602,6 +1664,7 @@ function fightRound(m, sum) {
   if (!state.fight || state.fight.id !== m.id) state.fight = { id: m.id, mhp: m.hp };
   regen(roundMs());
   if (state.fight.resting) { if (state.hp >= maxHp()) state.fight.resting = false; return true; }
+  autoPotions();
   const block = attackBlock();
   if (block) { state.fight = null; state.active = null; sum.notes.push(`${block}, so you stopped fighting`); return true; }
   // pay for the attack
@@ -1632,6 +1695,9 @@ function fightRound(m, sum) {
     const drops = m.always.map(e => ({ item: e.item, qty: randInt(e.min, e.max) }));
     const r = rollTable(m.table); if (r && r.item) { if (r.item === "coins" && worn("bandit_mask")) r.qty = Math.round(r.qty * 1.25); drops.push(r); }
     for (const u of m.uniques) if (Math.random() < u.chance * (worn("wealth_ring") ? 1.1 : 1) * (PETS.includes(u.item) ? 1 + 0.1 * apLvl("kin") : 1 + 0.05 * apLvl("luck"))) { drops.push({ item: u.item, qty: 1 }); sum.uniques = (sum.uniques || []).concat(ITEMS[u.item].name); }
+    // herbs: about 1 kill in 7 (bosses usually drop a handful), plus the odd wildseed
+    if (Math.random() < (m.boss ? 0.6 : 0.14)) drops.push({ item: pickHerb(m.lvl), qty: m.boss ? randInt(2, 4) : 1 });
+    if (Math.random() < (m.boss ? 1 / 8 : 1 / 60)) drops.push({ item: "wildseed", qty: 1 });
     for (const d of drops) { trackedAdd("mon-" + m.id, d.item, d.qty); sum.items[d.item] = (sum.items[d.item] || 0) + d.qty; if (ITEMS[d.item].rare) sum.rare.push(ITEMS[d.item].name); }
     state.fight.mhp = m.hp; // next one steps up
     return true;
@@ -1642,7 +1708,7 @@ function fightRound(m, sum) {
   fx({ t:"hurt", dmg: taken, mon: m.id });
   // auto-eat
   while (state.hp > 0 && state.hp <= maxHp() * EAT_AT && bestFood()) {
-    const f = bestFood(); add(f, -1); const heal = FOOD[f] + (has("drake_heart") ? 2 : 0) + 2 * apLvl("rations"); fx({ t:"eat", heal }); state.hp = Math.min(maxHp(), state.hp + heal); sum.items[f] = (sum.items[f] || 0) - 1; sum.ate = (sum.ate || 0) + 1;
+    const f = bestFood(); add(f, -1); const heal = Math.round((FOOD[f] + (has("drake_heart") ? 2 : 0) + 2 * apLvl("rations")) * (buffOn("p_mend") ? 1.5 : 1)); fx({ t:"eat", heal }); state.hp = Math.min(maxHp(), state.hp + heal); sum.items[f] = (sum.items[f] || 0) - 1; sum.ate = (sum.ate || 0) + 1;
   }
   if (state.hp <= 0) { state.hp = 0; state.fight = null; sum.notes.push(`${m.name} knocked you out. Rest to recover hitpoints`); state.active = null; return true; }
   if (state.hp <= maxHp() * 0.3 && !bestFood()) { state.fight.resting = true; state.fight.mhp = m.hp; sum.rests = (sum.rests || 0) + 1; }
@@ -1656,7 +1722,7 @@ function gather(item, sum, skill) {
   const n = Math.random() < doubleChance(skill) ? 2 : 1;
   add(item, n); sum.items[item] = (sum.items[item] || 0) + n;
 }
-const CRAFT_SKILLS = ["smithing","enchanting","fletching"];
+const CRAFT_SKILLS = ["smithing","enchanting","fletching","brewing"];
 const smithBlock = a => { const miss = Object.entries(a.inputs).find(([k, q]) => qty(k) < q); return miss ? `Out of ${ITEMS[miss[0]].name.toLowerCase()}` : ""; };
 const inputsText = a => Object.entries(a.inputs).map(([k, q]) => `${q > 1 ? q + "× " : ""}${ITEMS[k].name.toLowerCase()} (<span class="num" data-q="${k}"></span>)`).join(" + ");
 const petCount = () => PETS.filter(has).length;
@@ -1742,6 +1808,7 @@ function complete(sum) {
     if (smithBlock(a)) return false;
     if (!(Math.random() < 0.1 * apLvl("touch"))) for (const [k, q] of Object.entries(a.inputs)) { add(k, -q); sum.items[k] = (sum.items[k] || 0) - q; }
     const n = a.outQty || 1; add(a.out, n); sum.items[a.out] = (sum.items[a.out] || 0) + n;
+    if (skill === "brewing") state.stats.potions = (state.stats.potions || 0) + n;
   } else if (skill === "fishing") {
     gather(a.item, sum, skill);
     if (Math.random() < casketChance(a)) { add("casket", 1); sum.items.casket = (sum.items.casket || 0) + 1; sum.rare.push("Casket"); }
@@ -1800,7 +1867,7 @@ function advance(ms) {
     const left = Object.values(state.buffs).filter(v => v > 0);
     const seg = Math.min(ms, ...left);
     advanceCore(seg, sum);
-    for (const k of Object.keys(state.buffs)) { state.buffs[k] -= seg; if (state.buffs[k] <= 0) { delete state.buffs[k]; sum.notes.push(`${BUFF_NAMES[k]} brew wore off`); } }
+    for (const k of Object.keys(state.buffs)) { state.buffs[k] -= seg; if (state.buffs[k] <= 0) { delete state.buffs[k]; sum.notes.push(`${BUFF_NAMES[k]} wore off`); } }
     ms -= seg;
   }
   return sum;
@@ -1837,7 +1904,7 @@ function advanceCore(ms, sum) {
 
 /* ================= CLUE SCROLLS ================= */
 const fullDawn = () => DAWNFORGED.every(worn);
-const clueMult = () => (has("lucky_horseshoe") ? 1.1 : 1) * (has("pet_sniffer") ? 1.2 : 1) * (1 + 0.15 * apLvl("trail"));
+const clueMult = () => (buffOn("p_fortune") ? 1.25 : 1) * (has("lucky_horseshoe") ? 1.1 : 1) * (has("pet_sniffer") ? 1.2 : 1) * (1 + 0.15 * apLvl("trail"));
 const clueVerb = (skill, a) => skill === "combat" ? `Defeat {n} ${a.name.toLowerCase()}${/s$/.test(a.name) ? "" : "s"}`
   : skill === "woodcutting" ? `Chop {n} ${ITEMS[a.item].name.toLowerCase()}` : skill === "fishing" ? `Catch {n} ${ITEMS[a.item].name.toLowerCase().replace(/^raw /, "")}`
   : skill === "mining" ? `Mine {n} ${ITEMS[a.item].name.toLowerCase()}` : skill === "thieving" ? `${a.name.replace(/^Pickpocket/, "Pickpocket")} {n} times`
@@ -2040,6 +2107,14 @@ function harvest(i) {
   state.stats.harvests = (state.stats.harvests || 0) + 1;
   const c = cropById(p.crop);
   let n = randInt(c.min, c.max); if (p.fert) n *= 1.25; if (has("gold_trowel")) n *= 1.2; n = Math.round(n);
+  if (c.herbs) {
+    // a wild herb patch gives a mix, better herbs at higher Farming
+    const got = {}; for (let k = 0; k < n; k++) { const h = pickHerb(lvl("farming")); got[h] = (got[h] || 0) + 1; }
+    for (const [h, q] of Object.entries(got)) add(h, q);
+    state.patches[i] = null; gainXp("farming", c.harvestXp);
+    const txt = Object.entries(got).map(([h, q]) => `${q} ${ITEMS[h].name.toLowerCase()}`).join(", ");
+    toast(`Harvested ${txt}`); log(`Harvested <b>${txt}</b>`); return;
+  }
   add(c.out, n); state.patches[i] = null;
   gainXp("farming", c.harvestXp);
   toast(`Harvested ${n} ${ITEMS[c.out].name.toLowerCase()}`);
@@ -2063,10 +2138,10 @@ function collectBrew(i) {
   const b = brewById(p.brew), n = BREW_YIELD + apLvl("barrel"); add(b.out, n); state.barrels[i] = null;
   gainXp("brewing", b.xp); toast(`Collected ${n} ${b.name}`); log(`Brewed <b>${n} ${b.name}</b>`);
 }
-function drink(item) {
+function drink(item, quiet) {
   const it = ITEMS[item]; if (!it || !it.buff || !has(item)) return;
-  add(item, -1); state.buffs[it.buff] = Math.min(BUFF_CAP, (state.buffs[it.buff] || 0) + BUFF_MS);
-  toast(`${BUFF_NAMES[it.buff]} for ${dur(state.buffs[it.buff])}`);
+  add(item, -1); state.buffs[it.buff] = Math.min(BUFF_CAP, (state.buffs[it.buff] || 0) + (it.buff.startsWith("p_") ? POT_MS : BUFF_MS));
+  if (!quiet) toast(`${BUFF_NAMES[it.buff]} for ${dur(state.buffs[it.buff])}`);
 }
 
 /* ================= SEAFARING ================= */
@@ -2410,13 +2485,13 @@ function actionList(skill) {
       : skill === "thieving" ? `<span class="ok">${Math.round(thieveChance(a) * 100)}% success</span> · stun ${(stunMs(a) / 1000).toFixed(1)}s · ${a.loot.filter(e => e.item !== "coins").map(e => ITEMS[e.item].name.toLowerCase()).join(", ") || a.loot[0].min + " coins"}`
       : skill === "mining" ? `${t}s · <span class="num" data-q="${a.item}"></span> in bank · geode 1/${Math.round(1 / geodeChance(a))}`
       : skill === "enchanting" ? `${a.section === "Jewellery" || a.section === "Staffs" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Enchanted. ", ""))}</span>${has(a.out) ? " (owned)" : ""}<br>` : ""}${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
-      : skill === "smithing" || skill === "fletching" ? `${t}s · ${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
+      : skill === "smithing" || skill === "fletching" || skill === "brewing" ? `${skill === "brewing" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Drink: ", "").replace(" for 15 min.", ""))}</span><br>` : ""}${t}s · ${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
       : skill === "fishing" ? `${t}s · <span class="num" data-q="${a.item}"></span> in bank · casket 1/${Math.round(1 / casketChance(a))}`
       : noLogs ? `No ${ITEMS[a.item].name.toLowerCase()}. ${a.hint || "Chop some first."}`
       : skill === "cooking" ? `${t}s · <span class="num" data-q="${a.item}"></span> to cook · burn ${Math.round(burnChance(a) * 100)}%`
       : `${t}s · <span class="num" data-q="${a.item}"></span> ${ITEMS[a.item].name.toLowerCase()} to burn`;
     return head + `<button class="act" id="act-${skill}-${a.id}" data-skill="${skill}" data-id="${a.id}" aria-pressed="${active}" ${locked || noLogs ? "disabled" : ""}>
-      <span class="nm">${esc(a.name)}</span><span class="meta">${meta}</span>
+      <span class="nm">${skill === "brewing" ? icon(a.out) : ""}${esc(a.name)}</span><span class="meta">${meta}</span>
       <span class="side"><b>+${a.xp}</b>xp</span></button>`;
   }).join("") + `</div>`;
   if (CRAFT_SKILLS.includes(skill) && shown.length < list.length) h += `<p class="note">More recipes unlock as you level.</p>`;
@@ -2460,7 +2535,7 @@ function farmingPanel() {
 }
 
 // Bank categories, in the order they're shown. [name, icon]
-const BANK_CATS = [["To open", "casket"], ["Currency", "coins"], ["Logs", "logs"], ["Ores & bars", "iron_ore"], ["Gems & essence", "uncut_ruby"], ["Fish & meat", "raw_trout"], ["Food", "shark"], ["Seeds & crops", "potato_seed"], ["Brews", "brew_scholar"], ["Ammo & runes", "fire_rune"], ["Weapons", "steel_sword"], ["Armour", "iron_platebody"], ["Capes & cosmetics", "explorer_cape"], ["Tools", "iron_pickaxe"], ["Jewellery", "fury_ring"], ["Charms & keepsakes", "lucky_horseshoe"], ["Monster drops", "bat_wing"], ["Pets", "pet_chick"], ["Trophies", "trophy_kills"], ["Other", "more"]];
+const BANK_CATS = [["To open", "casket"], ["Currency", "coins"], ["Logs", "logs"], ["Ores & bars", "iron_ore"], ["Gems & essence", "uncut_ruby"], ["Fish & meat", "raw_trout"], ["Food", "shark"], ["Seeds & crops", "potato_seed"], ["Herbs", "herb_moonmoss"], ["Brews & potions", "pot_strength"], ["Ammo & runes", "fire_rune"], ["Weapons", "steel_sword"], ["Armour", "iron_platebody"], ["Capes & cosmetics", "explorer_cape"], ["Tools", "iron_pickaxe"], ["Jewellery", "fury_ring"], ["Charms & keepsakes", "lucky_horseshoe"], ["Monster drops", "bat_wing"], ["Pets", "pet_chick"], ["Trophies", "trophy_kills"], ["Other", "more"]];
 const BANK_CAT_NAMES = BANK_CATS.map(c => c[0]);
 const TOOL_IDS = new Set([...AXES, ...PICKAXES].map(x => x[0]));
 const CROP_OUTS = new Set(CROPS.map(c => c.out).concat(["potato"]));
@@ -2471,7 +2546,9 @@ function itemCat(k) {
   if (["bird_nest", "casket", "geode", "treasure_map"].includes(k) || k.startsWith("clue_reward_")) return "To open";
   if (k.startsWith("pet_") || PETS.includes(k)) return "Pets";
   if (k.startsWith("trophy_") || k.endsWith("_trophy")) return "Trophies";
-  if (it.buff) return "Brews";
+  if (it.buff || k === "vial") return "Brews & potions";
+  if (k.startsWith("herb_")) return "Herbs";
+  if (k === "wildseed") return "Seeds & crops";
   if (FOOD[k] || k === "burnt_food") return "Food";
   if (k.endsWith("_rune") || k.endsWith("_arrow")) return "Ammo & runes";
   if (k === "logs" || k.endsWith("_logs") || k === "ashes") return "Logs";
@@ -2646,6 +2723,8 @@ function clogTree() {
       { id: "lightfoot", name: "Lightfoot set", sub: "Agility laps", items: LIGHTFOOT.map(i => ({ item: i, unique: true, rate: `${oneIn(COURSES[0].rare)}–${oneIn(COURSES[COURSES.length - 1].rare)} per lap` })) },
       { id: "thieving", name: "Pickpocketing", sub: "Thieving", items: TARGETS.flatMap(t => t.loot.filter(e => ITEMS[e.item].rare).map(e => ({ item: e.item, unique: true, rate: `${t.name.replace("Pickpocket ", "")} ${oneIn(pct(t.loot, e.item))}` }))) },
       { id: "jewellery", name: "Enchanted jewellery", sub: "Enchanting", items: ENCHANT.filter(e => e.section === "Jewellery").map(e => ({ item: e.out, rate: `Enchanting ${e.lvl}` })) },
+      { id: "herbs", name: "Herbs", sub: "Monster drops and wild herb patches", items: HERBS.map(([h, l]) => ({ item: h, rate: `Monsters level ${l}+` })) },
+      { id: "potions", name: "Potions", sub: "Brewing", items: POTIONS.map(x => ({ item: x.out, rate: `Brewing ${x.lvl}` })) },
       { id: "brews", name: "Brews", sub: "Brewing", items: BREWS.map(b => ({ item: b.out, rate: `Brewing ${b.lvl}` })) },
     ] },
     { id: "clues", name: "Treasure trails", entries: [
@@ -2940,6 +3019,13 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 33, date: "14 Oct 2026", title: "Herbs and potions", items: [
+    "Monsters now drop herbs: Marshwort, Emberleaf, Bitterroot, Moonmoss, Frostcap, Stormpetal and Duskbloom. Tougher monsters drop better herbs, and bosses drop a handful.",
+    "Mix potions in Brewing: a herb, a catalyst and a vial of springwater (sold in the General store). No cleaning, no unfinished potions.",
+    "Combat potions: Attack, Strength, Defence, Ranging and Magic draughts, the Mending tonic (food heals 50% more) and the Warlord's tonic (every style +15%, and monsters hit you less).",
+    "Utility potions: Swiftness tonic (skilling 8% faster) and Fortune elixir (more clue scrolls).",
+    "Turn on auto-drink on the Brewing page to keep your combat potions topped up during long idle fights.",
+    "Wildseed (rare monster drop, or the General store) grows a mix of herbs in Farming's new Herbs section. New achievement: Apothecary." ] },
   { v: 32, date: "13 Oct 2026", title: "Tidier Farming", items: [
     "Seeds are sorted into sections on the Farming page and in the General store: Allotments (potatoes), Hops (barley and hops), Bushes (sunfruit) and Trees (oak to magic).",
     "Each empty patch shows the seeds you can plant in each section, with their icons, plus the next one you'll unlock." ] },
@@ -3116,6 +3202,13 @@ function brewingPanel() {
   h += owned.length ? `<div class="grid">` + owned.map(b => `<div class="slot"><span class="q num" data-q="${b.out}"></span><span class="n">${esc(b.name)}</span><span class="d">${esc(ITEMS[b.out].desc)}</span><div class="btns"><button class="btn solid" id="drinkb-${b.out}" data-drink="${b.out}">Drink</button></div></div>`).join("") + `</div>`
     : `<div class="empty">No brews yet. Barley and hops grow in Farming; seeds are in the shop.</div>`;
   h += `<p class="note">Each brew lasts 30 minutes. Drinking more adds time, up to 4 hours, and the timer keeps running while you're away.</p>`;
+  // potions
+  h += `<h3>Potions <span>herb + catalyst + vial</span></h3>
+    <p class="note" style="margin-top:0">Monsters drop herbs (better herbs from tougher monsters), and wildseed grows a mix of them in Farming. Vials of springwater are in Shops › General store. Each potion lasts 15 minutes.</p>
+    <label class="toggle"><input type="checkbox" id="autoPot" ${state.opts.autoPot ? "checked" : ""}><span>Auto-drink combat potions while fighting <small>(keeps your style's potions, Defence and Mending topped up; Warlord's tonic first if you have it)</small></span></label>`;
+  h += actionList("brewing");
+  const pots = POTIONS.filter(x => has(x.out));
+  if (pots.length) h += `<h3>Your potions</h3><div class="grid">` + pots.map(x => { const b = ITEMS[x.out].buff; return `<div class="slot"><span class="q num" data-q="${x.out}"></span><span class="n">${icon(x.out)}${esc(x.name)}</span><span class="d">${esc(ITEMS[x.out].desc)}${buffOn(b) ? ` <span class="ok">Active: <span data-buff="${b}"></span></span>` : ""}</span><div class="btns"><button class="btn solid" id="drink-${x.out}" data-drink="${x.out}">Drink</button></div></div>`; }).join("") + `</div>`;
   return h;
 }
 
@@ -3511,6 +3604,8 @@ const ITEM_TPL = {
   sapling: ["....3333....", "...333333...", "..33343333..", "...333333...", "....1111....", "...1k11k1...", "...111111...", "..21111112..", "....1111....", "....2..2....", "...22..22...", "............"],
   ember: [".....3......", "....33..3...", "...3443.33..", "..3444433...", "..34114433..", ".3411111443.", ".3k1111k143.", ".3411111143.", "..34111143..", "...333333...", "............", "............"],
   mole: ["............", "............", "...111111...", "..11111111..", ".1111111111.", "441k1111111.", "4411111111..", ".1111111111.", ".1111111111.", "33.33..33...", "............", "............"],
+  herb: ["............", "......11....", ".....1441...", "..11.1221...", ".1441.12.11.", ".1221.3.1441", "..12..3.1221", "...1..3..12.", "......3..1..", ".....33.....", "....333.....", "............"],
+  vial: ["............", ".....44.....", ".....44.....", "....3333....", ".....33.....", "....3113....", "...311113...", "..31111113..", "..31111223..", "..31122223..", "...322223...", "....3333...."],
   cat: ["............", "...1...1....", "...11.11....", "...11111....", "...1k1k1....", "...11211....", "....111.....", "....1111.3..", "...111111.3.", "...1111111.3", "...11111111.", "....4..4...."],
   bird: ["............", "....1111....", "...111111...", "..1W11W111..", "..1k11k111..", "..133311....", "..11WW111...", ".11WWWW11...", ".11WWWW11...", "..1WWWW1....", "...44.44....", "............"],
   mouse: ["....WWWW....", "...WWWWWW...", "....WWWW....", ".11.1111.11.", ".1311111131.", "..1k1111k1..", "..11111111..", "....1441....", "..11111111..", ".1111111111.", "..2.2..2.22.", "..........2."],
@@ -3589,6 +3684,12 @@ const IC = {
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
   daily_token:["coin",["#f0a33a","#8e5a1a","#fff1c8","#000"]], streak_saver:["horseshoe",["#f0a33a","#8e5a1a","#3a4048","#000"]],
+  herb_marshwort:["herb",["#6fbf5a","#3f7a3a","#6b4a2a","#c8e8a0"]], herb_emberleaf:["herb",["#e07a3a","#a0402c","#6b4a2a","#f7d35a"]], herb_bitterroot:["herb",["#b09a5a","#6b5a2a","#4a2e16","#e0d4a0"]],
+  herb_moonmoss:["herb",["#9fb4d8","#5a6a9a","#3a4a6a","#e6eef8"]], herb_frostcap:["herb",["#a8e0f0","#5aa7c8","#4a6a7a","#ffffff"]], herb_stormpetal:["herb",["#9a7ae8","#5a3a9a","#3a2a5a","#d8c8f8"]], herb_duskbloom:["herb",["#d24a8a","#7a1a4a","#3a1a2a","#f6b0d4"]],
+  wildseed:["seeds",["#6fbf5a","#9a7ae8","#000","#000"]], vial:["vial",["#bfe0f6","#8ab8dc","#e6eef8","#a0682a"]],
+  pot_attack:["vial",["#5aa7e8","#2f5ea8","#e6eef8","#a0682a"]], pot_strength:["vial",["#e0503a","#8e2a1f","#e6eef8","#a0682a"]], pot_defence:["vial",["#6fbf5a","#3f7a3a","#e6eef8","#a0682a"]],
+  pot_ranging:["vial",["#f0a33a","#a0602a","#e6eef8","#6b4a2a"]], pot_magic:["vial",["#9a5ae8","#5a2a9a","#e6eef8","#a0682a"]], pot_swift:["vial",["#2ab8b0","#1a7a74","#e6eef8","#a0682a"]],
+  pot_mend:["vial",["#f6a0c8","#c03a7a","#e6eef8","#a0682a"]], pot_fortune:["vial",["#f7d35a","#c8a020","#e6eef8","#a0682a"]], pot_warlord:["vial",["#ff7a1a","#8e1a14","#e6eef8","#3a3a44"]],
   daybreak_hood:["hood",["#f0a33a","#d2452f","#000","#000"]], sunrise_cape:["cape",["#f0a33a","#d2452f","#000","#000"]], pet_tock:["bird",["#c9a440","#6b4a2a","#5aa7e8","#c8ccd2"]],
   glory:["coin",["#d2452f","#7a1a14","#ffd45a","#000"]], arena_helm:["helm",["#c08a3a","#6b4a1a","#d2452f","#000"]], arena_cape:["cape",["#a8282a","#f2c230","#000","#000"]], pet_brawler:["hound",["#8a6a4a","#4a3220","#d2452f","#f2efe6"]],
   roof_hood:["hood",["#4a5a7a","#1e2638","#000","#000"]], roof_cape:["cape",["#5aa7e8","#f2efe6","#000","#000"]], pet_scamp:["cat",["#e08a3a","#f2a0a0","#a0582a","#f2efe6"]],
@@ -4616,6 +4717,7 @@ document.addEventListener("toggle", e => { const el = e.target; if (el.classList
 document.addEventListener("change", e => { if (e.target.id === "autoChop") { state.opts.autoChop = e.target.checked; save(); } if (e.target.id === "hsSkill") { hs.skill = e.target.value; hs.rows = null; hsLoad(true); }
   if (e.target.id === "lookGear") { state.look = Object.assign({}, state.look, { gear: e.target.checked }); after(); }
   if (e.target.dataset && e.target.dataset.lookslot) { const sl = e.target.dataset.lookslot, L = Object.assign({}, state.look); L.show = Object.assign({}, L.show); if (e.target.value) L.show[sl] = e.target.value; else delete L.show[sl]; state.look = L; after(); } });
+document.addEventListener("change", e => { if (e.target.id === "autoPot") { state.opts.autoPot = e.target.checked; toast(e.target.checked ? "Auto-drink on: combat potions stay topped up while you fight" : "Auto-drink off"); save(); } });
 document.addEventListener("input", e => { if (e.target.id === "bankSearch") { bankSearch = e.target.value; const el = $("bankItems"); if (el) el.innerHTML = bankItemsHtml(); return; } if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
 document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
 
@@ -5038,6 +5140,7 @@ const ACH_TRACKS = [
   { id: "arena", group: "Combat", name: "Gladiator", unit: "arena wins", stat: () => (state.arena && state.arena.wins) || 0, tiers: [1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000] },
   { id: "roofbest", group: "Adventure", name: "Roof runner", unit: "metres in one rooftop run", stat: () => (state.roof && state.roof.best) || 0, tiers: [50, 100, 200, 300, 400, 500, 750, 1000, 1500, 2500] },
   { id: "bossweeks", group: "Combat", name: "Boss of the week", unit: "weekly bosses beaten", stat: () => (state.weekly && state.weekly.bossWins) || 0, tiers: [1, 3, 6, 10, 20, 30, 52, 78, 104, 156] },
+  { id: "potions", group: "Production", name: "Apothecary", unit: "potions mixed", stat: () => state.stats.potions || 0, tiers: [10, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000] },
   { id: "weeklies", group: "Adventure", name: "Week in, week out", unit: "weeks of weekly challenges", stat: () => (state.weekly && state.weekly.sets) || 0, tiers: [1, 4, 8, 13, 26, 39, 52, 78, 104, 156] },
   { id: "dailies", group: "Adventure", name: "Daily devotee", unit: "days of daily challenges", stat: () => (state.daily && state.daily.sets) || 0, tiers: [1, 7, 30, 60, 100, 180, 365, 500, 730, 1000] },
   { id: "clues",   group: "Treasure", name: "Treasure hunter", unit: "clues completed", stat: () => sumOf(state.clues.done), tiers: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500] },
