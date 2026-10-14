@@ -716,9 +716,9 @@ const ITEMS = {
   daybreak_hood: { name: "Daybreak hood", desc: "Daily shop. Head, Defence +3. Warm as the first light.", rare: true },
   sunrise_cape:  { name: "Sunrise cape",  desc: "Daily shop. Cape, Defence +6. Glows orange at the hem.", rare: true },
   slayer_chest:    { name: "Slayer chest", desc: "Earned for every Slayer task. Open it for combat gear and supplies suited to your level, with a rare chance at a fire-forged tool." },
-  emberheart_axe:  { name: "Emberheart axe", desc: "Slayer chest rare. Woodcutting 70. Chops as fast as a runite axe, and 10% of the logs you cut burn on the spot for Firemaking xp and ashes.", rare: true },
-  forgefire_pickaxe: { name: "Forgefire pickaxe", desc: "Slayer chest rare. Mining 70. Mines as fast as a runite pickaxe, and 10% of the ore you mine comes out as a smelted bar, with Smithing xp.", rare: true },
-  hearthfire_rod:  { name: "Hearthfire rod", desc: "Slayer chest rare. Fishing 70. 10% of the fish you catch come out already cooked, with Cooking xp.", rare: true },
+  emberheart_axe:  { name: "Emberheart axe", sell: 25000, desc: "Slayer chest rare. Woodcutting 70. Chops as fast as a runite axe, and 10% of the logs you cut burn on the spot for Firemaking xp and ashes.", rare: true },
+  forgefire_pickaxe: { name: "Forgefire pickaxe", sell: 25000, desc: "Slayer chest rare. Mining 70. Mines as fast as a runite pickaxe, and 10% of the ore you mine comes out as a smelted bar, with Smithing xp.", rare: true },
+  hearthfire_rod:  { name: "Hearthfire rod", sell: 25000, desc: "Slayer chest rare. Fishing 70. 10% of the fish you catch come out already cooked, with Cooking xp.", rare: true },
   // herbs: dropped by monsters (by monster level) and grown from wildseed
   herb_marshwort:  { name: "Marshwort",  desc: "Herb. Dropped by monsters of any level. Brewing: Attack draughts.", sell: 4 },
   herb_emberleaf:  { name: "Emberleaf",  desc: "Herb. Dropped by monsters level 10+. Brewing: Strength draughts.", sell: 8 },
@@ -2126,8 +2126,9 @@ function slayerKill(m, sum) {
   if (Math.random() < PET_PER_TASK) givePet("slayer", sum);
   // carry straight on with a new task if the next one is the same monster you're fighting
 }
-// Slayer chest: 2–3 rolls of combat gear and supplies for your combat level, plus the fire-forged tools (1/100 each)
-const SCHEST_RARE = 1 / 100, SCHEST_TOOLS = ["emberheart_axe", "forgefire_pickaxe", "hearthfire_rod"];
+// Slayer chest: 2–3 rolls of combat gear and supplies for your combat level, plus one rare roll (3/100):
+// a hit gives one of the three fire-forged tools at an even 1-in-3 each. Duplicates are allowed (tradeable later).
+const SCHEST_RARE = 3 / 100, SCHEST_TOOLS = ["emberheart_axe", "forgefire_pickaxe", "hearthfire_rod"];
 const SCHEST_METALS = ["iron", "steel", "mithril", "cobalt", "runite"];
 const schestTier = () => { const c = combatLevel(); return c < 25 ? 0 : c < 40 ? 1 : c < 55 ? 2 : c < 70 ? 3 : 4; };
 function slayerChestRoll() {
@@ -2150,7 +2151,7 @@ function openSlayerChests(all) {
   for (let k = 0; k < n; k++) {
     add("slayer_chest", -1); state.stats.schests = (state.stats.schests || 0) + 1;
     const rolls = [slayerChestRoll(), slayerChestRoll()]; if (Math.random() < 0.5) rolls.push(slayerChestRoll());
-    for (const tool of SCHEST_TOOLS) if (!ownedEver(tool) && !got[tool] && Math.random() < SCHEST_RARE) rolls.push({ item: tool, qty: 1 });
+    if (Math.random() < SCHEST_RARE) rolls.push({ item: SCHEST_TOOLS[Math.floor(Math.random() * SCHEST_TOOLS.length)], qty: 1 });
     for (const d of rolls) { trackedAdd("slayerchest", d.item, d.qty); got[d.item] = (got[d.item] || 0) + d.qty; }
   }
   const parts = Object.entries(got).map(([k, q]) => `${q > 1 ? fmt(q) + " " : ""}${ITEMS[k].name}`);
@@ -2622,7 +2623,7 @@ function farmingPanel() {
 // Bank categories, in the order they're shown. [name, icon]
 const BANK_CATS = [["To open", "casket"], ["Currency", "coins"], ["Logs", "logs"], ["Ores & bars", "iron_ore"], ["Gems & essence", "uncut_ruby"], ["Fish & meat", "raw_trout"], ["Food", "shark"], ["Seeds & crops", "potato_seed"], ["Herbs", "herb_moonmoss"], ["Brews & potions", "pot_strength"], ["Ammo & runes", "fire_rune"], ["Weapons", "steel_sword"], ["Armour", "iron_platebody"], ["Capes & cosmetics", "explorer_cape"], ["Tools", "iron_pickaxe"], ["Jewellery", "fury_ring"], ["Charms & keepsakes", "lucky_horseshoe"], ["Monster drops", "bat_wing"], ["Pets", "pet_chick"], ["Trophies", "trophy_kills"], ["Other", "more"]];
 const BANK_CAT_NAMES = BANK_CATS.map(c => c[0]);
-const TOOL_IDS = new Set([...AXES, ...PICKAXES].map(x => x[0]));
+const TOOL_IDS = new Set([...AXES, ...PICKAXES].map(x => x[0]).concat(["hearthfire_rod"]));
 const CROP_OUTS = new Set(CROPS.map(c => c.out).concat(["potato"]));
 const itemOrder = {}; Object.keys(ITEMS).forEach((k, i) => itemOrder[k] = i);
 function itemCat(k) {
@@ -2839,7 +2840,7 @@ function clogTree() {
       { id: "dshop", name: "Daily shop", sub: "Daily tokens", items: [...DSHOP.filter(e => e.once).map(e => ({ item: e.item, rate: `${fmt(e.price)} tokens` })), { item: "moonlit_hood", rate: "Daily special" }, { item: "dusk_cape", rate: "Daily special" }, { item: "boss_trophy", rate: "Boss of the week" }] },
       { id: "apshop", name: "Point shop", sub: "Achievement points", items: AP_ITEMS.filter(e => e.once).map(e => ({ item: e.item, rate: `${fmt(e.price)} points` })) },
       { id: "achcapes", name: "Achievement capes", sub: "One per achievement rank", items: ACH_RANKS.map((r, i) => ({ item: capeId(i), unique: true, rate: `${fmt(r.ap)} points` })) },
-      { id: "slayerchest", name: "Slayer chest", tracked: true, sub: `${fmt(state.stats.schests || 0)} opened · gear and supplies for your combat level`, items: SCHEST_TOOLS.map(i => ({ item: i, unique: true, rate: "1/100 per chest" })) },
+      { id: "slayerchest", name: "Slayer chest", tracked: true, sub: `${fmt(state.stats.schests || 0)} opened · gear and supplies for your combat level`, items: SCHEST_TOOLS.map(i => ({ item: i, unique: true, rate: "3/100 per chest for a tool, then 1 in 3 each" })) },
       { id: "slayershop", name: "Slayer shop", sub: "Slayer points", items: SLAYER_SHOP.map(e => ({ item: e.item, rate: `${e.price} points` })) },
       { id: "eyrie", name: "The Eyrie", sub: "Skyfeather shop", items: EYRIE.filter(e => e.item).map(e => ({ item: e.item, rate: `${e.price} feathers` })) },
     ] },
@@ -3126,6 +3127,8 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 39, date: "14 Oct 2026", title: "Fire-forged tools can repeat", items: [
+    "Slayer chests now have one rare roll (3 in 100). When it hits you get one of the three fire-forged tools, each an even 1 in 3, and you can get the same tool more than once. Spares can be sold or kept for trading." ] },
   { v: 38, date: "14 Oct 2026", title: "Slayer chests and fire-forged tools", items: [
     "Every finished Slayer task now gives a Slayer chest (three on every 10th task in a row). You can also buy them in the Slayer shop for 45 points.",
     "Each chest holds 2–3 combat supplies suited to your combat level: armour and weapons up to a tier ahead (iron to runite), food, arrows, runes, combat potions, herbs and coins. A way to gear up without relying on Smithing.",
