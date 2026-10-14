@@ -944,7 +944,13 @@ const ITEMS = {
   ember_scale:   { name: "Ember scale",     desc: "Still warm to the touch.", sell: 600 },
   wyvern_bone:   { name: "Wyvern bone",     desc: "Light, hollow and humming with static.", sell: 1500 },
   rift_tooth:    { name: "Rift tooth",      desc: "A tooth that doesn't quite belong to this world.", sell: 2000 },
-  dragonstone:   { name: "Dragonstone",     desc: "An extremely rare gem from the rare drop table.", rare: true, sell: 75000 },
+  dragonstone:   { name: "Uncut dragonstone", desc: "An extremely rare gem from the rare drop table. Cut it with Crafting 55.", rare: true, sell: 75000 },
+  cut_sapphire:  { name: "Sapphire",        desc: "A cut sapphire. Used instead of an uncut one in recipes for +25% xp.", sell: 150 },
+  cut_emerald:   { name: "Emerald",         desc: "A cut emerald. Used instead of an uncut one in recipes for +25% xp.", sell: 300 },
+  cut_ruby:      { name: "Ruby",            desc: "A cut ruby. Used instead of an uncut one in recipes for +25% xp.", rare: true, sell: 750 },
+  cut_diamond:   { name: "Diamond",         desc: "A cut diamond. Used instead of an uncut one in recipes for +25% xp.", rare: true, sell: 2000 },
+  cut_dragonstone:{ name: "Dragonstone",    desc: "A cut dragonstone, blazing purple. Used instead of an uncut one in recipes for +25% xp.", rare: true, sell: 180000 },
+  crushed_gem:   { name: "Crushed gem",     desc: "What's left of a gem that cracked while cutting.", sell: 5 },
   bat_wing:      { name: "Bat wing",        desc: "Leathery. Sells well to apothecaries.", sell: 40 },
   bog_moss:      { name: "Bog moss",        desc: "Smells awful. Brewers love it.", sell: 90 },
   gargant_shard: { name: "Gargant shard",   desc: "A chip of living stone.", sell: 400 },
@@ -1345,6 +1351,11 @@ const VOYAGES = [
 
 // Crafting: tan hides into leather, then turn leather, silk and monster materials into armour and jewellery
 const CRAFT = [
+  { id:"cut_sapphire",     section:"Gem cutting",   name:"Cut sapphire",        lvl:20, time:1.8, xp:50,  inputs:{ uncut_sapphire:1 },                     out:"cut_sapphire", crack:0.20 },
+  { id:"cut_emerald",      section:"Gem cutting",   name:"Cut emerald",         lvl:27, time:1.8, xp:68,  inputs:{ uncut_emerald:1 },                      out:"cut_emerald", crack:0.20 },
+  { id:"cut_ruby",         section:"Gem cutting",   name:"Cut ruby",            lvl:34, time:1.8, xp:85,  inputs:{ uncut_ruby:1 },                         out:"cut_ruby", crack:0.22 },
+  { id:"cut_diamond",      section:"Gem cutting",   name:"Cut diamond",         lvl:43, time:1.8, xp:108, inputs:{ uncut_diamond:1 },                      out:"cut_diamond", crack:0.24 },
+  { id:"cut_dragonstone",  section:"Gem cutting",   name:"Cut dragonstone",     lvl:55, time:2.4, xp:140, inputs:{ dragonstone:1 },                        out:"cut_dragonstone", crack:0.12 },
   { id:"leather",          section:"Tanning",       name:"Tan leather",         lvl:1,  time:1.2, xp:5,   inputs:{ hide:1 },                               out:"leather" },
   { id:"leather_cowl",     section:"Leatherwork",   name:"Leather cowl",        lvl:1,  time:2.4, xp:14,  inputs:{ leather:1 },                            out:"leather_cowl" },
   { id:"leather_body",     section:"Leatherwork",   name:"Leather body",        lvl:5,  time:2.4, xp:25,  inputs:{ leather:2 },                            out:"leather_body" },
@@ -2013,8 +2024,22 @@ function gather(item, sum, skill) {
   gotItem(sum, item, n);
 }
 const CRAFT_SKILLS = ["smithing","enchanting","fletching","brewing","crafting"];
-const smithBlock = a => { const miss = Object.entries(a.inputs).find(([k, q]) => qty(k) < q); return miss ? `Out of ${ITEMS[miss[0]].name.toLowerCase()}` : ""; };
-const inputsText = a => Object.entries(a.inputs).map(([k, q]) => `${q > 1 ? q + "× " : ""}${ITEMS[k].name.toLowerCase()} (<span class="num" data-q="${k}"></span>)`).join(" + ");
+// Gem cutting: recipes that ask for an uncut gem take a cut one first (+25% xp), else the uncut one
+const GEM_CUT = { uncut_sapphire:"cut_sapphire", uncut_emerald:"cut_emerald", uncut_ruby:"cut_ruby", uncut_diamond:"cut_diamond", dragonstone:"cut_dragonstone" };
+const gemAlt = (a, k) => !a.crack && state.opts.useCut !== false && GEM_CUT[k];
+const haveFor = (a, k) => qty(k) + (gemAlt(a, k) ? qty(GEM_CUT[k]) : 0);
+const crackChance = a => a.crack ? Math.max(0.02, a.crack - Math.max(0, lvl("crafting") - a.lvl) * 0.006) : 0;
+function payPlan(a) {
+  const plan = []; let cut = false;
+  for (const [k, q] of Object.entries(a.inputs)) {
+    const c = gemAlt(a, k), fromCut = c ? Math.min(q, qty(c)) : 0;
+    if (fromCut) { plan.push([c, fromCut]); cut = true; }
+    if (q - fromCut) plan.push([k, q - fromCut]);
+  }
+  return { plan, cut };
+}
+const smithBlock = a => { const miss = Object.entries(a.inputs).find(([k, q]) => haveFor(a, k) < q); return miss ? `Out of ${ITEMS[miss[0]].name.toLowerCase()}` : ""; };
+const inputsText = a => Object.entries(a.inputs).map(([k, q]) => gemAlt(a, k) ? `${q > 1 ? q + "× " : ""}${ITEMS[GEM_CUT[k]].name.toLowerCase()} (<span class="num" data-q="${GEM_CUT[k]}"></span> cut, <span class="num" data-q="${k}"></span> uncut)` : `${q > 1 ? q + "× " : ""}${ITEMS[k].name.toLowerCase()} (<span class="num" data-q="${k}"></span>)`).join(" + ");
 const petCount = () => PETS.filter(has).length;
 const lightfootCount = () => LIGHTFOOT.filter(has).length;
 // Pickpocket success: base + 2% per level above requirement + 5% per Lightfoot piece + 5% for the full set
@@ -2085,7 +2110,7 @@ function petRoll(skill, a, sum) {
 
 /* One completed action. Returns false if it cannot run. */
 function complete(sum) {
-  const { skill, id } = state.active; const a = findAction(skill, id);
+  const { skill, id } = state.active; const a = findAction(skill, id); let xpBonus = 1;
   if (!a || !reqMet(skill, a)) return false;
   if (skill === "combat") { sum.actions++; return fightRound(a, sum); }
   if (skill === "woodcutting") {
@@ -2097,7 +2122,12 @@ function complete(sum) {
     if (Math.random() < geodeChance(a)) { add("geode", 1); sum.items.geode = (sum.items.geode || 0) + 1; sum.rare.push("Geode"); }
   } else if (CRAFT_SKILLS.includes(skill)) {
     if (smithBlock(a)) return false;
-    if (!(Math.random() < 0.1 * apLvl("touch"))) for (const [k, q] of Object.entries(a.inputs)) { add(k, -q); sum.items[k] = (sum.items[k] || 0) - q; }
+    if (a.crack && Math.random() < crackChance(a)) {   // the gem cracked: lose it, get a crushed gem, no xp
+      for (const [k, q] of Object.entries(a.inputs)) { add(k, -q); sum.items[k] = (sum.items[k] || 0) - q; }
+      add("crushed_gem", 1); sum.items.crushed_gem = (sum.items.crushed_gem || 0) + 1; sum.actions++; sum.fails = (sum.fails || 0) + 1; return true;
+    }
+    const pay = payPlan(a); if (pay.cut) xpBonus = 1.25;
+    if (!(Math.random() < 0.1 * apLvl("touch"))) for (const [k, q] of pay.plan) { add(k, -q); sum.items[k] = (sum.items[k] || 0) - q; }
     const n = a.outQty || 1; add(a.out, n); sum.items[a.out] = (sum.items[a.out] || 0) + n;
     if (skill === "brewing") state.stats.potions = (state.stats.potions || 0) + n;
   } else if (skill === "fishing") {
@@ -2128,7 +2158,7 @@ function complete(sum) {
     else { add(a.item, -1); sum.items[a.item] = (sum.items[a.item] || 0) - 1; }
     add("ashes", 1); sum.items.ashes = (sum.items.ashes || 0) + 1;
   }
-  gainXp(skill, a.xp * (skill === "firemaking" && has("ember_lantern") ? 1.1 : 1), sum); sum.actions++;
+  gainXp(skill, a.xp * xpBonus * (skill === "firemaking" && has("ember_lantern") ? 1.1 : 1), sum); sum.actions++;
   state.stats[skill] = (state.stats[skill] || 0) + 1;
   dailyTick(skill + ":" + a.id);
   petRoll(skill, a, sum);
@@ -2781,7 +2811,7 @@ function skillHead(skill) {
   else if (skill === "enchanting") perks = `<span class="chip on">Runes and staffs for Magic</span><span class="chip on">Gems from essence rocks (1/80) and geodes</span><span class="chip on">Jewellery works while it's in your bank</span>`;
   else if (skill === "brewing") perks = `<span class="chip on">Barrels ferment while you're away</span><span class="chip ${worn("roots_ring") ? "on" : ""}">Ring of roots${worn("roots_ring") ? ": 25% sooner" : " (Enchanting)"}</span>`;
   else if (skill === "seafaring") perks = `<span class="chip on">Voyages ${(Math.min(0.3, lvl("seafaring") * 0.005) * 100).toFixed(1)}% shorter</span><span class="chip ${has("captain_compass") ? "on" : ""}">Captain's compass${has("captain_compass") ? ": −25%" : " (Stormwrack)"}</span>`;
-  else if (skill === "crafting") perks = `<span class="chip on">Hides drop from animals and humanoids, or buy them in the General store</span><span class="chip on">Monster materials become armour and amulets</span>`;
+  else if (skill === "crafting") perks = `<span class="chip on">Hides drop from animals and humanoids, or buy them in the General store</span><span class="chip on">Monster materials become armour and amulets</span><span class="chip ${state.opts.useCut !== false ? "on" : ""}">Cut gems in recipes: +25% xp</span>`;
   else if (skill === "fletching") perks = `<span class="chip on">Bows and arrows for Ranged</span><span class="chip on">Arrows: a bar + a log makes 15</span>`;
   else if (skill === "fishing") perks = (has("hearthfire_rod") ? `<span class="chip ${hasTool("hearthfire_rod") ? "on" : ""}">Hearthfire rod: 10% cooked${hasTool("hearthfire_rod") ? "" : " (needs Fishing 70)"}</span>` : "") + `<span class="chip ${has("lucky_lure") ? "on" : ""}">Lucky lure${has("lucky_lure") ? ": 10% faster" : " (from caskets)"}</span><span class="chip on">Raw fish feeds Cooking</span>`;
   else if (skill === "cooking") perks = `<span class="chip on">Firemaking ${lvl("firemaking")}: burn −${(lvl("firemaking") * 0.3).toFixed(1)}%</span><span class="chip on">Better logs burn longer</span><span class="chip on">Fuel: <span class="num" data-fuel></span> logs</span>`;
@@ -2825,7 +2855,7 @@ function actionList(skill) {
       : skill === "thieving" ? `<span class="ok">${Math.round(thieveChance(a) * 100)}% success</span> · stun ${(stunMs(a) / 1000).toFixed(1)}s · ${a.loot.filter(e => e.item !== "coins").map(e => ITEMS[e.item].name.toLowerCase()).join(", ") || a.loot[0].min + " coins"}`
       : skill === "mining" ? `${t}s · <span class="num" data-q="${a.item}"></span> in bank · geode 1/${Math.round(1 / geodeChance(a))}`
       : skill === "enchanting" ? `${a.section === "Jewellery" || a.section === "Staffs" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Enchanted. ", ""))}</span>${has(a.out) ? " (owned)" : ""}<br>` : ""}${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
-      : skill === "smithing" || skill === "fletching" || skill === "brewing" || skill === "crafting" ? `${skill === "brewing" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Drink: ", "").replace(" for 15 min.", ""))}</span><br>` : skill === "crafting" && GEAR[a.out] ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Crafted. ", "").replace("Crafted from spider silk. ", "").replace("Crafted mage armour. ", "").replace("Crafted ranged armour. ", ""))}</span>${has(a.out) ? " (owned)" : ""}<br>` : ""}${t}s · ${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
+      : skill === "smithing" || skill === "fletching" || skill === "brewing" || skill === "crafting" ? `${skill === "brewing" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Drink: ", "").replace(" for 15 min.", ""))}</span><br>` : skill === "crafting" && a.crack ? `<span class="ok">Sells for ${fmt(ITEMS[a.out].sell)} (uncut ${fmt(ITEMS[Object.keys(a.inputs)[0]].sell)})</span> · <span class="lock">crack ${Math.round(crackChance(a) * 100)}%</span><br>` : skill === "crafting" && GEAR[a.out] ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Crafted. ", "").replace("Crafted from spider silk. ", "").replace("Crafted mage armour. ", "").replace("Crafted ranged armour. ", ""))}</span>${has(a.out) ? " (owned)" : ""}<br>` : ""}${t}s · ${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
       : skill === "fishing" ? `${t}s · <span class="num" data-q="${a.item}"></span> in bank · casket 1/${Math.round(1 / casketChance(a))}`
       : noLogs ? `No ${ITEMS[a.item].name.toLowerCase()}. ${a.hint || "Chop some first."}`
       : skill === "cooking" ? `${t}s · <span class="num" data-q="${a.item}"></span> to cook · burn ${Math.round(burnChance(a) * 100)}%`
@@ -2835,6 +2865,7 @@ function actionList(skill) {
       <span class="side"><b>+${a.xp}</b>xp</span></button>`;
   }).join("") + `</div>`;
   if (CRAFT_SKILLS.includes(skill) && shown.length < list.length) h += `<p class="note">More recipes unlock as you level.</p>`;
+  if (["crafting", "enchanting", "brewing"].includes(skill)) h += `<label class="frset"><input type="checkbox" id="useCut" ${state.opts.useCut !== false ? "checked" : ""}> Use cut gems first when a recipe needs a gem (+25% xp). Turn off to keep cut gems for selling.</label>`;
   if (skill === "cooking") {
     const cur = fuelItem();
     h += `<h3>Fire fuel</h3><div class="slots" style="grid-template-columns:repeat(auto-fill,minmax(54px,1fr))">` +
@@ -2893,7 +2924,7 @@ function itemCat(k) {
   if (k.endsWith("_rune") || k.endsWith("_arrow")) return "Ammo & runes";
   if (k === "logs" || k.endsWith("_logs") || k === "ashes") return "Logs";
   if (k.endsWith("_ore") || k.endsWith("_bar") || k === "coal") return "Ores & bars";
-  if (k.startsWith("uncut_") || ["rune_essence", "runestone", "pearl", "dragonstone"].includes(k)) return "Gems & essence";
+  if (k.startsWith("uncut_") || k.startsWith("cut_") || ["rune_essence", "runestone", "pearl", "dragonstone", "crushed_gem"].includes(k)) return "Gems & essence";
   if (k === "hide" || k === "leather") return "Hides & leather";
   if (k.startsWith("raw_")) return "Fish & meat";
   if (k.endsWith("_seed") || k === "acorn" || CROP_OUTS.has(k)) return "Seeds & crops";
@@ -3385,6 +3416,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 49, date: "14 Oct 2026", title: "Gem cutting", items: [
+    "Crafting can now cut gems: sapphire (level 20), emerald (27), ruby (34), diamond (43) and dragonstone (55).",
+    "Cut gems sell for 2.5× the uncut price. There's a chance to crack the gem while cutting, which shrinks as your Crafting level rises (down to 2%).",
+    "Enchanting, Brewing and Crafting recipes that need a gem now use a cut one first if you have it, for +25% xp, and fall back to uncut gems otherwise.",
+    "Want to keep your cut gems for selling? Untick \"Use cut gems first\" at the bottom of the Crafting, Enchanting or Brewing page." ] },
   { v: 48, date: "14 Oct 2026", title: "Ranged armour", items: [
     "Crafting now makes ranged armour too: a cowl, body and chaps in four sets. Trailhide (Crafting 7–11), Marshstalker (28–34), Shardscale (53–60) and Stormhide (79–87).",
     "Ranged armour gives Ranged accuracy, and the higher sets add bonus ranged damage. They need a Ranged level to wear (1, 25, 50 and 70) and sit between robes and metal armour for Defence.",
@@ -4127,6 +4163,8 @@ const IC = {
 };
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
+  cut_sapphire:["gem",["#5a8aff","#1f3a9a","#d8e6ff","#ffffff"]], cut_emerald:["gem",["#4ae07a","#127a3a","#d0ffe0","#ffffff"]], cut_ruby:["gem",["#ff3a4a","#9a1020","#ffd0d4","#ffffff"]],
+  cut_diamond:["gem",["#ffffff","#a8c8e8","#e8f8ff","#7fd8ff"]], cut_dragonstone:["gem",["#d050ff","#6a1a9a","#f8d0ff","#ffffff"]], crushed_gem:["pile",["#b0b0c0","#6a6a7a","#e0e0f0","#000"]],
   hide:["pile",["#a0784a","#5a3e22","#c8a070","#000"]], leather:["pile",["#8a5a2a","#4a2e16","#b07a3e","#000"]],
   leather_cowl:["hood",["#8a5a2a","#4a2e16","#b07a3e","#000"]], leather_chaps:["legs",["#8a5a2a","#4a2e16","#b07a3e","#000"]], hardleather_body:["body",["#6b4220","#3a2410","#a06a3a","#000"]],
   silk_cape:["cape",["#e8e4dc","#9a948a","#ffffff","#000"]], batwing_cape:["cape",["#5a3a8a","#2e1e4a","#8a6ac0","#000"]], void_cloak:["cape",["#3a1e6a","#1e0f3a","#7dff6a","#000"]],
@@ -5364,6 +5402,7 @@ document.addEventListener("toggle", e => { const el = e.target; if (el.classList
 document.addEventListener("change", e => { if (e.target.id === "autoChop") { state.opts.autoChop = e.target.checked; save(); } if (e.target.id === "hsSkill") { hs.skill = e.target.value; hs.rows = null; hsLoad(true); }
   if (e.target.id === "lookGear") { state.look = Object.assign({}, state.look, { gear: e.target.checked }); after(); }
   if (e.target.dataset && e.target.dataset.lookslot) { const sl = e.target.dataset.lookslot, L = Object.assign({}, state.look); L.show = Object.assign({}, L.show); if (e.target.value) L.show[sl] = e.target.value; else delete L.show[sl]; state.look = L; after(); } });
+document.addEventListener("change", e => { if (e.target.id === "useCut") { state.opts.useCut = e.target.checked; save(); render(); } });
 document.addEventListener("change", e => { if (e.target.id === "frAlerts") { state.opts.frAlerts = e.target.checked; save(); } });
 document.addEventListener("change", e => { if (e.target.id === "autoPot") { state.opts.autoPot = e.target.checked; toast(e.target.checked ? "Auto-drink on: combat potions stay topped up while you fight" : "Auto-drink off"); save(); } });
 document.addEventListener("toggle", e => { if (e.target && e.target.id === "eqStats") state.opts.eqStats = e.target.open; }, true);
