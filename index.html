@@ -514,6 +514,10 @@ body.noscroll{overflow:hidden}
 .ropen{border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0} .ropen.rare{border-color:#ff3a3a;box-shadow:0 0 24px #ff3a3a55} .ropen b{font-size:1.05rem} .ropen.rare b{color:#ff8a7a}
 .raidloot .pop{animation:lootpop .35s ease-out both} @keyframes lootpop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.rchest.rare,.raidloot .pop{animation:none}}
+.smithpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:6px;margin:0 0 10px}
+.smithpick button{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;padding:8px 6px;border:1px solid var(--line);border-radius:12px;background:none;color:var(--text,#f2efe6);font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+.smithpick button .ico{width:26px;height:26px} .smithpick em{font-style:normal;font-weight:600;font-size:.7rem;color:var(--muted);font-family:var(--f-num)}
+.smithpick button[aria-selected="true"]{border-color:var(--ember);background:#f0a33a1f} .smithpick button.locked{opacity:.5}
 .raidrun{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin:10px 0} .raidrun div{border:1px solid var(--line);border-radius:10px;padding:6px 10px;display:flex;flex-direction:column} .raidrun span{font-size:.72rem;color:var(--muted)} .raidrun b{font-family:var(--f-num);font-size:1rem}
 .raidrooms{display:flex;flex-direction:column;gap:6px;margin:10px 0}
 .raidroom{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px 12px} .raidroom.cur{border-color:#5ae0d0;background:#5ae0d012} .raidroom.done{opacity:.6}
@@ -2104,6 +2108,12 @@ function payPlan(a) {
   }
   return { plan, cut };
 }
+function smithSec() {
+  const secs = [...new Set(SMITH.map(a => a.section))], cur = state.opts.smithSec;
+  if (cur && secs.includes(cur)) return cur;
+  const ok = secs.filter(sec => sec !== "Furnace" && SMITH.some(a => a.section === sec && lvl("smithing") >= a.lvl && !smithBlock(a)));
+  return ok.length ? ok[ok.length - 1] : "Furnace";
+}
 const smithBlock = a => { const miss = Object.entries(a.inputs).find(([k, q]) => haveFor(a, k) < q); return miss ? `Out of ${ITEMS[miss[0]].name.toLowerCase()}` : ""; };
 const inputsText = a => Object.entries(a.inputs).map(([k, q]) => gemAlt(a, k) ? `${q > 1 ? q + "× " : ""}${ITEMS[GEM_CUT[k]].name.toLowerCase()} (<span class="num" data-q="${GEM_CUT[k]}"></span> cut, <span class="num" data-q="${k}"></span> uncut)` : `${q > 1 ? q + "× " : ""}${ITEMS[k].name.toLowerCase()} (<span class="num" data-q="${k}"></span>)`).join(" + ");
 const petCount = () => PETS.filter(has).length;
@@ -3038,10 +3048,21 @@ function actionList(skill) {
   const list = ACTIONS[skill]; const l = lvl(skill);
   let lastSection = "";
   // Smithing has many recipes: show what you can make plus the next two to unlock
-  const shown = CRAFT_SKILLS.includes(skill) ? list.filter(a => a.lvl <= l).concat(list.filter(a => a.lvl > l).sort((x, y) => x.lvl - y.lvl).slice(0, 2)) : list;
+  let shown = CRAFT_SKILLS.includes(skill) ? list.filter(a => a.lvl <= l).concat(list.filter(a => a.lvl > l).sort((x, y) => x.lvl - y.lvl).slice(0, 2)) : list;
+  // Smithing: pick a bar (or the furnace) and see just what you can make from it
+  let pick = "";
+  if (skill === "smithing") {
+    const secs = [...new Set(list.map(a => a.section))], sel = smithSec();
+    pick = `<div class="smithpick" role="tablist" aria-label="Bars">` + secs.map(sec => {
+      const metal = sec === "Furnace" ? null : sec.replace("Anvil · ", "").toLowerCase(), bar = metal ? metal + "_bar" : null;
+      const need = Math.min(...list.filter(a => a.section === sec).map(a => a.lvl)), locked = l < need;
+      return `<button role="tab" data-smithsec="${esc(sec)}" aria-selected="${sec === sel}" class="${locked ? "locked" : ""}">${icon(bar || "coal")}<span>${metal ? metal[0].toUpperCase() + metal.slice(1) : "Furnace"}</span><em>${locked ? "Lv " + need : bar ? `<span class="num" data-q="${bar}"></span>` : "Smelt"}</em></button>`;
+    }).join("") + `</div>`;
+    shown = list.filter(a => a.section === sel);
+  }
   if (CRAFT_SKILLS.includes(skill)) { const order = [...new Set(list.map(a => a.section))]; shown.sort((x, y) => order.indexOf(x.section) - order.indexOf(y.section) || x.lvl - y.lvl); }
-  let h = `<div class="actions">` + shown.map(a => {
-    const head = a.section && a.section !== lastSection ? `<p class="sub">${esc(a.section)}</p>` : ""; lastSection = a.section || "";
+  let h = pick + `<div class="actions">` + shown.map(a => {
+    const head = skill !== "smithing" && a.section && a.section !== lastSection ? `<p class="sub">${esc(a.section)}</p>` : ""; lastSection = a.section || "";
     const locked = l < a.lvl;
     const noLogs = ((skill === "firemaking" || skill === "cooking") && !has(a.item)) || (CRAFT_SKILLS.includes(skill) && !!smithBlock(a));
     const active = state.active && state.active.skill === skill && state.active.id === a.id;
@@ -3052,16 +3073,16 @@ function actionList(skill) {
       : skill === "thieving" ? `<span class="ok">${Math.round(thieveChance(a) * 100)}% success</span> · stun ${(stunMs(a) / 1000).toFixed(1)}s · ${a.loot.filter(e => e.item !== "coins").map(e => ITEMS[e.item].name.toLowerCase()).join(", ") || a.loot[0].min + " coins"}`
       : skill === "mining" ? `${t}s · <span class="num" data-q="${a.item}"></span> in bank · geode 1/${Math.round(1 / geodeChance(a))}`
       : skill === "enchanting" ? `${a.section === "Jewellery" || a.section === "Staffs" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Enchanted. ", ""))}</span>${has(a.out) ? " (owned)" : ""}<br>` : ""}${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
-      : skill === "smithing" || skill === "fletching" || skill === "brewing" || skill === "crafting" ? `${skill === "brewing" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Drink: ", "").replace(" for 15 min.", ""))}</span><br>` : skill === "crafting" && a.crack ? `<span class="ok">Sells for ${fmt(ITEMS[a.out].sell)} (uncut ${fmt(ITEMS[Object.keys(a.inputs)[0]].sell)})</span> · <span class="lock">crack ${Math.round(crackChance(a) * 100)}%</span><br>` : skill === "crafting" && GEAR[a.out] ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Crafted. ", "").replace("Crafted from spider silk. ", "").replace("Crafted mage armour. ", "").replace("Crafted ranged armour. ", ""))}</span>${has(a.out) ? " (owned)" : ""}<br>` : ""}${t}s · ${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
+      : skill === "smithing" || skill === "fletching" || skill === "brewing" || skill === "crafting" ? `${skill === "brewing" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Drink: ", "").replace(" for 15 min.", ""))}</span><br>` : skill === "crafting" && a.crack ? `<span class="ok">Sells for ${fmt(ITEMS[a.out].sell)} (uncut ${fmt(ITEMS[Object.keys(a.inputs)[0]].sell)})</span> · <span class="lock">crack ${Math.round(crackChance(a) * 100)}%</span><br>` : skill === "smithing" && GEAR[a.out] ? `<span class="ok">${esc(gearStats(a.out))}${GEAR[a.out].req ? ` · needs ${SKILLS[GEAR[a.out].req[0]].name} ${GEAR[a.out].req[1]}` : ""}</span><br>` : skill === "crafting" && GEAR[a.out] ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Crafted. ", "").replace("Crafted from spider silk. ", "").replace("Crafted mage armour. ", "").replace("Crafted ranged armour. ", ""))}</span>${has(a.out) ? " (owned)" : ""}<br>` : ""}${t}s · ${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
       : skill === "fishing" ? `${t}s · <span class="num" data-q="${a.item}"></span> in bank · casket 1/${Math.round(1 / casketChance(a))}`
       : noLogs ? `No ${ITEMS[a.item].name.toLowerCase()}. ${a.hint || "Chop some first."}`
       : skill === "cooking" ? `${t}s · <span class="num" data-q="${a.item}"></span> to cook · burn ${Math.round(burnChance(a) * 100)}%`
       : `${t}s · <span class="num" data-q="${a.item}"></span> ${ITEMS[a.item].name.toLowerCase()} to burn`;
     return head + `<button class="act" id="act-${skill}-${a.id}" data-skill="${skill}" data-id="${a.id}" aria-pressed="${active}" ${locked || noLogs ? "disabled" : ""}>
-      <span class="nm">${skill === "brewing" || skill === "crafting" ? icon(a.out) : ""}${esc(a.name)}</span><span class="meta">${meta}</span>
+      <span class="nm">${skill === "brewing" || skill === "crafting" || skill === "smithing" ? icon(a.out) : ""}${esc(a.name)}</span><span class="meta">${meta}</span>
       <span class="side"><b>+${a.xp}</b>xp</span></button>`;
   }).join("") + `</div>`;
-  if (CRAFT_SKILLS.includes(skill) && shown.length < list.length) h += `<p class="note">More recipes unlock as you level.</p>`;
+  if (CRAFT_SKILLS.includes(skill) && skill !== "smithing" && shown.length < list.length) h += `<p class="note">More recipes unlock as you level.</p>`;
   if (["crafting", "enchanting", "brewing"].includes(skill)) h += `<label class="frset"><input type="checkbox" id="useCut" ${state.opts.useCut !== false ? "checked" : ""}> Use cut gems first when a recipe needs a gem (+25% xp). Turn off to keep cut gems for selling.</label>`;
   if (skill === "cooking") {
     const cur = fuelItem();
@@ -3615,6 +3636,9 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 53, date: "14 Oct 2026", title: "Tidier Smithing", items: [
+    "The Smithing page now has a row of bars at the top: Furnace, Bronze, Iron, Steel, Mithril, Cobalt and Runite. Tap one to see only what you can smelt or make from it.",
+    "Each bar shows how many you have, and bars you haven't unlocked show the level you need. The game remembers the last bar you picked." ] },
   { v: 52, date: "14 Oct 2026", title: "Cleaner raid chests", items: [
     "Unopened raid chests no longer show the points from their raid, just the chest itself." ] },
   { v: 51, date: "14 Oct 2026", title: "Raid chests", items: [
@@ -5562,6 +5586,7 @@ document.addEventListener("click", e => {
   if (t.dataset.frhide) { frHidden = [...new Set(frHidden.concat(t.dataset.frhide))]; lsSet("thornwick-friends-hidden", frHidden); renderRail(); frRender(); return; }
   if (t.dataset.frsel) { fr.sel = fr.sel === t.dataset.frsel ? null : t.dataset.frsel; fr.confirm = null; frRender(); return; }
   if (t.dataset.frrm) { if (fr.confirm === t.dataset.frrm) frRemove(t.dataset.frrm); else { fr.confirm = t.dataset.frrm; frRender(); } return; }
+  if (t.dataset.smithsec) { state.opts.smithSec = t.dataset.smithsec; render(); return; }
   if (t.dataset.pmopen) { pmOpen(t.dataset.pmopen); return; }
   if (t.dataset.pmback) { pm.open = null; pmLoadThreads(); frRender(); return; }
   if (t.dataset.frview) { frView = t.dataset.frview; if (frView === "messages") { pm.open = null; pmLoadThreads(); } frRender(); return; }
