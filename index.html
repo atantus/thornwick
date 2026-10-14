@@ -479,6 +479,24 @@ body.noscroll{overflow:hidden}
 .storemult{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 4px;font-size:.82rem;color:var(--muted)}
 .storemult button{font:inherit;font-weight:700;font-size:.8rem;min-height:34px;min-width:48px;border-radius:8px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}
 .storemult button[aria-pressed="true"]{background:var(--ember);border-color:var(--ember);color:var(--bg)}
+.chatlist{display:flex;flex-direction:column;gap:2px;height:calc(100vh - 330px);height:calc(100dvh - 330px);min-height:260px;overflow-y:auto;overscroll-behavior:contain;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.chatolder{align-self:center;font-size:.8rem} .chatstart{text-align:center;margin:4px 0 8px}
+.cday{align-self:center;font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+.cmsg{padding:5px 8px;border-radius:8px} .cmsg.me{background:#f0a33a12}
+.cmsg .ch{display:flex;align-items:baseline;gap:6px;font-size:.78rem}
+.cname{font:inherit;font-weight:800;color:var(--ember);background:none;border:0;padding:0;cursor:pointer} .cmsg.me .cname{color:var(--moss);cursor:default}
+.clvl{font-family:var(--f-num);font-size:.68rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 6px}
+.ctime{color:var(--muted);font-size:.7rem;margin-left:auto}
+.cdel{font:inherit;background:none;border:0;color:var(--muted);cursor:pointer;padding:0 2px;font-size:1rem;line-height:1}
+.cdel:hover{color:var(--danger)}
+.cmsg .cb{font-size:.92rem;line-height:1.35;word-wrap:break-word;overflow-wrap:anywhere;white-space:pre-wrap}
+.cact{display:flex;align-items:center;gap:8px;margin:2px 0 6px 8px;font-size:.8rem;color:var(--muted)} .cact .btn{min-height:32px;padding:4px 10px}
+.ccompose{display:flex;gap:8px;margin-top:10px}
+.ccompose input{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none}
+.ccompose input:focus{border-color:var(--ember)}
+.ccompose.locked{align-items:center;justify-content:space-between;padding:10px 12px;border:1px dashed var(--ember-dim);border-radius:10px;color:var(--muted)}
+.cfoot{display:flex;gap:10px;margin-top:6px;font-size:.74rem;color:var(--muted)} .cfoot span:first-child{font-family:var(--f-num);flex:none}
+.cerr{color:var(--danger);font-size:.85rem;margin:8px 2px 0}
 .chestlog{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(135deg,#ff7a1a12,transparent 60%),var(--panel)}
 .chestlog .clh{display:flex;align-items:center;gap:10px}
 .chestlog .clh .ico{width:32px;height:32px}
@@ -2472,7 +2490,7 @@ const SKILL_GROUPS = [
 ];
 const SECTIONS = [["skills","Skills","✦"],["combat","Combat","⚔"],["clog","Log","▤"],["bank","Bank","◫"],["more","More","≡"]];
 const NAV_ICON = { skills:"skills", combat:"attack", clog:"more", bank:"bank", more:"cog" };
-const sectionOf = t => ["combat","clog","bank","more","daily","shops","arena","roof","mini"].includes(t) ? t : "skills";
+const sectionOf = t => ["combat","clog","bank","more","daily","shops","arena","roof","mini","chat"].includes(t) ? t : "skills";
 function badges() {
   const now = Date.now();
   return {
@@ -2489,6 +2507,7 @@ const RAIL = [
   ["nav-daily", "Challenges", "lucky_horseshoe", "daily", "", "Play"],
   ["nav-shops", "Shops", "coins", "shops", "", "Play"],
   ["nav-mini", "Minigames", "arena_helm", "mini", "", "Play"],
+  ["nav-chat", "Chat", "chat_bubble", "chat", "", "Play"],
   ["nav-combat", "Fight", "attack", "combat", "fight", "Combat"],
   ["csub-gear", "Equipment", "defence", "combat", "gear", "Combat"],
   ["csub-look", "Look", "wayfarer_hat", "combat", "look", "Combat"],
@@ -2502,10 +2521,10 @@ const RAIL = [
   ["msub-activity", "Activity", "captain_compass", "more", "activity", "More"],
   ["msub-help", "Help & save", "cog", "more", "help", "More"],
 ];
-const railKey = () => tab === "daily" ? "daily:" : tab === "shops" ? "shops:" : tab === "arena" || tab === "roof" || tab === "mini" ? "mini:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
+const railKey = () => tab === "chat" ? "chat:" : tab === "daily" ? "daily:" : tab === "shops" ? "shops:" : tab === "arena" || tab === "roof" || tab === "mini" ? "mini:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
 function renderRail() {
   const b = badges(), cur = railKey(); let h = "", g = "";
-  const badge = { "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
+  const badge = { "chat:": tab === "chat" ? 0 : chat.unread, "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
   for (const [id, label, ic, tb, sub, grp] of RAIL) {
     if (grp !== g) { h += `${g ? '<span class="sep"></span>' : ""}<h4>${grp}</h4>`; g = grp; }
     const key = tb + ":" + sub, n = badge[key], dot = key === "more:news" && newsUnseen();
@@ -3148,6 +3167,10 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 41, date: "14 Oct 2026", title: "Global chat", items: [
+    "New Chat page in the side menu: talk with everyone playing Thornwick. Messages are saved, so you can scroll back through the conversation.",
+    "Sign in and choose a hiscores name to post; your total level shows next to your name. Anyone can read along.",
+    "A badge shows how many new messages are waiting. Delete your own messages with ×, and tap someone's name to mute them on your device." ] },
   { v: 40, date: "14 Oct 2026", title: "Chest log", items: [
     "A Chest log on the Slayer page and in the Slayer shop: how many Slayer chests you've opened, how many of each fire-forged tool you've ever pulled (sold spares still count), whether you're luckier than average, and how many chests since your last tool." ] },
   { v: 39, date: "14 Oct 2026", title: "Fire-forged tools can repeat", items: [
@@ -3757,6 +3780,7 @@ const ITEM_TPL = {
   ember: [".....3......", "....33..3...", "...3443.33..", "..3444433...", "..34114433..", ".3411111443.", ".3k1111k143.", ".3411111143.", "..34111143..", "...333333...", "............", "............"],
   mole: ["............", "............", "...111111...", "..11111111..", ".1111111111.", "441k1111111.", "4411111111..", ".1111111111.", ".1111111111.", "33.33..33...", "............", "............"],
   herb: ["............", "......11....", ".....1441...", "..11.1221...", ".1441.12.11.", ".1221.3.1441", "..12..3.1221", "...1..3..12.", "......3..1..", ".....33.....", "....333.....", "............"],
+  bubble: ["............", ".11111111...", "1222222221..", "1233232321..", "1222222221..", "1233332221..", "1222222221..", ".11112111...", "....121.....", "....11......", "............", "............"],
   rod: ["..........11", ".........1.4", "........1..4", ".......1...4", "......1....4", ".....1.....4", "....1......4", "...1.......3", "..22......33", ".222........", "22..........", "2..........."],
   vial: ["............", ".....44.....", ".....44.....", "....3333....", ".....33.....", "....3113....", "...311113...", "..31111113..", "..31111223..", "..31122223..", "...322223...", "....3333...."],
   cat: ["............", "...1...1....", "...11.11....", "...11111....", "...1k1k1....", "...11211....", "....111.....", "....1111.3..", "...111111.3.", "...1111111.3", "...11111111.", "....4..4...."],
@@ -3837,6 +3861,7 @@ const IC = {
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
   daily_token:["coin",["#f0a33a","#8e5a1a","#fff1c8","#000"]], streak_saver:["horseshoe",["#f0a33a","#8e5a1a","#3a4048","#000"]],
+  chat_bubble:["bubble",["#9aa3ad","#f2efe6","#3a3a44","#000"]],
   slayer_chest:["chest",["#5a2a2e","#2e1416","#d8d0c0","#a8282a"]], emberheart_axe:["axe",["#ff7a1a","#5a1a14","#f7d35a","#d2452f"]], forgefire_pickaxe:["pickaxe",["#ff9a3a","#5a1a14","#f7d35a","#d2452f"]], hearthfire_rod:["rod",["#ff7a1a","#3a1a14","#d4d8de","#f2efe6"]],
   herb_marshwort:["herb",["#6fbf5a","#3f7a3a","#6b4a2a","#c8e8a0"]], herb_emberleaf:["herb",["#e07a3a","#a0402c","#6b4a2a","#f7d35a"]], herb_bitterroot:["herb",["#b09a5a","#6b5a2a","#4a2e16","#e0d4a0"]],
   herb_moonmoss:["herb",["#9fb4d8","#5a6a9a","#3a4a6a","#e6eef8"]], herb_frostcap:["herb",["#a8e0f0","#5aa7c8","#4a6a7a","#ffffff"]], herb_stormpetal:["herb",["#9a7ae8","#5a3a9a","#3a2a5a","#d8c8f8"]], herb_duskbloom:["herb",["#d24a8a","#7a1a4a","#3a1a2a","#f6b0d4"]],
@@ -4636,13 +4661,18 @@ function drawVoyageScene(now) {
 }
 
 let lastSig = "";
+let chatShown = false;
 function render() {
   renderTabs(); renderBuffs(); renderSheet();
+  // while the chat is on screen, don't rebuild the page (it would wipe your typing and close the phone keyboard)
+  if (tab === "chat" && chatShown && $("chatBody")) { lastSig = signature(); return; }
+  chatShown = tab === "chat";
   let h = "";
   if (tab === "skills") h = overviewPanel();
   else if (tab === "bank") h = bankPanel();
   else if (tab === "more") h = morePanel();
   else if (tab === "daily") h = `<div class="pagehead"><h2>Challenges</h2><span>${3 - dailyLeft()} / 3 today</span></div>` + dailyPanel();
+  else if (tab === "chat") h = chatPanel();
   else if (tab === "mini") h = `<div class="pagehead"><h2>Minigames</h2><span>Hands-on play</span></div>` + miniPanel();
   else if (tab === "arena") h = miniBack + `<div class="pagehead"><h2>Arena</h2><span>${arenaLeft()} / ${ARENA_DAILY} ranked left</span></div>` + arenaPanel();
   else if (tab === "roof") h = miniBack + `<div class="pagehead"><h2>Rooftop run</h2><span>Best ${fmt(roofState().best)} m</span></div>` + roofPanel();
@@ -4765,6 +4795,7 @@ document.addEventListener("click", e => {
     if (tb === "dshop") { tb = "shops"; sb = "daily"; }
     if (tb === "clog" && sb === "shop") { tb = "shops"; sb = "points"; }
     if (tb === "shops") shopSub = sb || shopSub;
+    if (tb === "chat") { chatSeen = chat.lastId; lsSet("thornwick-chat-seen", chatSeen); chat.unread = 0; setTimeout(() => { chatRender("bottom"); chatLoad(); }, 0); }
     if (tb === "combat") { combatSub = sb; eqSel = null; }
     if (tb === "clog") { logSub = sb; if (sb === "clog") clogPath = []; }
     if (tb === "more") moreSub = sb;
@@ -4772,6 +4803,13 @@ document.addEventListener("click", e => {
     tab = tb; saveDraft = null; render(); window.scrollTo(0, 0); return;
   }
   if (t.id === "hsRefresh") { hsLoad(true); return; }
+  if (t.id === "chatSend") { chatSend(); return; }
+  if (t.id === "chatOlder") { chatLoad(true); return; }
+  if (t.dataset.chatdel) { chatDelete(+t.dataset.chatdel); return; }
+  if (t.dataset.chatname) { chat.sel = chat.sel === t.dataset.chatname ? null : t.dataset.chatname; chatRender("keep"); return; }
+  if (t.dataset.chatmute) { chatMute(t.dataset.chatmute, true); return; }
+  if (t.dataset.chatunmute) { chatMute(t.dataset.chatunmute, false); return; }
+  if (t.dataset.chatclose) { chat.sel = null; chatRender("keep"); return; }
   if (t.id === "hsSave") { hsSaveName(); return; }
   if (t.id === "hsRename") { hs.renaming = true; hs.nameDraft = cm.hsName || ""; hs.nameMsg = ""; hsRender(); return; }
   if (t.id === "hsCancel") { hs.renaming = false; hs.nameMsg = ""; hsRender(); return; }
@@ -4880,8 +4918,8 @@ document.addEventListener("change", e => { if (e.target.id === "autoChop") { sta
   if (e.target.dataset && e.target.dataset.lookslot) { const sl = e.target.dataset.lookslot, L = Object.assign({}, state.look); L.show = Object.assign({}, L.show); if (e.target.value) L.show[sl] = e.target.value; else delete L.show[sl]; state.look = L; after(); } });
 document.addEventListener("change", e => { if (e.target.id === "autoPot") { state.opts.autoPot = e.target.checked; toast(e.target.checked ? "Auto-drink on: combat potions stay topped up while you fight" : "Auto-drink off"); save(); } });
 document.addEventListener("toggle", e => { if (e.target && e.target.id === "eqStats") state.opts.eqStats = e.target.open; }, true);
-document.addEventListener("input", e => { if (e.target.id === "bankSearch") { bankSearch = e.target.value; const el = $("bankItems"); if (el) el.innerHTML = bankItemsHtml(); return; } if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
-document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
+document.addEventListener("input", e => { if (e.target.id === "chatInput") { chat.draft = e.target.value.slice(0, 200); const c = $("chatCount"); if (c) c.textContent = `${chat.draft.length}/200`; return; } if (e.target.id === "bankSearch") { bankSearch = e.target.value; const el = $("bankItems"); if (el) el.innerHTML = bankItemsHtml(); return; } if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
+document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "chatInput") { e.preventDefault(); chatSend(); return; } if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
 
 /* ================= CLOUD SAVE (Supabase) =================
    Sign in with an emailed code; the save lives in the `saves` table (one row per player).
@@ -6212,6 +6250,119 @@ document.addEventListener("fullscreenchange", () => { if (!document.fullscreenEl
 document.addEventListener("keydown", e => { if (tab !== "roof" || e.repeat || (e.target && e.target.matches && e.target.matches("input,textarea"))) return; if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w") { e.preventDefault(); roofPress(); } });
 document.addEventListener("keyup", e => { if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w") roofRelease(); });
 
+
+/* ================= GLOBAL CHAT =================
+   Supabase table chat_messages (see claude/thornwick-cloud-setup.sql). Anyone can read; signed-in players with a
+   hiscores name can post. The server sets the name and level, caps messages at 200 characters and allows one every 3s.
+   New messages are fetched every 4 s while the Chat page is open, and about once a minute otherwise (for the badge). */
+const chat = { msgs: [], mine: new Set(), loading: false, err: "", lastId: 0, oldest: 0, more: true, draft: "", sending: false, at: 0, unread: 0, sel: null, showMuted: false, tick: 0 };
+const CHAT_PAGE = 60, CHAT_MAX = 400;
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+let chatMuted = lsGet("thornwick-chat-muted", []), chatSeen = lsGet("thornwick-chat-seen", 0);
+const chatVisible = () => chat.msgs.filter(m => !chatMuted.includes(m.name));
+function chatCountUnread() {
+  const n = chat.msgs.filter(m => m.id > chatSeen && !chat.mine.has(m.id) && !chatMuted.includes(m.name)).length;
+  if (n !== chat.unread) { chat.unread = n; if (typeof renderRail === "function") renderRail(); }
+}
+function chatMerge(rows) {
+  const have = new Set(chat.msgs.map(m => m.id));
+  for (const r of rows) if (!have.has(r.id)) chat.msgs.push(r);
+  chat.msgs.sort((a, b) => a.id - b.id);
+  if (chat.msgs.length > CHAT_MAX) chat.msgs.splice(0, chat.msgs.length - CHAT_MAX);
+  if (chat.msgs.length) { chat.lastId = chat.msgs[chat.msgs.length - 1].id; chat.oldest = chat.msgs[0].id; }
+}
+async function chatMineLoad() { if (!cm.s) { chat.mine = new Set(); chat.mineUid = null; return; } try { const ids = await api("/rest/v1/rpc/chat_mine", { method: "POST", body: { p_since: 0 } }, true); chat.mine = new Set((ids || []).map(Number)); } catch (e) {} }
+async function chatLoad(older) {
+  if (!cloudOn || chat.loading) return;
+  chat.loading = true;
+  const cols = "select=id,name,lvl,body,created_at";
+  try {
+    let rows;
+    if (older) { rows = await api(`/rest/v1/chat_messages?${cols}&id=lt.${chat.oldest}&order=id.desc&limit=${CHAT_PAGE}`, {}, !!cm.s); if (rows.length < CHAT_PAGE) chat.more = false; }
+    else if (!chat.lastId) { rows = await api(`/rest/v1/chat_messages?${cols}&order=id.desc&limit=${CHAT_PAGE}`, {}, !!cm.s); if (rows.length < CHAT_PAGE) chat.more = false; }
+    else rows = await api(`/rest/v1/chat_messages?${cols}&id=gt.${chat.lastId}&order=id.asc&limit=200`, {}, !!cm.s);
+    const first = !chat.at;
+    chatMerge(rows || []); chat.at = Date.now(); chat.err = "";
+    if (cm.s && chat.mineUid !== cm.s.uid) { chat.mineUid = cm.s.uid; await chatMineLoad(); }
+    if (!cm.s) chat.mine = new Set();
+  } catch (e) { chat.err = e.status === 0 ? "Can't reach the chat right now." : (e.msg || "Chat error"); }
+  chat.loading = false;
+  if (tab === "chat" && !document.hidden) { chatSeen = chat.lastId; lsSet("thornwick-chat-seen", chatSeen); }
+  chatCountUnread(); chatRender(older ? "keep" : "auto");
+}
+async function chatSend() {
+  const text = chat.draft.replace(/\s+/g, " ").trim().slice(0, 200);
+  if (!text || chat.sending) return;
+  chat.sending = true; chat.err = ""; chatRender("bottom");
+  try {
+    await api("/rest/v1/chat_messages", { method: "POST", headers: { Prefer: "return=minimal" }, body: { body: text } }, true);
+    chat.draft = ""; await chatMineLoad(); chat.sending = false; await chatLoad(); chatRender("bottom");
+  } catch (e) {
+    chat.err = e.status === 401 ? "Sign in to chat." : /hiscores name/i.test(e.msg || "") ? "Choose a hiscores name first (More › Hiscores)." : e.status === 0 ? "Can't reach the chat right now." : (e.msg || "Couldn't send that.");
+  }
+  chat.sending = false; chatRender("bottom");
+  const inp = $("chatInput"); if (inp) inp.focus({ preventScroll: true });
+}
+async function chatDelete(id) {
+  try { await api(`/rest/v1/chat_messages?id=eq.${id}`, { method: "DELETE", headers: { Prefer: "return=minimal" } }, true); chat.msgs = chat.msgs.filter(m => m.id !== id); chat.mine.delete(id); }
+  catch (e) { chat.err = e.msg || "Couldn't delete that."; }
+  chatRender("keep");
+}
+function chatMute(name, on) {
+  chatMuted = on ? [...new Set(chatMuted.concat(name))] : chatMuted.filter(n => n !== name);
+  lsSet("thornwick-chat-muted", chatMuted); chat.sel = null; chatCountUnread(); chatRender("keep");
+  toast(on ? `Muted ${name}. Their messages are hidden on this device.` : `Unmuted ${name}`);
+}
+function chatAgo(t) {
+  const s = Math.max(0, (Date.now() - new Date(t).getTime()) / 1000);
+  if (s < 60) return "now"; if (s < 3600) return Math.floor(s / 60) + "m"; if (s < 86400) return Math.floor(s / 3600) + "h";
+  return new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
+function chatBody() {
+  const list = chatVisible();
+  let h = `<div class="chatlist" id="chatList" role="log" aria-live="polite" aria-label="Chat messages">`;
+  h += chat.more && chat.msgs.length ? `<button class="linkbtn chatolder" id="chatOlder">Load older messages</button>` : chat.at ? `<p class="note chatstart">Start of the chat. Messages are saved for everyone to read.</p>` : "";
+  if (!chat.at && chat.loading) h += `<p class="note">Loading chat…</p>`;
+  if (chat.at && !list.length) h += `<div class="empty">No messages yet. Say hello!</div>`;
+  let lastDay = "";
+  for (const m of list) {
+    const day = new Date(m.created_at).toDateString();
+    if (day !== lastDay) { h += `<div class="cday">${new Date(m.created_at).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}</div>`; lastDay = day; }
+    const mine = chat.mine.has(m.id);
+    h += `<div class="cmsg ${mine ? "me" : ""}"><div class="ch"><button class="cname" data-chatname="${esc(m.name)}" ${mine ? "disabled" : ""}>${esc(m.name)}</button><span class="clvl" title="Total level">${fmt(m.lvl)}</span><span class="ctime" title="${esc(new Date(m.created_at).toLocaleString())}">${chatAgo(m.created_at)}</span>${mine ? `<button class="cdel" data-chatdel="${m.id}" aria-label="Delete your message" title="Delete">×</button>` : ""}</div><div class="cb">${esc(m.body)}</div></div>`;
+    if (chat.sel === m.name && !mine && m === list.filter(x => x.name === chat.sel).slice(-1)[0]) h += `<div class="cact"><span>${esc(m.name)}</span><button class="btn" data-chatmute="${esc(m.name)}">Mute</button><button class="btn" data-chatclose="1">Cancel</button></div>`;
+  }
+  h += `</div>`;
+  if (chat.err) h += `<p class="cerr">${esc(chat.err)}</p>`;
+  if (!cm.s) h += `<div class="ccompose locked"><span>Sign in to join the chat.</span><button class="btn solid" id="hsSignIn">Sign in</button></div>`;
+  else h += `<div class="ccompose"><input id="chatInput" maxlength="200" placeholder="${cm.hsName ? `Say something as ${esc(cm.hsName)}…` : "Say something…"}" value="${esc(chat.draft)}" autocomplete="off" enterkeyhint="send" aria-label="Message"><button class="btn solid" id="chatSend" ${chat.sending ? "disabled" : ""}>${chat.sending ? "…" : "Send"}</button></div>
+    <div class="cfoot"><span id="chatCount">${chat.draft.length}/200</span><span>${cm.hsName ? "" : `You'll need a <button class="linkbtn" data-nav="more:hiscores">hiscores name</button> to post. `}Be kind: messages are public and saved. Tap a name to mute someone.</span></div>`;
+  if (chatMuted.length) h += `<p class="note">${chatMuted.length} muted ${chatMuted.length === 1 ? "player" : "players"}: ${chatMuted.map(n => `${esc(n)} <button class="linkbtn" data-chatunmute="${esc(n)}">unmute</button>`).join(", ")}</p>`;
+  return h;
+}
+function chatPanel() {
+  if (!cloudOn) return `<div class="pagehead"><h2>Chat</h2></div><div class="empty">Chat works in the online version of Thornwick.</div>`;
+  if (!chat.at && !chat.loading) setTimeout(() => chatLoad(), 0);
+  return `<div class="pagehead"><h2>Chat</h2><span>Everyone in Thornwick</span></div><div id="chatBody">${chatBody()}</div>`;
+}
+// redraw just the chat (keeps your typing); scroll: "auto" sticks to the bottom if you were there, "bottom" always, "keep" holds position
+function chatRender(scroll) {
+  const el = $("chatBody"); if (tab !== "chat" || !el) return;
+  const old = $("chatList"), atBottom = !old || old.scrollHeight - old.scrollTop - old.clientHeight < 40, prevH = old ? old.scrollHeight : 0, prevTop = old ? old.scrollTop : 0;
+  const focused = document.activeElement && document.activeElement.id === "chatInput";
+  el.innerHTML = chatBody();
+  const list = $("chatList");
+  if (list) { if (scroll === "bottom" || (scroll !== "keep" && atBottom) || !old) list.scrollTop = list.scrollHeight; else list.scrollTop = prevTop + (scroll === "keep" ? 0 : 0) + (list.scrollHeight - prevH) * (scroll === "keep" && prevTop < 20 ? 1 : 0); }
+  if (focused) { const i = $("chatInput"); if (i) { i.focus({ preventScroll: true }); i.setSelectionRange(i.value.length, i.value.length); } }
+}
+function chatTick() {
+  if (!cloudOn || !started) return;
+  chat.tick++;
+  const open = tab === "chat" && !document.hidden;
+  if (open || chat.tick % 15 === 0) chatLoad();
+}
+
 /* ================= LOGIN SCREEN ================= */
 const loginOpen = () => !$("login").hidden;
 function showLogin() {
@@ -6312,6 +6463,7 @@ function begin() {
   render(); renderNow();
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
+  if (cloudOn) { setInterval(chatTick, 4000); setTimeout(() => chatLoad(), 3000); }
 }
 window.__thornwick = { get state() { return state; }, sceneDrops: () => { const now = performance.now(), a = scene.anims.find(x => x.k === "xpdrop" && now >= x.start); return a ? (now - a.start) / a.dur : 0; }, roofPayout, roofTime, roofGen, roofJump, roofSpeed, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
