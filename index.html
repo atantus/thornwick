@@ -241,6 +241,10 @@ details.more .perks{margin-top:6px}
 .eqslot .ico{width:38px;height:38px}
 .eqslot .sl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .eqslot .warn{position:absolute;top:2px;right:5px;color:var(--danger);font-weight:800}
+.eqsort{display:flex;align-items:center;gap:6px;margin:0 0 8px;font-size:.8rem;color:var(--muted)}
+.eqsort button{font:inherit;font-weight:700;font-size:.8rem;min-height:34px;padding:4px 12px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}
+.eqsort button[aria-pressed="true"]{background:var(--ember);border-color:var(--ember);color:var(--bg)}
+.besttag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font-size:.66rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--bg);background:var(--moss);vertical-align:middle}
 .eqstats{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 14px;margin-top:16px}
 .eqstats summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:46px;cursor:pointer;list-style:none;font-weight:700;font-size:.9rem}
 .eqstats summary::-webkit-details-marker{display:none}
@@ -2978,6 +2982,9 @@ function gearStats(id) {
   if (!p.length) p.push(ITEMS[id].desc.replace(/^(Enchanted|Worn|[A-Z][a-z]+ [a-z ]*unique)\.\s*/, ""));
   return p.join(" · ");
 }
+// one number per item for sorting: melee acc+str, bows/staffs accuracy, arrows strength, armour defence
+const gearScore = id => { const g = GEAR[id] || {}; return (g.acc || 0) + (g.str || 0) + (g.rstr || 0) + (g.def || 0); };
+const gearLvl = id => ((GEAR[id] || {}).req || [0, 0])[1];
 function gearPanel() {
   const cell = sl => { const id = eq(sl), set = loadout()[sl], broken = set && !id;
     return `<button class="eqslot ${eqSel === sl ? "sel" : ""} ${id ? "full" : ""}" id="eq-${sl}" data-eqslot="${sl}" aria-label="${SLOT_NAMES[sl]}${id ? ": " + esc(ITEMS[id].name) : ""}">${id ? icon(id) : `<span class="sl">${SLOT_NAMES[sl]}</span>`}${broken ? `<span class="warn">!</span>` : ""}</button>`; };
@@ -2989,13 +2996,17 @@ function gearPanel() {
     <span></span>${cell("ring")}<span></span></div>
 </div>`;
   if (eqSel) {
-    const cur = eq(eqSel), opts = Object.keys(GEAR).filter(id => GEAR[id].slot === eqSel && has(id)).sort((a, b) => ((GEAR[b].req || [0, 0])[1] - (GEAR[a].req || [0, 0])[1]));
+    const cur = eq(eqSel), mode = state.opts.eqSort === "level" ? "level" : "stats";
+    // wearable first, then by stats or by level (highest first)
+    const opts = Object.keys(GEAR).filter(id => GEAR[id].slot === eqSel && has(id)).sort((a, b) => (+canWear(b) - +canWear(a)) || (mode === "level" ? gearLvl(b) - gearLvl(a) || gearScore(b) - gearScore(a) : gearScore(b) - gearScore(a) || gearLvl(b) - gearLvl(a)));
+    const best = opts.filter(canWear).sort((a, b) => gearScore(b) - gearScore(a))[0];
     h += `<h3>${SLOT_NAMES[eqSel]} <span>${opts.length} owned</span></h3>`;
-    if (cur) h += `<div class="eqopt worn">${icon(cur)}<span class="tx"><b>${esc(ITEMS[cur].name)}</b><span>${esc(gearStats(cur))}</span></span><button class="btn" id="unequip-${eqSel}" data-unequip="${eqSel}">Remove</button></div>`;
+    if (opts.length > 1) h += `<div class="eqsort" role="group" aria-label="Sort by"><span>Sort</span><button id="eqsort-stats" data-eqsort="stats" aria-pressed="${mode === "stats"}">Best stats</button><button id="eqsort-level" data-eqsort="level" aria-pressed="${mode === "level"}">Level</button></div>`;
+    if (cur) h += `<div class="eqopt worn">${icon(cur)}<span class="tx"><b>${esc(ITEMS[cur].name)}${cur === best && opts.length > 1 ? ` <span class="besttag">Best</span>` : ""}</b><span>${esc(gearStats(cur))}</span></span><button class="btn" id="unequip-${eqSel}" data-unequip="${eqSel}">Remove</button></div>`;
     const shieldBlocked = eqSel === "shield" && GEAR[eq("weapon")] && GEAR[eq("weapon")].twoH;
     if (shieldBlocked) h += `<p class="note">Your ${esc(ITEMS[eq("weapon")].name.toLowerCase())} needs both hands, so you can't use a shield with it.</p>`;
     h += opts.filter(id => id !== cur).map(id => { const g = GEAR[id], ok = !g.req || lvl(g.req[0]) >= g.req[1];
-      return `<div class="eqopt">${icon(id)}<span class="tx"><b>${esc(ITEMS[id].name)}</b><span>${esc(gearStats(id))}${ok ? "" : ` · <span class="lock">needs ${SKILLS[g.req[0]].name} ${g.req[1]}</span>`}</span></span><button class="btn ${ok && !shieldBlocked ? "solid" : ""}" id="wear-${id}" data-equip="${id}" ${ok && !shieldBlocked ? "" : "disabled"}>Wear</button></div>`; }).join("");
+      return `<div class="eqopt">${icon(id)}<span class="tx"><b>${esc(ITEMS[id].name)}${id === best ? ` <span class="besttag">Best</span>` : ""}</b><span>${esc(gearStats(id))}${ok ? "" : ` · <span class="lock">needs ${SKILLS[g.req[0]].name} ${g.req[1]}</span>`}</span></span><button class="btn ${ok && !shieldBlocked ? "solid" : ""}" id="wear-${id}" data-equip="${id}" ${ok && !shieldBlocked ? "" : "disabled"}>Wear</button></div>`; }).join("");
     if (!opts.length) h += `<div class="empty">You don't own anything for this slot yet. ${eqSel === "head" || eqSel === "legs" || eqSel === "shield" || eqSel === "body" ? "Smithing makes armour." : eqSel === "ammo" ? "Fletching makes arrows." : eqSel === "ring" || eqSel === "amulet" ? "Enchanting makes jewellery." : eqSel === "weapon" ? "Smithing, Fletching and Enchanting make weapons." : "Look for capes from voyages, The Eyrie and quests."}</div>`;
   } else h += `<p class="note">Tap a slot to see what you can wear there.</p>`;
   // stats live at the bottom, folded away unless you open them
@@ -3067,6 +3078,8 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 37, date: "14 Oct 2026", title: "Sort your gear", items: [
+    "Combat › Equipment: when you pick a slot, your items can be sorted by Best stats or by Level. Items you can wear come first, and the strongest one you can wear is tagged Best." ] },
   { v: 36, date: "14 Oct 2026", title: "Tidier Equipment screen", items: [
     "Combat › Equipment: your gear slots now sit right under the loadout buttons. Your combat stats have moved to the bottom as a fold-out section that shows your max hit and defence at a glance; tap it to see the rest. It remembers whether you left it open." ] },
   { v: 35, date: "14 Oct 2026", title: "Seeds from monsters", items: [
@@ -4687,6 +4700,7 @@ document.addEventListener("click", e => {
   if (d.tab) { const changed = tab !== d.tab; tab = d.tab; saveDraft = null; render(); if (changed) window.scrollTo(0, 0); return; }
   if (d.bankeq) { const id = eq(d.bankeq); if (id) { bankSel = id; } else { bankFilter = bankFilter === "slot:" + d.bankeq ? "All" : "slot:" + d.bankeq; bankSel = null; } render(); return; }
   if (d.pick !== undefined) { bankSel = d.pick && bankSel !== d.pick ? d.pick : null; render(); return; }
+  if (d.eqsort) { state.opts.eqSort = d.eqsort; return after(); }
   if (d.bsub) { bankSub = d.bsub === "shop" ? "items" : d.bsub; render(); return; }
   if (d.bfilter) { bankFilter = d.bfilter; render(); const el = $("bankItems"); if (el && t.classList.contains("bglink")) window.scrollTo(0, 0); return; }
   if (t.id === "bankEqToggle") { state.opts.bankEq = !state.opts.bankEq; if (!state.opts.bankEq && bankFilter.startsWith("slot:")) bankFilter = "All"; return after(); }
