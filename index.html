@@ -233,8 +233,7 @@ details.more .perks{margin-top:6px}
 .cl-row .src{grid-column:1/-1;font-size:.74rem;color:var(--muted)}
 .cl-row .bar{grid-column:1/-1;margin:0;height:4px}
 .cl-row .bar i{background:var(--rare)}
-.eqwrap{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;margin-top:4px}
-@media (max-width:420px){.eqwrap{grid-template-columns:1fr}}
+.eqwrap{display:grid;grid-template-columns:1fr;gap:16px;align-items:start;margin-top:4px}
 .eqgrid{display:grid;grid-template-columns:repeat(3,60px);gap:6px;justify-content:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
 .eqslot{position:relative;width:60px;height:60px;font:inherit;background:var(--bg);border:1px dashed var(--line);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 .eqslot.full{border-style:solid;background:var(--panel-2)}
@@ -242,7 +241,13 @@ details.more .perks{margin-top:6px}
 .eqslot .ico{width:38px;height:38px}
 .eqslot .sl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .eqslot .warn{position:absolute;top:2px;right:5px;color:var(--danger);font-weight:800}
-.eqstats{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.eqstats{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 14px;margin-top:16px}
+.eqstats summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:46px;cursor:pointer;list-style:none;font-weight:700;font-size:.9rem}
+.eqstats summary::-webkit-details-marker{display:none}
+.eqstats summary::after{content:"▾";color:var(--muted);transition:transform .15s}
+.eqstats[open] summary::after{transform:rotate(180deg)}
+.eqstats .sumline{margin-left:auto;font-weight:500;font-size:.8rem;color:var(--muted)} .eqstats .sumline b{color:var(--fg)}
+.eqstats[open]{padding-bottom:10px}
 .eqstats .stat{display:flex;justify-content:space-between;font-size:.86rem;padding:3px 0;border-bottom:1px solid var(--line)}
 .eqstats .stat span{color:var(--muted)}
 .eqopt{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:6px}
@@ -2982,12 +2987,7 @@ function gearPanel() {
     ${cell("weapon")}${cell("body")}${cell("shield")}
     <span></span>${cell("legs")}<span></span>
     <span></span>${cell("ring")}<span></span></div>
-    <div class="eqstats"><h3 style="margin-top:0">${CTYPES[ctype()]} stats</h3>
-      <div class="stat"><span>Max hit</span><b class="num">${playerMax()}</b></div>
-      <div class="stat"><span>Accuracy bonus</span><b class="num">+${ctype() === "ranged" ? (bow() ? bow()[2] : 0) : ctype() === "magic" ? (staff() ? staff()[2] : 0) : (weapon() ? weapon()[2] : 0)}</b></div>
-      <div class="stat"><span>Strength bonus</span><b class="num">+${ctype() === "ranged" ? (arrow() ? arrow()[1] : 0) : ctype() === "magic" ? 0 : (weapon() ? weapon()[3] : 0)}</b></div>
-      <div class="stat"><span>Defence bonus</span><b class="num">+${defBonus()}</b></div>
-      <p class="note">Each loadout keeps its own gear. Rings, amulets and capes only work while worn.</p></div></div>`;
+</div>`;
   if (eqSel) {
     const cur = eq(eqSel), opts = Object.keys(GEAR).filter(id => GEAR[id].slot === eqSel && has(id)).sort((a, b) => ((GEAR[b].req || [0, 0])[1] - (GEAR[a].req || [0, 0])[1]));
     h += `<h3>${SLOT_NAMES[eqSel]} <span>${opts.length} owned</span></h3>`;
@@ -2998,6 +2998,16 @@ function gearPanel() {
       return `<div class="eqopt">${icon(id)}<span class="tx"><b>${esc(ITEMS[id].name)}</b><span>${esc(gearStats(id))}${ok ? "" : ` · <span class="lock">needs ${SKILLS[g.req[0]].name} ${g.req[1]}</span>`}</span></span><button class="btn ${ok && !shieldBlocked ? "solid" : ""}" id="wear-${id}" data-equip="${id}" ${ok && !shieldBlocked ? "" : "disabled"}>Wear</button></div>`; }).join("");
     if (!opts.length) h += `<div class="empty">You don't own anything for this slot yet. ${eqSel === "head" || eqSel === "legs" || eqSel === "shield" || eqSel === "body" ? "Smithing makes armour." : eqSel === "ammo" ? "Fletching makes arrows." : eqSel === "ring" || eqSel === "amulet" ? "Enchanting makes jewellery." : eqSel === "weapon" ? "Smithing, Fletching and Enchanting make weapons." : "Look for capes from voyages, The Eyrie and quests."}</div>`;
   } else h += `<p class="note">Tap a slot to see what you can wear there.</p>`;
+  // stats live at the bottom, folded away unless you open them
+  const acc = ctype() === "ranged" ? (bow() ? bow()[2] : 0) : ctype() === "magic" ? (staff() ? staff()[2] : 0) : (weapon() ? weapon()[2] : 0);
+  const str = ctype() === "ranged" ? (arrow() ? arrow()[1] : 0) : ctype() === "magic" ? 0 : (weapon() ? weapon()[3] : 0);
+  h += `<details class="eqstats" id="eqStats" ${state.opts.eqStats ? "open" : ""}><summary><span>${CTYPES[ctype()]} stats</span><span class="sumline">Max hit <b>${playerMax()}</b> · Def <b>+${defBonus()}</b></span></summary>
+      <div class="stat"><span>Max hit</span><b class="num">${playerMax()}</b></div>
+      <div class="stat"><span>Accuracy bonus</span><b class="num">+${acc}</b></div>
+      <div class="stat"><span>Strength bonus</span><b class="num">+${str}</b></div>
+      <div class="stat"><span>Defence bonus</span><b class="num">+${defBonus()}</b></div>
+      ${arenaPow() > 1 || arenaDr() > 0 ? `<div class="stat"><span>Arena (dmg / taken)</span><b class="num">+${Math.round((arenaPow() - 1) * 100)}% / −${Math.round(arenaDr() * 100)}%</b></div>` : ""}
+      <p class="note">Each loadout keeps its own gear. Rings, amulets and capes only work while worn.</p></details>`;
   return h;
 }
 function combatPanel() {
@@ -3057,6 +3067,8 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 36, date: "14 Oct 2026", title: "Tidier Equipment screen", items: [
+    "Combat › Equipment: your gear slots now sit right under the loadout buttons. Your combat stats have moved to the bottom as a fold-out section that shows your max hit and defence at a glance; tap it to see the rest. It remembers whether you left it open." ] },
   { v: 35, date: "14 Oct 2026", title: "Seeds from monsters", items: [
     "Monsters now drop seeds on about 1 kill in 10, alongside their usual loot: potato, barley and hop seeds and acorns from anything, willow seeds from level 20, maple from 35, yew from 55 and, very rarely, magic seeds from level 75.",
     "Bosses drop seeds half the time, in double amounts.",
@@ -4770,6 +4782,7 @@ document.addEventListener("change", e => { if (e.target.id === "autoChop") { sta
   if (e.target.id === "lookGear") { state.look = Object.assign({}, state.look, { gear: e.target.checked }); after(); }
   if (e.target.dataset && e.target.dataset.lookslot) { const sl = e.target.dataset.lookslot, L = Object.assign({}, state.look); L.show = Object.assign({}, L.show); if (e.target.value) L.show[sl] = e.target.value; else delete L.show[sl]; state.look = L; after(); } });
 document.addEventListener("change", e => { if (e.target.id === "autoPot") { state.opts.autoPot = e.target.checked; toast(e.target.checked ? "Auto-drink on: combat potions stay topped up while you fight" : "Auto-drink off"); save(); } });
+document.addEventListener("toggle", e => { if (e.target && e.target.id === "eqStats") state.opts.eqStats = e.target.open; }, true);
 document.addEventListener("input", e => { if (e.target.id === "bankSearch") { bankSearch = e.target.value; const el = $("bankItems"); if (el) el.innerHTML = bankItemsHtml(); return; } if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
 document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
 
