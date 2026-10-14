@@ -518,6 +518,10 @@ body.noscroll{overflow:hidden}
 .smithpick button{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;padding:8px 6px;border:1px solid var(--line);border-radius:12px;background:none;color:var(--text,#f2efe6);font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
 .smithpick button .ico{width:26px;height:26px} .smithpick em{font-style:normal;font-weight:600;font-size:.7rem;color:var(--muted);font-family:var(--f-num)}
 .smithpick button[aria-selected="true"]{border-color:var(--ember);background:#f0a33a1f} .smithpick button.locked{opacity:.5}
+.capes{display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));gap:8px;margin:10px 0}
+.capec{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:10px 6px;border:1px solid var(--line);border-radius:14px;opacity:.65}
+.capec .ico{width:40px;height:40px} .capec b{font-size:.85rem} .capec span{font-size:.72rem;line-height:1.25;color:var(--muted);min-height:2.5em} .capec em{font-style:normal;font-size:.75rem;color:var(--muted);font-family:var(--f-num)}
+.capec.ready{opacity:1;border-color:#f2c230;box-shadow:0 0 16px #f2c23044} .capec.own{opacity:1;border-color:var(--moss,#5fd068)} .capec .btn{min-height:34px;padding:4px 14px;margin-top:2px}
 .raidrun{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin:10px 0} .raidrun div{border:1px solid var(--line);border-radius:10px;padding:6px 10px;display:flex;flex-direction:column} .raidrun span{font-size:.72rem;color:var(--muted)} .raidrun b{font-family:var(--f-num);font-size:1rem}
 .raidrooms{display:flex;flex-direction:column;gap:6px;margin:10px 0}
 .raidroom{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px 12px} .raidroom.cur{border-color:#5ae0d0;background:#5ae0d012} .raidroom.done{opacity:.6}
@@ -1141,6 +1145,49 @@ const ITEMS = {
   pet_troll:     { name: "Snowball",        desc: "Pet. +2% combat xp.", rare: true },
   pet_wraith:    { name: "Wisp",            desc: "Pet. +2% combat xp.", rare: true },
   pet_colossus:  { name: "Little colossus", desc: "Pet. +2% combat xp.", rare: true },
+  cape_attack: { name: "Attack cape", desc: "Skill cape for level 99 Attack. Cape, Defence 9. While worn: +5% melee accuracy.", rare: true },
+  cape_attack_t: { name: "Attack cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: +5% melee accuracy.", rare: true },
+  cape_strength: { name: "Strength cape", desc: "Skill cape for level 99 Strength. Cape, Defence 9. While worn: +5% melee max hit.", rare: true },
+  cape_strength_t: { name: "Strength cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: +5% melee max hit.", rare: true },
+  cape_defence: { name: "Defence cape", desc: "Skill cape for level 99 Defence. Cape, Defence 9. While worn: Monsters hit you 5% less often.", rare: true },
+  cape_defence_t: { name: "Defence cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: Monsters hit you 5% less often.", rare: true },
+  cape_hitpoints: { name: "Hitpoints cape", desc: "Skill cape for level 99 Hitpoints. Cape, Defence 9. While worn: Food heals 3 more.", rare: true },
+  cape_hitpoints_t: { name: "Hitpoints cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: Food heals 3 more.", rare: true },
+  cape_ranged: { name: "Ranged cape", desc: "Skill cape for level 99 Ranged. Cape, Defence 9. While worn: Saves twice as many arrows.", rare: true },
+  cape_ranged_t: { name: "Ranged cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: Saves twice as many arrows.", rare: true },
+  cape_magic: { name: "Magic cape", desc: "Skill cape for level 99 Magic. Cape, Defence 9. While worn: 10% chance to cast for free.", rare: true },
+  cape_magic_t: { name: "Magic cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: 10% chance to cast for free.", rare: true },
+  cape_slayer: { name: "Slayer cape", desc: "Skill cape for level 99 Slayer. Cape, Defence 9. While worn: +10% Slayer points.", rare: true },
+  cape_slayer_t: { name: "Slayer cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: +10% Slayer points.", rare: true },
+  cape_woodcutting: { name: "Woodcutting cape", desc: "Skill cape for level 99 Woodcutting. Cape, Defence 9. While worn: 10% chance of an extra log.", rare: true },
+  cape_woodcutting_t: { name: "Woodcutting cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: 10% chance of an extra log.", rare: true },
+  cape_firemaking: { name: "Firemaking cape", desc: "Skill cape for level 99 Firemaking. Cape, Defence 9. While worn: 10% chance to keep the log.", rare: true },
+  cape_firemaking_t: { name: "Firemaking cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: 10% chance to keep the log.", rare: true },
+  cape_farming: { name: "Farming cape", desc: "Skill cape for level 99 Farming. Cape, Defence 9. While worn: Crops grow 20% faster.", rare: true },
+  cape_farming_t: { name: "Farming cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: Crops grow 20% faster.", rare: true },
+  cape_fishing: { name: "Fishing cape", desc: "Skill cape for level 99 Fishing. Cape, Defence 9. While worn: 10% chance of an extra fish.", rare: true },
+  cape_fishing_t: { name: "Fishing cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: 10% chance of an extra fish.", rare: true },
+  cape_cooking: { name: "Cooking cape", desc: "Skill cape for level 99 Cooking. Cape, Defence 9. While worn: Never burn food.", rare: true },
+  cape_cooking_t: { name: "Cooking cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: Never burn food.", rare: true },
+  cape_mining: { name: "Mining cape", desc: "Skill cape for level 99 Mining. Cape, Defence 9. While worn: 10% chance of an extra ore.", rare: true },
+  cape_mining_t: { name: "Mining cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: 10% chance of an extra ore.", rare: true },
+  cape_smithing: { name: "Smithing cape", desc: "Skill cape for level 99 Smithing. Cape, Defence 9. While worn: 10% chance to keep your bars.", rare: true },
+  cape_smithing_t: { name: "Smithing cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: 10% chance to keep your bars.", rare: true },
+  cape_enchanting: { name: "Enchanting cape", desc: "Skill cape for level 99 Enchanting. Cape, Defence 9. While worn: 10% chance to keep your materials.", rare: true },
+  cape_enchanting_t: { name: "Enchanting cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: 10% chance to keep your materials.", rare: true },
+  cape_brewing: { name: "Brewing cape", desc: "Skill cape for level 99 Brewing. Cape, Defence 9. While worn: 10% chance to keep your ingredients.", rare: true },
+  cape_brewing_t: { name: "Brewing cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: 10% chance to keep your ingredients.", rare: true },
+  cape_crafting: { name: "Crafting cape", desc: "Skill cape for level 99 Crafting. Cape, Defence 9. While worn: Never crack a gem, 10% chance to keep materials.", rare: true },
+  cape_crafting_t: { name: "Crafting cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: Never crack a gem, 10% chance to keep materials.", rare: true },
+  cape_fletching: { name: "Fletching cape", desc: "Skill cape for level 99 Fletching. Cape, Defence 9. While worn: 10% chance to keep your materials.", rare: true },
+  cape_fletching_t: { name: "Fletching cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: 10% chance to keep your materials.", rare: true },
+  cape_seafaring: { name: "Seafaring cape", desc: "Skill cape for level 99 Seafaring. Cape, Defence 9. While worn: Voyages 15% shorter.", rare: true },
+  cape_seafaring_t: { name: "Seafaring cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: Voyages 15% shorter.", rare: true },
+  cape_agility: { name: "Agility cape", desc: "Skill cape for level 99 Agility. Cape, Defence 9. While worn: Laps 10% faster.", rare: true },
+  cape_agility_t: { name: "Agility cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: Laps 10% faster.", rare: true },
+  cape_thieving: { name: "Thieving cape", desc: "Skill cape for level 99 Thieving. Cape, Defence 9. While worn: +10% pickpocket success.", rare: true },
+  cape_thieving_t: { name: "Thieving cape (t)", desc: "Trimmed skill cape (you have more than one 99). Cape, Defence 11. While worn: +10% pickpocket success.", rare: true },
+  cape_max: { name: "Max cape", desc: "Every skill at 99. Cape, Defence 14. While worn: every skill cape perk at once.", rare: true },
   mastery_cape:  { name: "Cape of mastery", desc: "Quest reward for reaching level 99. +5% xp in every skill.", rare: true },
   pet_parrot:    { name: "Pet parrot",      desc: "Pet. +2% combat xp.", rare: true },
   bronze_arrow:  { name: "Bronze arrows",   desc: "Ammo. Ranged strength 7.", sell: 1 },
@@ -1864,6 +1911,7 @@ function actionTime(skill, a) {
   let t = a.time * (1 - Math.min(0.3, over * 0.01));
   if (skill === "woodcutting") for (const p of wcSpeedParts()) t *= p.mult;
   if (skill === "agility" && has("lightfoot_boots")) t *= 0.95;
+  if (skill === "agility" && capeOn("agility")) t *= 0.9;
   if (skill === "fishing" && has("lucky_lure")) t *= 0.9;
   if (skill === "fishing") { if (worn("tide_ring")) t *= 0.9; if (has("tide_harpoon")) t *= 0.8; if (buffOn("angler")) t *= 0.85; }
   if (skill === "woodcutting" && buffOn("forester")) t *= 0.85;
@@ -1875,7 +1923,7 @@ function actionTime(skill, a) {
   if (buffOn("p_swift")) t *= 0.92;
   return t * 1000;
 }
-const burnChance = a => Math.max(0, a.burn - Math.max(0, lvl("cooking") - a.lvl) * 0.02 - lvl("firemaking") * 0.003) * (has("chef_gauntlets") ? 0.5 : 1);
+const burnChance = a => capeOn("cooking") ? 0 : Math.max(0, a.burn - Math.max(0, lvl("cooking") - a.lvl) * 0.02 - lvl("firemaking") * 0.003) * (has("chef_gauntlets") ? 0.5 : 1);
 const casketChance = a => a.casket * (has("heron_float") ? 2 : 1);
 const fuelLeft = () => FUEL.some(has);
 const fuelItem = () => state.opts.fuel && state.opts.fuel !== "auto" && has(state.opts.fuel) ? state.opts.fuel : FUEL.find(has);
@@ -1920,11 +1968,41 @@ Object.assign(GEAR, {
   starlit_cape:{ slot:"cape", def:8 }, laurel_crown:{ slot:"head", def:4 }, champion_cape:{ slot:"cape", def:12 }, daybreak_hood:{ slot:"head", def:3 }, sunrise_cape:{ slot:"cape", def:6 }, moonlit_hood:{ slot:"head", def:4 }, arena_helm:{ slot:"head", def:5 }, arena_cape:{ slot:"cape", def:8 }, roof_hood:{ slot:"head", def:2 }, roof_cape:{ slot:"cape", def:5 }, dusk_cape:{ slot:"cape", def:7 }, wyrm_mask:{ slot:"head", req:["defence", 60], def:30 },
   dawnforged_helm:{ slot:"head", req:["defence", 70], def:34 }, dawnforged_platebody:{ slot:"body", req:["defence", 70], def:92 }, dawnforged_platelegs:{ slot:"legs", req:["defence", 70], def:55 },
   dawnforged_kiteshield:{ slot:"shield", req:["defence", 70], def:48 }, dawnforged_cape:{ slot:"cape", def:10 }, dawnforged_amulet:{ slot:"amulet", def:8 },
+  cape_attack:{ slot:"cape", def:9 }, cape_attack_t:{ slot:"cape", def:11 }, cape_strength:{ slot:"cape", def:9 }, cape_strength_t:{ slot:"cape", def:11 }, cape_defence:{ slot:"cape", def:9 }, cape_defence_t:{ slot:"cape", def:11 }, cape_hitpoints:{ slot:"cape", def:9 }, cape_hitpoints_t:{ slot:"cape", def:11 }, cape_ranged:{ slot:"cape", def:9 }, cape_ranged_t:{ slot:"cape", def:11 }, cape_magic:{ slot:"cape", def:9 }, cape_magic_t:{ slot:"cape", def:11 }, cape_slayer:{ slot:"cape", def:9 }, cape_slayer_t:{ slot:"cape", def:11 }, cape_woodcutting:{ slot:"cape", def:9 }, cape_woodcutting_t:{ slot:"cape", def:11 }, cape_firemaking:{ slot:"cape", def:9 }, cape_firemaking_t:{ slot:"cape", def:11 }, cape_farming:{ slot:"cape", def:9 }, cape_farming_t:{ slot:"cape", def:11 }, cape_fishing:{ slot:"cape", def:9 }, cape_fishing_t:{ slot:"cape", def:11 }, cape_cooking:{ slot:"cape", def:9 }, cape_cooking_t:{ slot:"cape", def:11 }, cape_mining:{ slot:"cape", def:9 }, cape_mining_t:{ slot:"cape", def:11 }, cape_smithing:{ slot:"cape", def:9 }, cape_smithing_t:{ slot:"cape", def:11 }, cape_enchanting:{ slot:"cape", def:9 }, cape_enchanting_t:{ slot:"cape", def:11 }, cape_brewing:{ slot:"cape", def:9 }, cape_brewing_t:{ slot:"cape", def:11 }, cape_crafting:{ slot:"cape", def:9 }, cape_crafting_t:{ slot:"cape", def:11 }, cape_fletching:{ slot:"cape", def:9 }, cape_fletching_t:{ slot:"cape", def:11 }, cape_seafaring:{ slot:"cape", def:9 }, cape_seafaring_t:{ slot:"cape", def:11 }, cape_agility:{ slot:"cape", def:9 }, cape_agility_t:{ slot:"cape", def:11 }, cape_thieving:{ slot:"cape", def:9 }, cape_thieving_t:{ slot:"cape", def:11 }, cape_max:{ slot:"cape", def:14 },
   gull_cloak:{ slot:"cape" }, windrunner_cape:{ slot:"cape" }, mastery_cape:{ slot:"cape", def:5 },
   kindling_amulet:{ slot:"amulet" }, seam_amulet:{ slot:"amulet" }, plenty_amulet:{ slot:"amulet" }, deep_amulet:{ slot:"amulet" }, knight_oath:{ slot:"amulet" }, silver_locket:{ slot:"amulet" },
   tide_ring:{ slot:"ring" }, roots_ring:{ slot:"ring" }, fury_ring:{ slot:"ring" }, wealth_ring:{ slot:"ring" }, forester_ring:{ slot:"ring" }, gold_signet:{ slot:"ring" },
 });
 Object.assign(GEAR.gloamreaper, { twoH: true, hits: [1, 0.5, 0.25] });
+function capesPanel() {
+  const n = count99(), all = Object.keys(SKILLS).length, trim = n >= 2;
+  let h = `<p class="note">Reach level 99 in a skill to claim its cape. Each one gives a perk while worn. Once you have two or more 99s, your capes are trimmed in gold (Defence 11 instead of 9). Get every skill to 99 for the Max cape, which has every perk at once.</p><div class="capes">`;
+  const card = (sk, id, name, perk, ready, owned, prog) => `<div class="capec ${owned ? "own" : ready ? "ready" : ""}">${icon(id)}<b>${esc(name)}</b><span>${esc(perk)}</span>${owned ? `<em class="ok">Claimed${capeOn(sk) && sk !== "max" ? " · worn" : worn("cape_max") && sk === "max" ? " · worn" : ""}</em>` : ready ? `<button class="btn solid" data-claimcape="${sk}">Claim</button>` : `<em>${prog}</em>`}</div>`;
+  const order = CAPE_SKILLS.slice().sort((a, b) => ((lvl(b) >= 99 && !hasCape(b)) - (lvl(a) >= 99 && !hasCape(a))) || (hasCape(b) - hasCape(a)) || (state.xp[b] || 0) - (state.xp[a] || 0));
+  for (const sk of order) { const l = lvl(sk); h += card(sk, "cape_" + sk + (trim || has("cape_" + sk + "_t") ? "_t" : ""), SKILLS[sk].name + " cape", CAPE_PERKS[sk], l >= 99, hasCape(sk), `Level ${l} / 99`); }
+  h += card("max", "cape_max", "Max cape", "Every skill cape perk at once. Defence 14.", n >= all, has("cape_max"), `${n} / ${all} skills at 99`);
+  return h + `</div><p class="note">Wear a cape from Equipment. Capes go in the cape slot of each loadout, so you can wear different ones for melee, ranged and magic.</p>`;
+}
+/* ---------- skill capes: claim at 99 (Log › Skill capes). Trimmed once you have two or more 99s; Max cape for all. ---------- */
+const CAPE_PERKS = {"attack": "+5% melee accuracy", "strength": "+5% melee max hit", "defence": "Monsters hit you 5% less often", "hitpoints": "Food heals 3 more", "ranged": "Saves twice as many arrows", "magic": "10% chance to cast for free", "slayer": "+10% Slayer points", "woodcutting": "10% chance of an extra log", "firemaking": "10% chance to keep the log", "farming": "Crops grow 20% faster", "fishing": "10% chance of an extra fish", "cooking": "Never burn food", "mining": "10% chance of an extra ore", "smithing": "10% chance to keep your bars", "enchanting": "10% chance to keep your materials", "brewing": "10% chance to keep your ingredients", "crafting": "Never crack a gem, 10% chance to keep materials", "fletching": "10% chance to keep your materials", "seafaring": "Voyages 15% shorter", "agility": "Laps 10% faster", "thieving": "+10% pickpocket success"};
+const CAPE_SKILLS = Object.keys(CAPE_PERKS);
+const capeOn = sk => worn("cape_max") || worn("cape_" + sk) || worn("cape_" + sk + "_t");
+const count99 = () => Object.keys(SKILLS).filter(k => lvl(k) >= 99).length;
+const hasCape = sk => has("cape_" + sk) || has("cape_" + sk + "_t");
+function claimCape(sk) {
+  if (sk === "max") { if (count99() < Object.keys(SKILLS).length || has("cape_max")) return; add("cape_max", 1); toast("You claimed the Max cape!", true); log("Claimed the <b>Max cape</b>", "r"); save(); render(); return; }
+  if (lvl(sk) < 99 || hasCape(sk)) return;
+  const id = "cape_" + sk + (count99() >= 2 ? "_t" : ""); add(id, 1);
+  toast(`You claimed the ${ITEMS[id].name}!`, true); log(`Claimed the <b>${esc(ITEMS[id].name)}</b>`, "r");
+  trimCapes(); save(); render();
+}
+// once you have two 99s, plain capes (in the bank and on every loadout) become trimmed
+function trimCapes() {
+  if (count99() < 2) return;
+  for (const sk of CAPE_SKILLS) { const a = "cape_" + sk, b = a + "_t"; if (!has(a)) continue;
+    add(a, -qty(a)); if (!has(b)) add(b, 1);
+    for (const lo of Object.values(state.loadouts || {})) if (lo.cape === a) lo.cape = b; }
+}
 const loadout = () => { const k = state.opts.ctype || "melee"; return (state.loadouts[k] = state.loadouts[k] || {}); };
 const canWear = id => { const g = GEAR[id]; return !!g && has(id) && (!g.req || lvl(g.req[0]) >= g.req[1]); };
 const eq = slot => { const id = loadout()[slot]; return id && canWear(id) ? id : null; };
@@ -1988,7 +2066,7 @@ function attackRoll() {
   if (t === "magic") return (lvl("magic") + 9) * ((staff() ? staff()[2] : 0) + mageAcc() + 64);
   return (lvl("attack") + 8 + (state.opts.style === "attack" ? 3 : 0)) * ((weapon() ? weapon()[2] : 0) + 64);
 }
-const playerAcc = m => Math.min(0.98, potAcc() * (worn("knight_oath") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1) * (m.weak === ctype() ? 1.3 : m.resist || 1) * hitChance(attackRoll(), (m.def + 9) * 64));
+const playerAcc = m => Math.min(0.98, potAcc() * (worn("knight_oath") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1) * (ctype() === "melee" && capeOn("attack") ? 1.05 : 1) * (m.weak === ctype() ? 1.3 : m.resist || 1) * hitChance(attackRoll(), (m.def + 9) * 64));
 function baseMax() {
   const t = ctype();
   if (t === "ranged") return 0.5 + (lvl("ranged") + 8) * ((arrow() ? arrow()[1] : 0) + 64) / 640;
@@ -2012,8 +2090,8 @@ const rangeAcc = () => SLOTS.reduce((n, sl) => n + ((GEAR[eq(sl)] || {}).racc ||
 const fullStorm = () => ["stormhide_cowl", "stormhide_body", "stormhide_chaps"].every(worn);
 const rangeDmg = () => SLOTS.reduce((n, sl) => n + ((GEAR[eq(sl)] || {}).rdmg || 0), 0) + (fullStorm() ? 5 : 0);
 const mageDmg = () => SLOTS.reduce((n, sl) => n + ((GEAR[eq(sl)] || {}).mdmg || 0), 0) + (fullVoid() ? 5 : 0);
-const playerMax = () => 1 + Math.max(1, Math.floor(baseMax() * (ctype() === "magic" ? 1 + mageDmg() / 100 : ctype() === "ranged" ? 1 + rangeDmg() / 100 : fullGloam() ? 1.05 : 1) * potMax() * (worn("fury_ring") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1)));
-const foeAcc = m => potDef() * hitChance((m.att + 9) * 64, (lvl("defence") + 8 + (state.opts.style === "defence" ? 3 : 0)) * (defBonus() + 64)) * (has("warding_charm") ? 0.85 : 1) * (worn("knight_oath") ? 0.9 : 1) * (worn("gaze_amulet") ? 0.95 : 1);
+const playerMax = () => 1 + Math.max(1, Math.floor(baseMax() * (ctype() === "magic" ? 1 + mageDmg() / 100 : ctype() === "ranged" ? 1 + rangeDmg() / 100 : (fullGloam() ? 1.05 : 1) * (capeOn("strength") ? 1.05 : 1)) * potMax() * (worn("fury_ring") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1)));
+const foeAcc = m => potDef() * hitChance((m.att + 9) * 64, (lvl("defence") + 8 + (state.opts.style === "defence" ? 3 : 0)) * (defBonus() + 64)) * (has("warding_charm") ? 0.85 : 1) * (worn("knight_oath") ? 0.9 : 1) * (worn("gaze_amulet") ? 0.95 : 1) * (capeOn("defence") ? 0.95 : 1);
 const bestFood = () => Object.keys(FOOD).find(has);
 const foodCount = () => Object.keys(FOOD).reduce((s, f) => s + qty(f), 0);
 const reqMet = (skill, a) => skill === "combat" ? combatLevel() >= a.lvl && (!a.slayer || lvl("slayer") >= a.slayer) : lvl(skill) >= a.lvl;
@@ -2035,8 +2113,8 @@ function fightRound(m, sum) {
   // pay for the attack
   const t = ctype(), px = 1 + 0.02 * petCount();
   const XPS = ["attack", "strength", "defence", "ranged", "magic", "hitpoints"], xp0 = XPS.map(k => state.xp[k] || 0);
-  if (t === "ranged") { const ar = arrow()[0]; if (!(has("drakebone_bow") && bow()[0] === "drakebone_bow" && Math.random() < 0.5) && Math.random() < 0.5) { add(ar, -1); sum.items[ar] = (sum.items[ar] || 0) - 1; } }
-  if (t === "magic") { const sp = spellOf(); for (const [r, q] of Object.entries(spellCost(sp))) { add(r, -q); sum.items[r] = (sum.items[r] || 0) - q; } gainXp("magic", sp.xp * 1.5 * px, sum); }
+  if (t === "ranged") { const ar = arrow()[0]; if (!(has("drakebone_bow") && bow()[0] === "drakebone_bow" && Math.random() < 0.5) && Math.random() < (capeOn("ranged") ? 0.25 : 0.5)) { add(ar, -1); sum.items[ar] = (sum.items[ar] || 0) - 1; } }
+  if (t === "magic") { const sp = spellOf(); if (!(capeOn("magic") && Math.random() < 0.1)) for (const [r, q] of Object.entries(spellCost(sp))) { add(r, -q); sum.items[r] = (sum.items[r] || 0) - q; } gainXp("magic", sp.xp * 1.5 * px, sum); }
   // you attack
   let landed = 0;
   const helm = onTask(m) && worn("slayer_helm") ? 1.15 : 1;
@@ -2079,7 +2157,7 @@ function fightRound(m, sum) {
   fx({ t:"hurt", dmg: taken, mon: m.id });
   // auto-eat
   while (state.hp > 0 && state.hp <= maxHp() * EAT_AT && bestFood()) {
-    const f = bestFood(); add(f, -1); const heal = Math.round((FOOD[f] + (has("drake_heart") ? 2 : 0) + 2 * apLvl("rations")) * (buffOn("p_mend") ? 1.5 : 1)); fx({ t:"eat", heal }); state.hp = Math.min(maxHp(), state.hp + heal); sum.items[f] = (sum.items[f] || 0) - 1; sum.ate = (sum.ate || 0) + 1;
+    const f = bestFood(); add(f, -1); const heal = Math.round((FOOD[f] + (capeOn("hitpoints") ? 3 : 0) + (has("drake_heart") ? 2 : 0) + 2 * apLvl("rations")) * (buffOn("p_mend") ? 1.5 : 1)); fx({ t:"eat", heal }); state.hp = Math.min(maxHp(), state.hp + heal); sum.items[f] = (sum.items[f] || 0) - 1; sum.ate = (sum.ate || 0) + 1;
   }
   if (state.hp <= 0) { state.hp = 0; state.fight = null; if (m.raid) raidFail(sum); else sum.notes.push(`${m.name} knocked you out. Rest to recover hitpoints`); state.active = null; return true; }
   if (state.hp <= maxHp() * 0.3 && !bestFood()) { state.fight.resting = true; if (!m.raid) state.fight.mhp = m.hp; sum.rests = (sum.rests || 0) + 1; }
@@ -2087,8 +2165,8 @@ function fightRound(m, sum) {
 }
 const buffOn = id => (state.buffs[id] || 0) > 0;
 const geodeChance = a => a.geode * (has("prospector_charm") ? 2 : 1) * (worn("seam_amulet") ? 1.5 : 1);
-const doubleChance = skill => (worn("plenty_amulet") ? 0.1 : 0) + (skill === "fishing" && has("tide_harpoon") ? 0.1 : 0) + (["woodcutting", "fishing", "mining"].includes(skill) ? 0.05 * apLvl("forager") : 0);
-const growMult = () => (worn("roots_ring") ? 0.75 : 1) * (1 - 0.1 * apLvl("green"));
+const doubleChance = skill => (["woodcutting", "fishing", "mining"].includes(skill) && capeOn(skill) ? 0.1 : 0) + (worn("plenty_amulet") ? 0.1 : 0) + (skill === "fishing" && has("tide_harpoon") ? 0.1 : 0) + (["woodcutting", "fishing", "mining"].includes(skill) ? 0.05 * apLvl("forager") : 0);
+const growMult = () => (capeOn("farming") ? 0.8 : 1) * (worn("roots_ring") ? 0.75 : 1) * (1 - 0.1 * apLvl("green"));
 // Fire-forged tools from Slayer chests: each needs level 70 and has a 10% chance to process what you gather
 const TOOL_REQ = { emberheart_axe: ["woodcutting", 70], forgefire_pickaxe: ["mining", 70], hearthfire_rod: ["fishing", 70] }, FORGED_CHANCE = 0.10;
 const hasTool = id => has(id) && lvl(TOOL_REQ[id][0]) >= TOOL_REQ[id][1];
@@ -2137,6 +2215,7 @@ function thieveParts(a) {
     { label:`Full Lightfoot set`, add:n === 4 ? 0.05 : 0 },
     { label:`Bandit's mask`, add:worn("bandit_mask") ? 0.05 : 0 },
     { label:`Smuggler's coat`, add:worn("smuggler_coat") ? 0.10 : 0 },
+    { label:`Thieving cape`, add:capeOn("thieving") ? 0.10 : 0 },
     { label:`Thief's ale`, add:buffOn("thief") ? 0.10 : 0 },
   ];
 }
@@ -2171,6 +2250,11 @@ function gainXp(skill, x, sum) {
   const before = lvl(skill); state.xp[skill] += x;
   if (sum) sum.xp[skill] = (sum.xp[skill] || 0) + x;
   const after = lvl(skill);
+  if (after >= 99 && before < 99) {
+    const msg = `${SKILLS[skill].name} 99! Claim your skill cape in Log › Skill capes`;
+    if (sum) sum.notes.push(msg); else toast(msg, true);
+    trimCapes();
+  }
   if (after > before) {
     if (sum) { sum.levels.push(`${SKILLS[skill].name} ${after}`); const r = (sum.lvlRange = sum.lvlRange || {}); r[skill] = [r[skill] ? r[skill][0] : before, after]; }
     else { announceLevel(`${SKILLS[skill].name} ${after}`); levelPop(skill, before, after); }
@@ -2207,12 +2291,12 @@ function complete(sum) {
     if (Math.random() < geodeChance(a)) { add("geode", 1); sum.items.geode = (sum.items.geode || 0) + 1; sum.rare.push("Geode"); }
   } else if (CRAFT_SKILLS.includes(skill)) {
     if (smithBlock(a)) return false;
-    if (a.crack && Math.random() < crackChance(a)) {   // the gem cracked: lose it, get a crushed gem, no xp
+    if (a.crack && !capeOn("crafting") && Math.random() < crackChance(a)) {   // the gem cracked: lose it, get a crushed gem, no xp
       for (const [k, q] of Object.entries(a.inputs)) { add(k, -q); sum.items[k] = (sum.items[k] || 0) - q; }
       add("crushed_gem", 1); sum.items.crushed_gem = (sum.items.crushed_gem || 0) + 1; sum.actions++; sum.fails = (sum.fails || 0) + 1; return true;
     }
     const pay = payPlan(a); if (pay.cut) xpBonus = 1.25;
-    if (!(Math.random() < 0.1 * apLvl("touch"))) for (const [k, q] of pay.plan) { add(k, -q); sum.items[k] = (sum.items[k] || 0) - q; }
+    if (!(Math.random() < 0.1 * apLvl("touch")) && !(capeOn(skill) && Math.random() < 0.1)) for (const [k, q] of pay.plan) { add(k, -q); sum.items[k] = (sum.items[k] || 0) - q; }
     const n = a.outQty || 1; add(a.out, n); sum.items[a.out] = (sum.items[a.out] || 0) + n;
     if (skill === "brewing") state.stats.potions = (state.stats.potions || 0) + n;
   } else if (skill === "fishing") {
@@ -2239,7 +2323,7 @@ function complete(sum) {
     if (ITEMS[r.item].rare) sum.rare.push(ITEMS[r.item].name);
   } else {
     if (!has(a.item)) return false;
-    if (has("ember_charm") && Math.random() < 0.1) sum.saved++;
+    if ((has("ember_charm") && Math.random() < 0.1) || (capeOn("firemaking") && Math.random() < 0.1)) sum.saved++;
     else { add(a.item, -1); sum.items[a.item] = (sum.items[a.item] || 0) - 1; }
     add("ashes", 1); sum.items.ashes = (sum.items.ashes || 0) + 1;
   }
@@ -2599,6 +2683,7 @@ function slayerKill(m, sum) {
   if (s.task.left > 0) return;
   s.done++; s.streak++;
   let pts = 12 + Math.floor(lvl("slayer") / 8);
+  if (capeOn("slayer")) pts = Math.round(pts * 1.1);
   if (s.streak % 50 === 0) pts *= 15; else if (s.streak % 10 === 0) pts *= 5;
   if (has("hunter_satchel")) pts = Math.round(pts * 1.25);
   if (apLvl("insight")) pts = Math.round(pts * 1.2);
@@ -2729,7 +2814,7 @@ function drink(item, quiet) {
 /* ================= SEAFARING ================= */
 const upLvl = (boatId, up) => (state.upgrades[boatId] || {})[up] || 0;
 const boatOf = id => BOATS.find(x => x.id === id);
-const voyageMs = (v, boatId) => v.mins * 60000 * (1 - Math.min(0.3, lvl("seafaring") * 0.005)) * (has("captain_compass") ? 0.75 : 1) * (1 - 0.08 * upLvl(boatId, "sails")) * (buffOn("sailor") ? 0.85 : 1) * (1 - 0.1 * apLvl("map"));
+const voyageMs = (v, boatId) => v.mins * 60000 * (capeOn("seafaring") ? 0.85 : 1) * (1 - Math.min(0.3, lvl("seafaring") * 0.005)) * (has("captain_compass") ? 0.75 : 1) * (1 - 0.08 * upLvl(boatId, "sails")) * (buffOn("sailor") ? 0.85 : 1) * (1 - 0.1 * apLvl("map"));
 const voyageFood = (v, boatId) => Math.ceil(v.food * (1 - 0.25 * upLvl(boatId, "galley")));
 const voyageRolls = (v, boatId) => v.rolls + Math.floor(lvl("seafaring") / 20) + upLvl(boatId, "hold") + (v.type === "salvage" ? upLvl(boatId, "bell") : 0) + (has("tidebreaker_charm") ? 1 : 0);
 const uniqueMult = (v, boatId) => 1 + 0.25 * (v.type === "explore" ? upLvl(boatId, "spyglass") : v.type === "salvage" ? upLvl(boatId, "bell") : 0);
@@ -2849,6 +2934,7 @@ function loadObj(o) {
   state.qdone = o.qdone || {}; state.qseen = o.qseen || {};
   state.loadouts = o.loadouts || { melee:{}, ranged:{}, magic:{} };
   if (!o.loadouts) autoEquip(false); // older saves: wear the best gear you already own
+  try { trimCapes(); } catch (e) {}
   for (const i of clogItems()) if (!state.clog[i] && (o.bank || {})[i] > 0) state.clog[i] = o.bank[i]; // older saves: count what's owned
   if (!o.clogSrc) { // older saves: file known uniques under the source they come from
     for (const e of clogTree().flatMap(g => g.entries)) if (e.tracked) for (const x of e.items) if (x.unique && state.clog[x.item]) { (state.clogSrc[e.id] = state.clogSrc[e.id] || {})[x.item] = state.clog[x.item]; }
@@ -2974,6 +3060,7 @@ const RAIL = [
   ["nav-bank", "Bank", "bank", "bank", "", "Items"],
   ["nav-clog", "Collection log", "more", "clog", "clog", "Log"],
   ["lsub-ach", "Achievements", "trophy_kills", "clog", "ach", "Log"],
+  ["lsub-capes", "Skill capes", "cape_attack_t", "clog", "capes", "Log"],
   ["nav-more", "Quests", "treasure_map", "more", "quests", "More"],
   ["msub-clues", "Clues", "clue_elite", "more", "clues", "More"],
   ["msub-hiscores", "Hiscores", "drowned_crown", "more", "hiscores", "More"],
@@ -2984,7 +3071,7 @@ const RAIL = [
 const railKey = () => tab === "raid" ? "raid:" : tab === "chat" ? "chat:" : tab === "friends" ? "friends:" : tab === "daily" ? "daily:" : tab === "shops" ? "shops:" : tab === "arena" || tab === "roof" || tab === "mini" ? "mini:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
 function renderRail() {
   const b = badges(), cur = railKey(); let h = "", g = "";
-  const badge = { "raid:": (state.raidChests || []).length, "chat:": tab === "chat" ? 0 : chat.unread, "friends:": frRequests().length + pmUnread(), "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
+  const badge = { "clog:capes": CAPE_SKILLS.filter(k => lvl(k) >= 99 && !hasCape(k)).length + (count99() >= Object.keys(SKILLS).length && !has("cape_max") ? 1 : 0), "raid:": (state.raidChests || []).length, "chat:": tab === "chat" ? 0 : chat.unread, "friends:": frRequests().length + pmUnread(), "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
   for (const [id, label, ic, tb, sub, grp] of RAIL) {
     if (grp !== g) { h += `${g ? '<span class="sep"></span>' : ""}<h4>${grp}</h4>`; g = grp; }
     const key = tb + ":" + sub, n = badge[key], dot = key === "more:news" && newsUnseen();
@@ -3645,6 +3732,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 55, date: "14 Oct 2026", title: "Skill capes", items: [
+    "Every skill now has its own cape. Reach level 99 and claim it in Log › Skill capes.",
+    "Each cape has a perk while worn: an extra log, ore or fish, never burning food, never cracking gems, faster crops, voyages and laps, more Slayer points, better melee accuracy and damage, and more.",
+    "Once you have two or more 99s, all your capes turn gold-trimmed (Defence 11 instead of 9).",
+    "Get every skill to 99 for the Max cape: Defence 14 and every skill cape perk at once." ] },
   { v: 54, date: "14 Oct 2026", title: "Adamantite", items: [
     "A new metal between mithril and cobalt. Mine adamantite veins at Mining 55, and smelt adamantite bars at Smithing 60 (1 ore + 5 coal).",
     "Smith the full adamantite set at Smithing 60–77: axe, sword, pickaxe, full helm, kiteshield, platelegs and platebody. The sword and armour need Attack or Defence 35.",
@@ -4381,6 +4473,7 @@ const ITEM_TPL = {
   sword: ["..........11",".........112","........112.",".......112..","......112...","..4..112....","...4112.....","....412.....","...B444.....","..BB..4.....",".BB.........","BB.........."],
   club: ["........22..",".......2112.","......211112","......211112",".....2B2112.","....B..22...","...B........","..B.........",".B..........","B...........","............","............"],
   body: ["............","..111..111..",".1111111111.","113111111311","11.111111.11","11.131131.11","22.111111.22","...111111...","...122221...","...111111...","...222222...","............"],
+  skillcape: ["............","...444444...","..41111114..","..41111114..",".4111331114.",".4113333114.",".4111331114.","411111111114","411111111114","422222222224","............","............"],
   cape: ["............","...111111...","..11111111..","..11111111..",".1111111111.",".1111111111.",".1111111111.","111111111111","111111111111","121212121212","............","............"],
   hood: ["............","............","....1111....","...111111...","..11111111..","..11222211..","..12222221..","..12222221..","..11222211..",".1111111111.","111111111111","............"],
   glove: ["............","..11111111..",".1221221221.",".1111111111.",".1111111111.",".2111111111.",".2111111112.","..21111112..","...111111...","...444444...","...444444...","............"],
@@ -4413,6 +4506,7 @@ const IC = {
 };
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
+  cape_attack:["skillcape",["#b3261e","#5a1410","#f2efe6","#b3261e"]], cape_attack_t:["skillcape",["#b3261e","#5a1410","#f2efe6","#f2c230"]], cape_strength:["skillcape",["#2f8a3a","#174a1e","#f7d35a","#2f8a3a"]], cape_strength_t:["skillcape",["#2f8a3a","#174a1e","#f7d35a","#f2c230"]], cape_defence:["skillcape",["#2f5ea8","#173060","#d8e6ff","#2f5ea8"]], cape_defence_t:["skillcape",["#2f5ea8","#173060","#d8e6ff","#f2c230"]], cape_hitpoints:["skillcape",["#d84a5a","#7a1e28","#ffffff","#d84a5a"]], cape_hitpoints_t:["skillcape",["#d84a5a","#7a1e28","#ffffff","#f2c230"]], cape_ranged:["skillcape",["#3a7a3a","#1e421e","#e8d8a0","#3a7a3a"]], cape_ranged_t:["skillcape",["#3a7a3a","#1e421e","#e8d8a0","#f2c230"]], cape_magic:["skillcape",["#3a4ad0","#1a2270","#c79bf2","#3a4ad0"]], cape_magic_t:["skillcape",["#3a4ad0","#1a2270","#c79bf2","#f2c230"]], cape_slayer:["skillcape",["#2a2a30","#111114","#d2452f","#2a2a30"]], cape_slayer_t:["skillcape",["#2a2a30","#111114","#d2452f","#f2c230"]], cape_woodcutting:["skillcape",["#4a7a2a","#2a4a14","#c8a46a","#4a7a2a"]], cape_woodcutting_t:["skillcape",["#4a7a2a","#2a4a14","#c8a46a","#f2c230"]], cape_firemaking:["skillcape",["#e0702a","#8a3414","#f7d35a","#e0702a"]], cape_firemaking_t:["skillcape",["#e0702a","#8a3414","#f7d35a","#f2c230"]], cape_farming:["skillcape",["#6a9a3a","#3a5a1a","#e3b98f","#6a9a3a"]], cape_farming_t:["skillcape",["#6a9a3a","#3a5a1a","#e3b98f","#f2c230"]], cape_fishing:["skillcape",["#2a6a9a","#143a5a","#7fb8d8","#2a6a9a"]], cape_fishing_t:["skillcape",["#2a6a9a","#143a5a","#7fb8d8","#f2c230"]], cape_cooking:["skillcape",["#8a3a8a","#4a1a4a","#f2efe6","#8a3a8a"]], cape_cooking_t:["skillcape",["#8a3a8a","#4a1a4a","#f2efe6","#f2c230"]], cape_mining:["skillcape",["#6a5a4a","#3a2e24","#7fd8ff","#6a5a4a"]], cape_mining_t:["skillcape",["#6a5a4a","#3a2e24","#7fd8ff","#f2c230"]], cape_smithing:["skillcape",["#5a5e66","#2e3036","#ff9a2a","#5a5e66"]], cape_smithing_t:["skillcape",["#5a5e66","#2e3036","#ff9a2a","#f2c230"]], cape_enchanting:["skillcape",["#5a3a9a","#2e1a5a","#7dff6a","#5a3a9a"]], cape_enchanting_t:["skillcape",["#5a3a9a","#2e1a5a","#7dff6a","#f2c230"]], cape_brewing:["skillcape",["#9a6a2a","#5a3a14","#f7d35a","#9a6a2a"]], cape_brewing_t:["skillcape",["#9a6a2a","#5a3a14","#f7d35a","#f2c230"]], cape_crafting:["skillcape",["#a0703a","#5a3a1c","#f2efe6","#a0703a"]], cape_crafting_t:["skillcape",["#a0703a","#5a3a1c","#f2efe6","#f2c230"]], cape_fletching:["skillcape",["#1e6a5a","#0f3a30","#e8c87a","#1e6a5a"]], cape_fletching_t:["skillcape",["#1e6a5a","#0f3a30","#e8c87a","#f2c230"]], cape_seafaring:["skillcape",["#1e3a6a","#0f1e3a","#f2efe6","#1e3a6a"]], cape_seafaring_t:["skillcape",["#1e3a6a","#0f1e3a","#f2efe6","#f2c230"]], cape_agility:["skillcape",["#2a4a6a","#14263a","#e6e9dc","#2a4a6a"]], cape_agility_t:["skillcape",["#2a4a6a","#14263a","#e6e9dc","#f2c230"]], cape_thieving:["skillcape",["#4a2a5a","#24142e","#e8b84a","#4a2a5a"]], cape_thieving_t:["skillcape",["#4a2a5a","#24142e","#e8b84a","#f2c230"]], cape_max:["skillcape",["#f2efe6","#b3261e","#f2c230","#f2c230"]],
   gloam_chest:["chest",["#3a3550","#1e1a2e","#c8c0e8","#5ae0d0"]], gloam_chest_red:["chest",["#5a1e24","#2e0f12","#ffb0a0","#ff3a3a"]],
   gloamreaper:["scythe",["#c8c0e8","#5ae0d0","#5ae0d0","#000"]], gloam_essence:["orb",["#2a2440","#14101f","#5ae0d0","#000"]],
   gloam_helm:["helm",["#3a3550","#1e1a2e","#5ae0d0","#000"]], gloam_body:["body",["#3a3550","#1e1a2e","#5ae0d0","#000"]], gloam_legs:["legs",["#3a3550","#1e1a2e","#5ae0d0","#000"]],
@@ -5458,8 +5552,8 @@ function render() {
   else if (tab === "arena") h = miniBack + `<div class="pagehead"><h2>Arena</h2><span>${arenaLeft()} / ${ARENA_DAILY} ranked left</span></div>` + arenaPanel();
   else if (tab === "roof") h = miniBack + `<div class="pagehead"><h2>Rooftop run</h2><span>Best ${fmt(roofState().best)} m</span></div>` + roofPanel();
   else if (tab === "shops") h = shopsPanel();
-  else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "ach" ? "Achievements" : logSub === "shop" ? "Point shop" : "Collection log"}</h2><span>${logSub === "ach" ? fmt(achPoints()) + " points" : logSub === "shop" ? fmt(apBalance()) + " to spend" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
-` + (logSub === "ach" ? achPanel() : logSub === "shop" ? apShopPanel() : clogPanel());
+  else if (tab === "clog") h = `<div class="pagehead"><h2>${logSub === "capes" ? "Skill capes" : logSub === "ach" ? "Achievements" : logSub === "shop" ? "Point shop" : "Collection log"}</h2><span>${logSub === "capes" ? `${count99()} / ${Object.keys(SKILLS).length} skills at 99` : logSub === "ach" ? fmt(achPoints()) + " points" : logSub === "shop" ? fmt(apBalance()) + " to spend" : clogCounts()[0] + " / " + clogCounts()[1]}</span></div>
+` + (logSub === "capes" ? capesPanel() : logSub === "ach" ? achPanel() : logSub === "shop" ? apShopPanel() : clogPanel());
   else if (tab === "combat") h = (state.raid ? `<div class="hsme"><span>You're in the Gloamspire: ${esc(raidRoom().name)} (room ${state.raid.room + 1} of ${RAID_ROOMS.length})</span><button class="btn solid" data-nav="raid:">Go to raid</button></div>` : "") + combatPanel();
   else if (tab === "seafaring") h = backBtn() + skillHead("seafaring") + `<canvas id="vscene" class="scene" style="height:230px" role="img" aria-label="Your boats at sea"></canvas>` + seafaringPanel();
   else if (tab === "farming") h = backBtn() + skillHead("farming") + farmingPanel();
@@ -5601,6 +5695,7 @@ document.addEventListener("click", e => {
   if (t.dataset.frhide) { frHidden = [...new Set(frHidden.concat(t.dataset.frhide))]; lsSet("thornwick-friends-hidden", frHidden); renderRail(); frRender(); return; }
   if (t.dataset.frsel) { fr.sel = fr.sel === t.dataset.frsel ? null : t.dataset.frsel; fr.confirm = null; frRender(); return; }
   if (t.dataset.frrm) { if (fr.confirm === t.dataset.frrm) frRemove(t.dataset.frrm); else { fr.confirm = t.dataset.frrm; frRender(); } return; }
+  if (t.dataset.claimcape) { claimCape(t.dataset.claimcape); return; }
   if (t.dataset.smithsec) { state.opts.smithSec = t.dataset.smithsec; render(); return; }
   if (t.dataset.pmopen) { pmOpen(t.dataset.pmopen); return; }
   if (t.dataset.pmback) { pm.open = null; pmLoadThreads(); frRender(); return; }
