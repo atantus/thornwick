@@ -870,6 +870,37 @@ const ITEMS = {
   mire_greaves:  { name: "Mire greaves",    desc: "Bog horror unique. Legs, Defence 35.", rare: true, sell: 6000 },
   gargant_maul:  { name: "Gargant maul",    desc: "Stone gargant unique. Weapon, Attack 60. Hits very hard.", rare: true, sell: 20000 },
   voidlash:      { name: "Voidlash",        desc: "Void stalker unique. Weapon, Attack 75. Very accurate.", rare: true, sell: 40000 },
+  silk_hood:     { name: "Silk hood",       desc: "Cave spider unique. Head, Defence 6. Light as a web.", rare: true, sell: 1500 },
+  lizard_glaive: { name: "Lizard glaive",   desc: "Marsh lizardman unique. Weapon, Attack 20. Better than mithril for its level.", rare: true, sell: 3000 },
+  marsh_cloak:   { name: "Marsh cloak",     desc: "Marsh lizardman unique. Cape, Defence 6.", rare: true, sell: 2500 },
+  ogre_helm:     { name: "Ogre helm",       desc: "Ironclad ogre unique. Head, Defence 18 (needs Defence 30).", rare: true, sell: 5000 },
+  ironhide_shield:{ name: "Ironhide shield", desc: "Ironclad ogre unique. Shield, Defence 28 (needs Defence 30).", rare: true, sell: 6000 },
+  sentinel_helm: { name: "Sentinel helm",   desc: "Cursed sentinel unique. Head, Defence 26 (needs Defence 45).", rare: true, sell: 10000 },
+  sentinel_shield:{ name: "Sentinel shield", desc: "Cursed sentinel unique. Shield, Defence 38 (needs Defence 45).", rare: true, sell: 12000 },
+  thornlash_blade:{ name: "Thornlash blade", desc: "Thornback Matriarch unique. Weapon, Attack 60.", rare: true, sell: 25000 },
+  thornback_shield:{ name: "Thornback shield", desc: "Thornback Matriarch unique. Shield, Defence 46 (needs Defence 60).", rare: true, sell: 22000 },
+  cinderscale_body:{ name: "Cinderscale body", desc: "Ember salamander unique. Body, Defence 90 (needs Defence 65).", rare: true, sell: 45000 },
+  salamander_staff:{ name: "Salamander staff", desc: "Ember salamander unique. Staff, Magic 70. Free fire runes.", rare: true, sell: 40000 },
+  stormcaller_bow:{ name: "Stormcaller bow", desc: "Storm wyvern unique. Bow, Ranged 75. The best bow in Thornwick.", rare: true, sell: 70000 },
+  wyvern_helm:   { name: "Wyvern helm",     desc: "Storm wyvern unique. Head, Defence 36 (needs Defence 75).", rare: true, sell: 50000 },
+  crawler_shield:{ name: "Crawler shield",  desc: "Cave crawler unique. Shield, Defence 16 (needs Defence 15).", rare: true, sell: 2000 },
+  banshee_veil:  { name: "Banshee veil",    desc: "Wailing banshee unique. Head, Defence 22 (needs Defence 40).", rare: true, sell: 9000 },
+  mirror_shield: { name: "Mirror shield",   desc: "Basilisk unique. Shield, Defence 50 (needs Defence 65). The best shield in Thornwick.", rare: true, sell: 35000 },
+  riftfang:      { name: "Riftfang",        desc: "Riftmaw unique. Weapon, Attack 80. The best melee weapon in Thornwick.", rare: true, sell: 90000 },
+  pet_spiderling:{ name: "Spiderling",      desc: "Cave spider pet. Eight legs, all of them busy. +2% combat xp.", rare: true },
+  pet_thornling: { name: "Thornling",       desc: "Thornback Matriarch pet. Prickly but loyal. +2% combat xp.", rare: true },
+  pet_wyvernling:{ name: "Wyvernling",      desc: "Storm wyvern pet. Crackles when it's happy. +2% combat xp.", rare: true },
+  pet_riftling:  { name: "Riftling",        desc: "Riftmaw pet. A tiny mouth full of tiny teeth. +2% combat xp.", rare: true },
+  spider_silk:   { name: "Spider silk",     desc: "Strong and sticky.", sell: 25 },
+  lizard_scale:  { name: "Lizard scale",    desc: "Tough green scale from the marshes.", sell: 60 },
+  crawler_shell: { name: "Crawler shell",   desc: "A cave crawler's hard back plate.", sell: 50 },
+  banshee_wisp:  { name: "Banshee wisp",    desc: "A faint, wailing light in a jar.", sell: 300 },
+  thornback_spine:{ name: "Thornback spine", desc: "A long barbed spine from the Matriarch.", sell: 800 },
+  basilisk_eye:  { name: "Basilisk eye",    desc: "Don't look straight at it.", sell: 900 },
+  ember_scale:   { name: "Ember scale",     desc: "Still warm to the touch.", sell: 600 },
+  wyvern_bone:   { name: "Wyvern bone",     desc: "Light, hollow and humming with static.", sell: 1500 },
+  rift_tooth:    { name: "Rift tooth",      desc: "A tooth that doesn't quite belong to this world.", sell: 2000 },
+  dragonstone:   { name: "Dragonstone",     desc: "An extremely rare gem from the rare drop table.", rare: true, sell: 75000 },
   bat_wing:      { name: "Bat wing",        desc: "Leathery. Sells well to apothecaries.", sell: 40 },
   bog_moss:      { name: "Bog moss",        desc: "Smells awful. Brewers love it.", sell: 90 },
   gargant_shard: { name: "Gargant shard",   desc: "A chip of living stone.", sell: 400 },
@@ -1283,9 +1314,9 @@ const FLETCH = [
   { id:"runite_arrow",    section:"Arrows", name:"Runite arrows ×15",  lvl:75, time:2.0, xp:200, inputs:{ runite_bar:1, magic_logs:1 }, out:"runite_arrow",  outQty:15 },
   { id:"magic_shortbow",  section:"Bows",   name:"Magic shortbow",     lvl:80, time:2.4, xp:230, inputs:{ magic_logs:2 },              out:"magic_shortbow" },
 ];
-const BOWS   = [ ["pvp_longbow",65,60], ["pvp_shortbow",40,42], ["wraith_bow",70,64], ["magic_shortbow",55,50], ["yew_shortbow",40,38], ["drakebone_bow",45,55], ["maple_shortbow",30,29], ["willow_shortbow",20,20], ["oak_shortbow",10,14], ["shortbow",1,8] ];        // id, ranged req, accuracy
+const BOWS   = [ ["stormcaller_bow",75,70], ["pvp_longbow",65,60], ["pvp_shortbow",40,42], ["wraith_bow",70,64], ["magic_shortbow",55,50], ["yew_shortbow",40,38], ["drakebone_bow",45,55], ["maple_shortbow",30,29], ["willow_shortbow",20,20], ["oak_shortbow",10,14], ["shortbow",1,8] ];        // id, ranged req, accuracy
 const ARROWS = [ ["runite_arrow",40], ["cobalt_arrow",30], ["mithril_arrow",22], ["steel_arrow",16], ["iron_arrow",10], ["bronze_arrow",7] ];                                                  // id, ranged strength
-const STAFFS = [ ["pvp_staff",65,60,["air_rune","fire_rune"]], ["pvp_wand",40,44,["air_rune"]], ["storm_staff",55,48,["air_rune","water_rune"]], ["archmage_staff",45,55,["air_rune","fire_rune"]], ["fire_staff",40,38,["fire_rune"]], ["earth_staff",25,28,["earth_rune"]], ["air_staff",10,18,["air_rune"]], ["apprentice_staff",1,10,[]] ]; // id, magic req, accuracy, free runes
+const STAFFS = [ ["salamander_staff",70,64,["fire_rune"]], ["pvp_staff",65,60,["air_rune","fire_rune"]], ["pvp_wand",40,44,["air_rune"]], ["storm_staff",55,48,["air_rune","water_rune"]], ["archmage_staff",45,55,["air_rune","fire_rune"]], ["fire_staff",40,38,["fire_rune"]], ["earth_staff",25,28,["earth_rune"]], ["air_staff",10,18,["air_rune"]], ["apprentice_staff",1,10,[]] ]; // id, magic req, accuracy, free runes
 const SPELLS = [
   { id:"wind",  name:"Wind strike",  lvl:1,  max:2,  xp:5.5,  runes:{ air_rune:1 } },
   { id:"water", name:"Water strike", lvl:9,  max:4,  xp:7.5,  runes:{ air_rune:1, water_rune:1 } },
@@ -1301,45 +1332,78 @@ const CTYPES = { melee:"Melee", ranged:"Ranged", magic:"Magic" };
 // Combat. lvl = combat level needed. always = guaranteed drops, table = weighted roll on each kill (item null = nothing).
 const MONSTERS = [
   { id:"chicken", name:"Chicken",      lvl:1,  hp:3,   att:1,  def:1,  max:1,  always:[{item:"raw_chicken",min:1,max:1}],
-    table:[{item:null,weight:80},{item:"coins",weight:20,min:2,max:6}],
+    table:[{item:null,weight:80},{item:"coins",weight:20,min:2,max:6},{item:"skyfeather",weight:4,min:1,max:2}],
     uniques:[{item:"golden_feather",chance:1/400},{item:"pet_chick",chance:1/1000}] },
   { id:"goblin",  name:"Goblin",       weak:"ranged", lvl:3,  hp:5,   att:5,  def:4,  max:2,  always:[],
-    table:[{item:null,weight:30},{item:"coins",weight:40,min:5,max:25},{item:"potato_seed",weight:10,min:1,max:3},{item:"copper_ore",weight:10,min:1,max:3},{item:"tin_ore",weight:10,min:1,max:3}],
+    table:[{item:null,weight:30},{item:"coins",weight:40,min:5,max:25},{item:"potato_seed",weight:10,min:1,max:3},{item:"copper_ore",weight:10,min:1,max:3},{item:"tin_ore",weight:10,min:1,max:3},{item:"air_rune",weight:8,min:3,max:8},{item:"bronze_bar",weight:4,min:1,max:1}],
     uniques:[{item:"goblin_cleaver",chance:1/150},{item:"pet_goblin",chance:1/1500}] },
+  { id:"cave_spider", name:"Cave spider", weak:"magic", lvl:8, hp:10, att:9, def:7, max:2, always:[],
+    table:[{item:null,weight:25},{item:"coins",weight:35,min:8,max:25},{item:"spider_silk",weight:15,min:1,max:2},{item:"air_rune",weight:10,min:5,max:15},{item:"bronze_bar",weight:8,min:1,max:2},{item:"raw_shrimp",weight:5,min:1,max:3},{item:"uncut_sapphire",weight:2,min:1,max:1}],
+    uniques:[{item:"silk_hood",chance:1/150},{item:"pet_spiderling",chance:1/1500}] },
   { id:"bandit",  name:"Bandit",       weak:"magic", lvl:15, hp:18,  att:17, def:14, max:3,  always:[],
-    table:[{item:null,weight:20},{item:"coins",weight:50,min:20,max:60},{item:"raw_trout",weight:10,min:1,max:3},{item:"iron_ore",weight:14,min:2,max:5},{item:"bronze_bar",weight:6,min:1,max:3},{item:"silver_locket",weight:2,min:1,max:1}],
+    table:[{item:null,weight:20},{item:"coins",weight:50,min:20,max:60},{item:"raw_trout",weight:10,min:1,max:3},{item:"iron_ore",weight:14,min:2,max:5},{item:"bronze_bar",weight:6,min:1,max:3},{item:"silver_locket",weight:2,min:1,max:1},{item:"earth_rune",weight:8,min:5,max:15},{item:"uncut_sapphire",weight:2,min:1,max:1}],
     uniques:[{item:"bandit_mask",chance:1/200},{item:"pet_magpie",chance:1/2000}] },
+  { id:"lizardman", name:"Marsh lizardman", weak:"ranged", lvl:20, hp:26, att:23, def:20, max:4, always:[],
+    table:[{item:null,weight:18},{item:"coins",weight:40,min:30,max:90},{item:"lizard_scale",weight:12,min:1,max:2},{item:"raw_salmon",weight:10,min:1,max:3},{item:"willow_logs",weight:10,min:3,max:8},{item:"water_rune",weight:8,min:10,max:25},{item:"iron_bar",weight:5,min:1,max:2},{item:"uncut_sapphire",weight:3,min:1,max:1}],
+    uniques:[{item:"lizard_glaive",chance:1/160},{item:"marsh_cloak",chance:1/220}] },
   { id:"giant",   name:"Hill giant",   weak:"ranged", lvl:25, hp:35,  att:30, def:26, max:6,  always:[],
-    table:[{item:null,weight:15},{item:"coins",weight:45,min:40,max:120},{item:"willow_seed",weight:8,min:1,max:1},{item:"maple_seed",weight:4,min:1,max:1},{item:"coal",weight:15,min:3,max:8},{item:"iron_bar",weight:10,min:1,max:4}],
+    table:[{item:null,weight:15},{item:"coins",weight:45,min:40,max:120},{item:"willow_seed",weight:8,min:1,max:1},{item:"maple_seed",weight:4,min:1,max:1},{item:"coal",weight:15,min:3,max:8},{item:"iron_bar",weight:10,min:1,max:4},{item:"earth_rune",weight:6,min:10,max:20},{item:"raw_salmon",weight:6,min:1,max:3},{item:"uncut_sapphire",weight:3,min:1,max:1}],
     uniques:[{item:"giant_club",chance:1/150},{item:"pet_giant",chance:1/2500}] },
+  { id:"ogre", name:"Ironclad ogre", weak:"magic", lvl:33, hp:45, att:38, def:36, max:7, always:[],
+    table:[{item:null,weight:15},{item:"coins",weight:42,min:60,max:170},{item:"coal",weight:12,min:4,max:10},{item:"iron_bar",weight:10,min:2,max:5},{item:"steel_bar",weight:8,min:1,max:3},{item:"earth_rune",weight:8,min:15,max:40},{item:"raw_lobster",weight:6,min:1,max:2},{item:"uncut_emerald",weight:3,min:1,max:1}],
+    uniques:[{item:"ogre_helm",chance:1/170},{item:"ironhide_shield",chance:1/200}] },
   { id:"knight",  name:"Rogue knight", weak:"magic", lvl:40, hp:60,  att:48, def:48, max:9,  always:[],
-    table:[{item:null,weight:20},{item:"coins",weight:50,min:80,max:220},{item:"raw_lobster",weight:10,min:1,max:3},{item:"steel_bar",weight:10,min:1,max:3},{item:"mithril_ore",weight:8,min:1,max:3},{item:"gold_signet",weight:2,min:1,max:1}],
+    table:[{item:null,weight:20},{item:"coins",weight:50,min:80,max:220},{item:"raw_lobster",weight:10,min:1,max:3},{item:"steel_bar",weight:10,min:1,max:3},{item:"mithril_ore",weight:8,min:1,max:3},{item:"gold_signet",weight:2,min:1,max:1},{item:"fire_rune",weight:8,min:15,max:35},{item:"uncut_emerald",weight:3,min:1,max:1}],
     uniques:[{item:"rogue_rapier",chance:1/200},{item:"knight_oath",chance:1/300},{item:"archmage_staff",chance:1/250},{item:"pet_squire",chance:1/3000}] },
+  { id:"sentinel", name:"Cursed sentinel", weak:"magic", lvl:48, hp:90, att:56, def:58, max:11, always:[],
+    table:[{item:null,weight:12},{item:"coins",weight:42,min:150,max:420},{item:"chaos_rune",weight:10,min:8,max:20},{item:"mithril_bar",weight:10,min:1,max:3},{item:"steel_bar",weight:8,min:2,max:4},{item:"uncut_emerald",weight:6,min:1,max:1},{item:"uncut_sapphire",weight:6,min:1,max:2},{item:"casket",weight:3,min:1,max:1}],
+    uniques:[{item:"sentinel_helm",chance:1/220},{item:"sentinel_shield",chance:1/200}] },
   { id:"drake",   name:"Moss drake",   weak:"ranged", lvl:55, hp:120, att:65, def:62, max:14, always:[],
-    table:[{item:"coins",weight:55,min:200,max:600},{item:"skyfeather",weight:11,min:5,max:10},{item:"casket",weight:10,min:1,max:1},{item:"maple_seed",weight:8,min:1,max:2},{item:"mithril_bar",weight:12,min:1,max:3},{item:"uncut_ruby",weight:4,min:1,max:1}],
+    table:[{item:"coins",weight:55,min:200,max:600},{item:"skyfeather",weight:11,min:5,max:10},{item:"casket",weight:10,min:1,max:1},{item:"maple_seed",weight:8,min:1,max:2},{item:"mithril_bar",weight:12,min:1,max:3},{item:"uncut_ruby",weight:4,min:1,max:1},{item:"fire_rune",weight:8,min:30,max:60},{item:"cobalt_ore",weight:6,min:2,max:4}],
     uniques:[{item:"adamant_sword",chance:1/120},{item:"drake_scale",chance:1/250},{item:"drake_heart",chance:1/300},{item:"drakebone_bow",chance:1/150},{item:"pet_drakeling",chance:1/4000}] },
+  { id:"matriarch", name:"Thornback Matriarch", weak:"magic", lvl:60, hp:300, att:70, def:68, max:18, always:[{item:"thornback_spine",min:1,max:2}], boss:true,
+    table:[{item:"coins",weight:40,min:1000,max:3000},{item:"mithril_bar",weight:15,min:3,max:6},{item:"cobalt_ore",weight:12,min:4,max:8},{item:"uncut_ruby",weight:10,min:1,max:2},{item:"casket",weight:10,min:1,max:2},{item:"bird_nest",weight:7,min:2,max:4},{item:"yew_seed",weight:6,min:1,max:1}],
+    uniques:[{item:"thornlash_blade",chance:1/150},{item:"thornback_shield",chance:1/120},{item:"pet_thornling",chance:1/1500}] },
   { id:"troll",   name:"Frost troll",  weak:"magic",  lvl:65, hp:160, att:75,  def:70,  max:16, always:[],
-    table:[{item:null,weight:15},{item:"coins",weight:40,min:300,max:800},{item:"coal",weight:14,min:5,max:12},{item:"raw_shark",weight:12,min:1,max:3},{item:"cobalt_ore",weight:12,min:2,max:5},{item:"runite_ore",weight:4,min:1,max:1},{item:"yew_seed",weight:3,min:1,max:1}],
+    table:[{item:null,weight:15},{item:"coins",weight:40,min:300,max:800},{item:"coal",weight:14,min:5,max:12},{item:"raw_shark",weight:12,min:1,max:3},{item:"cobalt_ore",weight:12,min:2,max:5},{item:"runite_ore",weight:4,min:1,max:1},{item:"yew_seed",weight:3,min:1,max:1},{item:"water_rune",weight:8,min:40,max:80},{item:"uncut_ruby",weight:3,min:1,max:1}],
     uniques:[{item:"troll_hide",chance:1/200},{item:"pet_troll",chance:1/3000}] },
+  { id:"salamander", name:"Ember salamander", weak:"ranged", lvl:72, hp:190, att:82, def:76, max:18, always:[],
+    table:[{item:null,weight:8},{item:"coins",weight:38,min:450,max:1100},{item:"fire_rune",weight:14,min:40,max:100},{item:"ember_scale",weight:10,min:1,max:2},{item:"cobalt_bar",weight:10,min:1,max:3},{item:"raw_shark",weight:9,min:1,max:3},{item:"yew_logs",weight:8,min:5,max:12},{item:"uncut_ruby",weight:5,min:1,max:1}],
+    uniques:[{item:"cinderscale_body",chance:1/250},{item:"salamander_staff",chance:1/220}] },
   { id:"wraith",  name:"Shadow wraith", weak:"ranged", lvl:80, hp:220, att:90,  def:85,  max:20, always:[],
-    table:[{item:null,weight:10},{item:"coins",weight:40,min:600,max:1500},{item:"death_rune",weight:15,min:5,max:15},{item:"chaos_rune",weight:12,min:10,max:30},{item:"cobalt_bar",weight:10,min:1,max:3},{item:"runite_bar",weight:4,min:1,max:1},{item:"uncut_diamond",weight:3,min:1,max:1},{item:"magic_seed",weight:2,min:1,max:1}],
+    table:[{item:null,weight:10},{item:"coins",weight:40,min:600,max:1500},{item:"death_rune",weight:15,min:5,max:15},{item:"chaos_rune",weight:12,min:10,max:30},{item:"cobalt_bar",weight:10,min:1,max:3},{item:"runite_bar",weight:4,min:1,max:1},{item:"uncut_diamond",weight:3,min:1,max:1},{item:"magic_seed",weight:2,min:1,max:1},{item:"magic_logs",weight:5,min:3,max:6},{item:"casket",weight:4,min:1,max:1}],
     uniques:[{item:"wraith_bow",chance:1/220},{item:"pet_wraith",chance:1/3500}] },
+  { id:"wyvern", name:"Storm wyvern", weak:"ranged", lvl:88, hp:300, att:98, def:92, max:23, always:[{item:"wyvern_bone",min:1,max:1}],
+    table:[{item:null,weight:6},{item:"coins",weight:38,min:900,max:2200},{item:"death_rune",weight:12,min:8,max:20},{item:"skyfeather",weight:12,min:10,max:25},{item:"runite_bar",weight:8,min:1,max:2},{item:"magic_logs",weight:8,min:5,max:12},{item:"air_rune",weight:8,min:80,max:200},{item:"uncut_diamond",weight:5,min:1,max:1},{item:"casket",weight:3,min:1,max:1}],
+    uniques:[{item:"stormcaller_bow",chance:1/230},{item:"wyvern_helm",chance:1/260},{item:"pet_wyvernling",chance:1/4000}] },
   { id:"colossus",name:"Ashen Colossus", weak:"magic", lvl:95, hp:450, att:105, def:100, max:26, always:[], boss:true,
-    table:[{item:"coins",weight:40,min:2000,max:6000},{item:"runite_bar",weight:15,min:2,max:4},{item:"magic_logs",weight:12,min:10,max:30},{item:"uncut_diamond",weight:10,min:1,max:2},{item:"casket",weight:10,min:2,max:3},{item:"magic_seed",weight:8,min:1,max:2},{item:"skyfeather",weight:5,min:20,max:40}],
+    table:[{item:"coins",weight:40,min:2000,max:6000},{item:"runite_bar",weight:15,min:2,max:4},{item:"magic_logs",weight:12,min:10,max:30},{item:"uncut_diamond",weight:10,min:1,max:2},{item:"casket",weight:10,min:2,max:3},{item:"magic_seed",weight:8,min:1,max:2},{item:"skyfeather",weight:5,min:20,max:40},{item:"cobalt_bar",weight:8,min:3,max:6},{item:"treasure_map",weight:3,min:1,max:1}],
     uniques:[{item:"voidreaver",chance:1/150},{item:"colossus_plate",chance:1/250},{item:"ember_core",chance:1/300},{item:"pet_colossus",chance:1/5000}] },
   // Slayer monsters: need a Slayer level as well as a combat level
   { id:"gloombat", name:"Gloom bat", slayer:10, weak:"ranged", lvl:8, hp:14, att:10, def:8, max:2, always:[{item:"bat_wing",min:1,max:1}],
-    table:[{item:null,weight:30},{item:"coins",weight:40,min:10,max:30},{item:"bat_wing",weight:20,min:1,max:2},{item:"oak_logs",weight:10,min:2,max:5}],
+    table:[{item:null,weight:30},{item:"coins",weight:40,min:10,max:30},{item:"bat_wing",weight:20,min:1,max:2},{item:"oak_logs",weight:10,min:2,max:5},{item:"air_rune",weight:8,min:5,max:12}],
     uniques:[{item:"echo_charm",chance:1/250}] },
+  { id:"crawler", name:"Cave crawler", slayer:20, weak:"ranged", lvl:18, hp:22, att:20, def:18, max:3, always:[{item:"crawler_shell",min:1,max:1}],
+    table:[{item:null,weight:25},{item:"coins",weight:38,min:20,max:60},{item:"iron_ore",weight:12,min:2,max:5},{item:"raw_trout",weight:10,min:1,max:3},{item:"crawler_shell",weight:8,min:1,max:2},{item:"earth_rune",weight:7,min:5,max:15}],
+    uniques:[{item:"crawler_shield",chance:1/180}] },
   { id:"boghorror", name:"Bog horror", slayer:30, weak:"magic", lvl:30, hp:48, att:36, def:30, max:6, always:[{item:"bog_moss",min:1,max:2}],
-    table:[{item:null,weight:15},{item:"coins",weight:40,min:60,max:160},{item:"barley_seed",weight:10,min:2,max:5},{item:"willow_seed",weight:8,min:1,max:1},{item:"steel_bar",weight:12,min:1,max:3},{item:"raw_salmon",weight:15,min:2,max:4}],
+    table:[{item:null,weight:15},{item:"coins",weight:40,min:60,max:160},{item:"barley_seed",weight:10,min:2,max:5},{item:"willow_seed",weight:8,min:1,max:1},{item:"steel_bar",weight:12,min:1,max:3},{item:"raw_salmon",weight:15,min:2,max:4},{item:"water_rune",weight:8,min:10,max:25},{item:"uncut_sapphire",weight:3,min:1,max:1}],
     uniques:[{item:"mire_greaves",chance:1/200}] },
+  { id:"banshee", name:"Wailing banshee", slayer:42, weak:"magic", lvl:42, hp:70, att:46, def:40, max:8, always:[{item:"banshee_wisp",min:1,max:1}],
+    table:[{item:null,weight:15},{item:"coins",weight:42,min:100,max:260},{item:"chaos_rune",weight:10,min:8,max:18},{item:"steel_bar",weight:10,min:1,max:3},{item:"uncut_sapphire",weight:8,min:1,max:2},{item:"raw_lobster",weight:7,min:1,max:3},{item:"uncut_emerald",weight:4,min:1,max:1},{item:"casket",weight:2,min:1,max:1}],
+    uniques:[{item:"banshee_veil",chance:1/200}] },
   { id:"gargant", name:"Stone gargant", slayer:55, weak:"ranged", lvl:55, hp:140, att:62, def:72, max:13, always:[{item:"gargant_shard",min:1,max:1}],
-    table:[{item:null,weight:10},{item:"coins",weight:40,min:250,max:700},{item:"mithril_ore",weight:15,min:3,max:6},{item:"coal",weight:15,min:6,max:12},{item:"uncut_ruby",weight:5,min:1,max:1},{item:"casket",weight:5,min:1,max:1}],
+    table:[{item:null,weight:10},{item:"coins",weight:40,min:250,max:700},{item:"mithril_ore",weight:15,min:3,max:6},{item:"coal",weight:15,min:6,max:12},{item:"uncut_ruby",weight:5,min:1,max:1},{item:"casket",weight:5,min:1,max:1},{item:"earth_rune",weight:8,min:20,max:40},{item:"uncut_emerald",weight:4,min:1,max:1}],
     uniques:[{item:"gargant_maul",chance:1/180}] },
+  { id:"basilisk", name:"Basilisk", slayer:65, weak:"magic", lvl:66, hp:170, att:76, def:80, max:16, always:[{item:"basilisk_eye",min:1,max:1}],
+    table:[{item:null,weight:10},{item:"coins",weight:40,min:400,max:1000},{item:"cobalt_bar",weight:12,min:1,max:3},{item:"mithril_ore",weight:10,min:4,max:8},{item:"earth_rune",weight:10,min:30,max:60},{item:"uncut_ruby",weight:6,min:1,max:1},{item:"casket",weight:4,min:1,max:1}],
+    uniques:[{item:"mirror_shield",chance:1/220}] },
   { id:"voidstalker", name:"Void stalker", slayer:78, weak:"magic", lvl:82, hp:240, att:92, def:88, max:21, always:[{item:"void_essence",min:1,max:1}],
-    table:[{item:null,weight:10},{item:"coins",weight:40,min:700,max:1700},{item:"death_rune",weight:15,min:8,max:20},{item:"cobalt_bar",weight:12,min:1,max:3},{item:"runite_ore",weight:6,min:1,max:2},{item:"uncut_diamond",weight:4,min:1,max:1},{item:"magic_seed",weight:3,min:1,max:1}],
+    table:[{item:null,weight:10},{item:"coins",weight:40,min:700,max:1700},{item:"death_rune",weight:15,min:8,max:20},{item:"cobalt_bar",weight:12,min:1,max:3},{item:"runite_ore",weight:6,min:1,max:2},{item:"uncut_diamond",weight:4,min:1,max:1},{item:"magic_seed",weight:3,min:1,max:1},{item:"chaos_rune",weight:8,min:15,max:30},{item:"casket",weight:4,min:1,max:1}],
     uniques:[{item:"voidlash",chance:1/220}] },
+  { id:"riftmaw", name:"Riftmaw", slayer:90, weak:"ranged", lvl:92, hp:340, att:104, def:98, max:25, always:[{item:"rift_tooth",min:1,max:1}],
+    table:[{item:null,weight:8},{item:"coins",weight:40,min:1200,max:3000},{item:"death_rune",weight:15,min:12,max:30},{item:"runite_bar",weight:10,min:1,max:3},{item:"runite_ore",weight:8,min:2,max:3},{item:"uncut_diamond",weight:6,min:1,max:1},{item:"casket",weight:6,min:1,max:2},{item:"magic_seed",weight:3,min:1,max:1}],
+    uniques:[{item:"riftfang",chance:1/240},{item:"pet_riftling",chance:1/4000}] },
 ];
 // Skilling pets: one per skill. Rolled per action, so the odds depend on time spent, not on how fast the action is.
 const SKILL_PETS = { woodcutting:"pet_twiglet", firemaking:"pet_cinder", farming:"pet_burrow", fishing:"pet_puffin", cooking:"pet_crumb", mining:"pet_pebble", smithing:"pet_clinker", fletching:"pet_quill", enchanting:"pet_glimmer", brewing:"pet_hops", agility:"pet_scamper", thieving:"pet_fidget", slayer:"pet_grimling" };
@@ -1382,9 +1446,9 @@ const SLAYER_SHOP = [
 ];
 const SKIP_COST = 30, SLAYER_XP = 6;   // Slayer xp per monster hitpoint, on task
 // Gear: best piece you own and meet the level for is used automatically
-const WEAPONS = [ ["pvp_greatsword",75,70,68], ["pvp_warblade",60,56,58], ["pvp_sabre",40,44,34], ["dawnforged_blade",75,72,66], ["voidlash",75,74,58], ["gilded_scimitar",65,58,50], ["voidreaver",70,66,60], ["gargant_maul",60,44,64], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
-const ARMOURS = [ ["champ_body",65,88], ["pit_body",40,64], ["colossus_plate",70,95], ["troll_hide",60,85], ["runite_platebody",55,72], ["cobalt_platebody",40,60], ["drake_scale",50,75], ["mithril_platebody",30,46], ["steel_platebody",20,32], ["iron_platebody",10,21], ["leather_body",1,8] ]; // id, defence req, defence bonus
-const PETS = ["pet_chick","pet_goblin","pet_magpie","pet_giant","pet_squire","pet_drakeling","pet_troll","pet_wraith","pet_colossus","pet_gull","pet_parrot"];
+const WEAPONS = [ ["riftfang",80,80,72], ["thornlash_blade",60,60,56], ["lizard_glaive",20,23,19], ["pvp_greatsword",75,70,68], ["pvp_warblade",60,56,58], ["pvp_sabre",40,44,34], ["dawnforged_blade",75,72,66], ["voidlash",75,74,58], ["gilded_scimitar",65,58,50], ["voidreaver",70,66,60], ["gargant_maul",60,44,64], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
+const ARMOURS = [ ["cinderscale_body",65,90], ["champ_body",65,88], ["pit_body",40,64], ["colossus_plate",70,95], ["troll_hide",60,85], ["runite_platebody",55,72], ["cobalt_platebody",40,60], ["drake_scale",50,75], ["mithril_platebody",30,46], ["steel_platebody",20,32], ["iron_platebody",10,21], ["leather_body",1,8] ]; // id, defence req, defence bonus
+const PETS = ["pet_spiderling","pet_thornling","pet_wyvernling","pet_riftling","pet_chick","pet_goblin","pet_magpie","pet_giant","pet_squire","pet_drakeling","pet_troll","pet_wraith","pet_colossus","pet_gull","pet_parrot"];
 const FOOD = { eel:26, anglerfish:22, shark:20, sunfruit:18, swordfish:14, lobster:12, salmon:9, trout:7, baked_potato:4, cooked_chicken:3, shrimp:3, ship_biscuit:2 };
 const ROUND_MS = 2400, EAT_AT = 0.5, REGEN_MS = 6000;
 
@@ -1407,6 +1471,17 @@ const HERBS = [["herb_marshwort", 1], ["herb_emberleaf", 10], ["herb_bitterroot"
 // Seed drops from monsters: [item, monster level needed, weight, min, max]. 10% of kills (bosses 50%, double).
 const SEED_DROPS = [["potato_seed", 1, 30, 2, 5], ["barley_seed", 5, 22, 2, 4], ["acorn", 5, 12, 1, 2], ["hop_seed", 12, 18, 2, 4], ["willow_seed", 20, 10, 1, 1], ["maple_seed", 35, 6, 1, 1], ["yew_seed", 55, 3, 1, 1], ["magic_seed", 75, 1, 1, 1]];
 const SEED_CHANCE = 0.10, HERB_CHANCE = 0.14;
+// Rare drop table: shared by every monster. 1 kill in 40 (bosses 1 in 5) rolls it; entries unlock with the monster's level.
+// [item, monster level needed, weight, min, max]
+const RARE_DROPS = [["uncut_sapphire", 1, 26, 1, 2], ["coins", 1, 20, 250, 1500], ["casket", 5, 14, 1, 1], ["uncut_emerald", 15, 14, 1, 1], ["treasure_map", 25, 6, 1, 1], ["uncut_ruby", 30, 10, 1, 1], ["geode", 40, 6, 1, 2], ["runite_bar", 55, 4, 1, 2], ["uncut_diamond", 55, 4, 1, 1], ["dragonstone", 80, 1, 1, 1]];
+const RARE_CHANCE = 1 / 40;
+function rareDrop(m) {
+  if (Math.random() >= (m.boss ? 0.2 : RARE_CHANCE)) return null;
+  const av = RARE_DROPS.filter(e => m.lvl >= e[1]);
+  let r = Math.random() * av.reduce((n, e) => n + e[2], 0);
+  for (const [item, , w, lo, hi] of av) if ((r -= w) < 0) return { item, qty: randInt(lo, hi) * (item === "coins" ? Math.max(1, Math.round(m.lvl / 15)) : 1) };
+  return null;
+}
 function seedDrop(m) {
   if (Math.random() >= (m.boss ? 0.5 : SEED_CHANCE)) return null;
   const av = SEED_DROPS.filter(e => m.lvl >= e[1]);
@@ -1663,6 +1738,10 @@ Object.assign(GEAR, {
   pit_helm:{ slot:"head", req:["defence", 40], def:22 }, pit_legs:{ slot:"legs", req:["defence", 40], def:38 }, pit_shield:{ slot:"shield", req:["defence", 40], def:32 },
   champ_helm:{ slot:"head", req:["defence", 65], def:32 }, champ_legs:{ slot:"legs", req:["defence", 65], def:52 }, champ_shield:{ slot:"shield", req:["defence", 65], def:44 },
   bandit_mask:{ slot:"head", def:2 }, smuggler_coat:{ slot:"body", def:15 },
+  silk_hood:{ slot:"head", def:6 }, marsh_cloak:{ slot:"cape", def:6 }, ogre_helm:{ slot:"head", req:["defence", 30], def:18 }, ironhide_shield:{ slot:"shield", req:["defence", 30], def:28 },
+  sentinel_helm:{ slot:"head", req:["defence", 45], def:26 }, sentinel_shield:{ slot:"shield", req:["defence", 45], def:38 }, thornback_shield:{ slot:"shield", req:["defence", 60], def:46 },
+  wyvern_helm:{ slot:"head", req:["defence", 75], def:36 }, crawler_shield:{ slot:"shield", req:["defence", 15], def:16 }, banshee_veil:{ slot:"head", req:["defence", 40], def:22 },
+  mirror_shield:{ slot:"shield", req:["defence", 65], def:50 },
   slayer_helm:{ slot:"head", def:10 }, mire_greaves:{ slot:"legs", req:["defence", 35], def:35 },
   wayfarer_hat:{ slot:"head", def:2 }, patchwork_cape:{ slot:"cape", def:2 }, trimmed_shield:{ slot:"shield", req:["defence", 5], def:12 },
   ranger_tricorne:{ slot:"head", def:5 }, explorer_cape:{ slot:"cape", def:4 }, treasure_ring:{ slot:"ring" },
@@ -1793,6 +1872,7 @@ function fightRound(m, sum) {
     // herbs: about 1 kill in 7 (bosses usually drop a handful), plus the odd wildseed
     if (Math.random() < (m.boss ? 0.6 : HERB_CHANCE)) drops.push({ item: pickHerb(m.lvl), qty: m.boss ? randInt(2, 4) : 1 });
     const sd = seedDrop(m); if (sd) drops.push(sd);
+    const rd = rareDrop(m); if (rd) drops.push(rd);
     if (Math.random() < (m.boss ? 1 / 8 : 1 / 60)) drops.push({ item: "wildseed", qty: 1 });
     for (const d of drops) { trackedAdd("mon-" + m.id, d.item, d.qty); sum.items[d.item] = (sum.items[d.item] || 0) + d.qty; if (ITEMS[d.item].rare) sum.rare.push(ITEMS[d.item].name); }
     state.fight.mhp = m.hp; // next one steps up
@@ -2706,7 +2786,7 @@ function itemCat(k) {
   if (k.endsWith("_rune") || k.endsWith("_arrow")) return "Ammo & runes";
   if (k === "logs" || k.endsWith("_logs") || k === "ashes") return "Logs";
   if (k.endsWith("_ore") || k.endsWith("_bar") || k === "coal") return "Ores & bars";
-  if (k.startsWith("uncut_") || ["rune_essence", "runestone", "pearl"].includes(k)) return "Gems & essence";
+  if (k.startsWith("uncut_") || ["rune_essence", "runestone", "pearl", "dragonstone"].includes(k)) return "Gems & essence";
   if (k.startsWith("raw_")) return "Fish & meat";
   if (k.endsWith("_seed") || k === "acorn" || CROP_OUTS.has(k)) return "Seeds & crops";
   if (TOOL_IDS.has(k)) return "Tools";
@@ -2717,7 +2797,7 @@ function itemCat(k) {
     return "Armour";
   }
   if (it.rare) return "Charms & keepsakes";
-  if (it.sell !== undefined || /wing|moss|shard|essence|scale|hide/.test(k)) return "Monster drops";
+  if (it.sell !== undefined || /wing|moss|shard|essence|scale|hide|silk|shell|wisp|spine|eye|bone|tooth/.test(k)) return "Monster drops";
   return "Other";
 }
 const lootTable = (title, table) => { const t = table.reduce((s, e) => s + e.weight, 0);
@@ -2772,6 +2852,8 @@ function bankPanel() {
     h += `<h3>Monster seed drops <span>${Math.round(SEED_CHANCE * 100)}% of kills</span></h3><table class="loot">` + SEED_DROPS.map(([it, l, w, lo, hi]) => `<tr><td>${ITEMS[it].name}${hi > 1 ? ` ×${lo}–${hi}` : ""}</td><td class="num">Lv ${l}+</td><td class="num">${(w / sw * 100).toFixed(1)}%</td></tr>`).join("") + `</table>`;
     h += `<h3>Monster herb drops <span>${Math.round(HERB_CHANCE * 100)}% of kills</span></h3><table class="loot">` + HERBS.map(([it, l]) => `<tr><td>${ITEMS[it].name}</td><td class="num">Lv ${l}+</td></tr>`).join("") + `</table>`;
     h += `<p class="note">Monsters only drop seeds and herbs up to their own level; percentages are for a monster that can drop them all. Herbs lean towards the best three a monster can drop. Bosses drop seeds half the time (double amounts) and herbs most of the time.</p>`;
+    { const rw = RARE_DROPS.reduce((n, e) => n + e[2], 0);
+    h += `<h3>Rare drop table <span>1 in ${Math.round(1 / RARE_CHANCE)} kills (bosses 1 in 5)</span></h3><table class="loot">` + RARE_DROPS.map(([it, l, w, lo, hi]) => `<tr><td>${ITEMS[it].name}${hi > 1 ? ` ×${fmt(lo)}–${fmt(hi)}` : ""}</td><td class="num">Lv ${l}+</td><td class="num">${(w / rw * 100).toFixed(1)}%</td></tr>`).join("") + `</table><p class="note">Every monster can hit the rare drop table. Coins scale with the monster's level.</p>`; }
     h += lootTable("Bird's nest", NEST_TABLE) + lootTable("Casket", CASKET_TABLE) + lootTable("Geode", GEODE_TABLE) + lootTable("Essence rock gems", GEM_TABLE);
     h += `<p class="note">Monster and island uniques are listed in the collection logs on the Combat and Voyages pages.</p>`;
   }
@@ -3195,6 +3277,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 45, date: "14 Oct 2026", title: "New monsters and bigger loot", items: [
+    "Seven new monsters to fight: Cave spider (8), Marsh lizardman (20), Ironclad ogre (33), Cursed sentinel (48), Ember salamander (72), Storm wyvern (88) and a new boss, the Thornback Matriarch (60).",
+    "Four new Slayer monsters: Cave crawler (Slayer 20), Wailing banshee (Slayer 42), Basilisk (Slayer 65) and the Riftmaw (Slayer 90). They show up in Slayer tasks too.",
+    "New uniques for all of them, including Riftfang (the best melee weapon), the Stormcaller bow (the best bow), the Salamander staff, Cinderscale body and the Mirror shield, plus four new pets.",
+    "Every monster now has a bigger loot table (more runes, gems and materials), and there's a new rare drop table: 1 kill in 40 (bosses 1 in 5) gives a bonus gem, casket, treasure map, runite or, very rarely, a Dragonstone." ] },
   { v: 44, date: "14 Oct 2026", title: "Private messages", items: [
     "Send private messages to your friends. Open a friend and tap Message, or tap a friend's name in Chat.",
     "The Friends page now has a Messages tab with all your conversations, newest first. Unread messages show a badge here and in the side menu, and you get a pop-up when one arrives.",
@@ -3903,6 +3990,21 @@ const IC = {
 };
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
+  silk_hood:["hood",["#e8e4dc","#9a948a","#5a4646","#000"]], marsh_cloak:["cape",["#4aa05a","#2e6a3a","#d8d08a","#000"]], lizard_glaive:["sword",["#b0b8c0","#4aa05a","#000","#6b4a2a"]],
+  ogre_helm:["helm",["#9aa3ad","#5a6068","#8a9a5a","#000"]], ironhide_shield:["kite",["#9aa3ad","#5a6068","#8a9a5a","#000"]],
+  sentinel_helm:["helm",["#6a7080","#3e4250","#7dd8ff","#000"]], sentinel_shield:["kite",["#6a7080","#3e4250","#7dd8ff","#000"]],
+  thornlash_blade:["sword",["#8ac85a","#355a22","#000","#e0d49a"]], thornback_shield:["kite",["#5a8a3a","#355a22","#e0d49a","#000"]],
+  cinderscale_body:["body",["#e0502a","#9a2a18","#f7c23a","#000"]], salamander_staff:["staff",["#9a2a18","#000","#f7c23a","#ff7a1a"]],
+  stormcaller_bow:["bow",["#4a7ab0","#000","#000","#000"]], wyvern_helm:["helm",["#4a7ab0","#2a4a78","#f7e04a","#000"]],
+  crawler_shield:["kite",["#a08a5a","#6a5a3a","#ff7a1a","#000"]], banshee_veil:["hood",["#c8e0f0","#8aa8c8","#3a3a5a","#000"]],
+  mirror_shield:["kite",["#d8e4ee","#7a8a9a","#f0f040","#000"]], riftfang:["sword",["#c040ff","#4a1e6a","#000","#f0f0f0"]],
+  pet_spiderling:["pet",["#5a4646","#2e2222","#000","#ff3030"]], pet_thornling:["pet",["#5a8a3a","#355a22","#000","#e0d49a"]],
+  pet_wyvernling:["pet",["#4a7ab0","#2a4a78","#000","#f7e04a"]], pet_riftling:["pet",["#4a1e6a","#1e0a2e","#000","#c040ff"]],
+  spider_silk:["pile",["#e8e4dc","#9a948a","#ffffff","#000"]], lizard_scale:["gem",["#4aa05a","#2e6a3a","#a0e0a0","#000"]],
+  crawler_shell:["gem",["#a08a5a","#6a5a3a","#d8c89a","#000"]], banshee_wisp:["orb",["#c8e0f0","#8aa8c8","#ffffff","#000"]],
+  thornback_spine:["whip",["#e0d49a","#8a7a4a","#000","#5a8a3a"]], basilisk_eye:["orb",["#f0f040","#8a8a20","#1a1a1a","#000"]],
+  ember_scale:["gem",["#e0502a","#9a2a18","#f7c23a","#000"]], wyvern_bone:["wing",["#d8e4ee","#7a8a9a","#000","#000"]],
+  rift_tooth:["gem",["#f0f0f0","#9a9aa0","#c040ff","#000"]], dragonstone:["gem",["#c040ff","#6a1a9a","#f0b0ff","#000"]],
   daily_token:["coin",["#f0a33a","#8e5a1a","#fff1c8","#000"]], streak_saver:["horseshoe",["#f0a33a","#8e5a1a","#3a4048","#000"]],
   chat_bubble:["bubble",["#9aa3ad","#f2efe6","#3a3a44","#000"]],
   friends:["pals",["#f0c79a","#3d8bd9","#c99468","#5aa84e"]],
@@ -4019,6 +4121,147 @@ const icon = (key, cls) => { const u = iconURL(key); return u ? `<img class="ico
 // A 1-pixel black outline is added automatically. px = screen pixels per sprite pixel.
 const SKIN = "#f2c08e";
 const SPRITES = {
+  cave_spider: { px: 7, pal: { s:"#5a4646", S:"#2e2222", e:"#ff3030", l:"#7a6a6a" }, grid: [
+    "............",
+    "..l......l..",
+    ".l.l....l.l.",
+    "l...ssss...l",
+    "...ssssss...",
+    "l.ssSSSSss.l",
+    ".lssssssesl.",
+    "l.sSssssses.",
+    "..ssssssss..",
+    ".l.l.ss.l.l.",
+    "l..l....l..l",
+  ] },
+  lizardman: { px: 7, pal: { g:"#4aa05a", G:"#2e6a3a", e:"#f7e04a", y:"#d8d08a", s:"#b0b8c0", w:"#6b4a2a" }, grid: [
+    "........gg..",
+    ".......gggg.",
+    ".......ggeg.",
+    "......ggggyy",
+    "..s...ggg...",
+    "..w..ggggg..",
+    "..w.gGyyyGg.",
+    "..wgGgyyygGg",
+    "..w..gyyyg..",
+    "..w..gg.gg..",
+    "....gG...Gg.",
+    "...GG.....GG",
+  ] },
+  ogre: { px: 6, pal: { o:"#8a9a5a", O:"#5a6a3a", i:"#9aa3ad", I:"#5a6068", e:"#1a1a1a", t:"#f2efe6" }, grid: [
+    "....oooo....",
+    "...oooooo...",
+    "...oeooeo...",
+    "...ottoto...",
+    "..iiioooiii.",
+    ".iiIIiiiIIii",
+    "oiiiiiiiiiio",
+    "o.iiIiiIii.o",
+    "o.iiiiiiii.o",
+    "..ooo..ooo..",
+    "..OOO..OOO..",
+    ".OOOO..OOOO.",
+  ] },
+  sentinel: { px: 7, pal: { a:"#6a7080", A:"#3e4250", g:"#7dd8ff", k:"#1a1a20" }, grid: [
+    "....aaaa....",
+    "...aAAAAa...",
+    "...akggka...",
+    "...aAAAAa...",
+    ".aaaaaaaaaa.",
+    "aAaAAAAAAaAa",
+    "a.aaagaaaa.a",
+    "a.aAAAAAAa.a",
+    "...aaaaaa...",
+    "...aa..aa...",
+    "..AAA..AAA..",
+  ] },
+  matriarch: { px: 6, pal: { t:"#5a8a3a", T:"#355a22", s:"#e0d49a", e:"#ff5050", k:"#1a1a1a" }, grid: [
+    "..s..s..s...",
+    ".sts.ts.ts..",
+    ".tttttttttt.",
+    "ttTtttttTttt",
+    "tttttttttett",
+    "ttTtttttttkt",
+    "ttTTTTTTTTtt",
+    "tTtttttttttT",
+    "tTttTtttTttT",
+    ".tt.tt.tt.tt",
+    ".TT.TT.TT.TT",
+  ] },
+  salamander: { px: 7, pal: { r:"#e0502a", R:"#9a2a18", y:"#f7c23a", e:"#1a1a1a", f:"#ffde5a" }, grid: [
+    "............",
+    "............",
+    ".......rrrr.",
+    "......rrrerr",
+    ".....rrrrrry",
+    "..rrrrrrrr..",
+    ".rRrrRrrRr..",
+    "rr.rrrrrr...",
+    "r..R.r.R....",
+    "f..R...R....",
+    "yf..........",
+  ] },
+  wyvern: { px: 6, pal: { w:"#4a7ab0", W:"#2a4a78", b:"#c8d8ec", e:"#f7e04a" }, grid: [
+    "W.........W.",
+    "WW...ww..WW.",
+    "WWW.wwww.WWW",
+    ".WWwwwewwWW.",
+    "..wwwwwwww..",
+    "...wbbbbw...",
+    "..wwbbbbww..",
+    ".ww.wwww.ww.",
+    "w...w..w...w",
+    "...ww..ww...",
+  ] },
+  crawler: { px: 7, pal: { c:"#a08a5a", C:"#6a5a3a", e:"#ff7a1a", l:"#3a2e1e" }, grid: [
+    "............",
+    "............",
+    "....cccc....",
+    "..ccCCCCcc..",
+    ".cCCccccCCc.",
+    "cCcccccccecc",
+    "cccccccccccc",
+    ".lCl.lCl.lC.",
+    "l..l.l..l..l",
+  ] },
+  banshee: { px: 7, pal: { w:"#c8e0f0", W:"#8aa8c8", e:"#1a1a2a", m:"#3a3a5a", h:"#eef6ff" }, grid: [
+    "...hhhh.....",
+    "..hwwwwh....",
+    ".hwewwewh...",
+    ".hwwmmwwh...",
+    ".hwwmmwwh...",
+    "..wwwwww....",
+    ".wwWwwWww...",
+    "wwWwwwwWww..",
+    "wWwwwwwwWw..",
+    ".W.wW.wW.W..",
+    "..W..W..W...",
+  ] },
+  basilisk: { px: 7, pal: { b:"#5a7a3a", B:"#3a5222", e:"#f0f040", s:"#c8c070" }, grid: [
+    "........sss.",
+    "........bbb.",
+    ".......bbebb",
+    "......bbbbbs",
+    "..s.s.bbbb..",
+    ".bbbbbbbbb..",
+    "bBbbbbbbBb..",
+    "bbBbbbbBbb..",
+    "B.bb..bb....",
+    "..BB..BB....",
+  ] },
+  riftmaw: { px: 6, pal: { v:"#4a1e6a", V:"#1e0a2e", p:"#c040ff", t:"#f0f0f0", e:"#ff40a0" }, grid: [
+    "..vvvvvvvv..",
+    ".vvvvvvvvvv.",
+    "vvevvvvvvevv",
+    "vvvvvvvvvvvv",
+    "vtvtvtvtvtvv",
+    "vpppppppppvv",
+    "vtvtvtvtvtvv",
+    ".vvvvvvvvvv.",
+    "..VvVvvVvV..",
+    ".V..V..V..V.",
+    "V...V..V...V",
+  ] },
   gloombat: { px: 7, pal: { b:"#6a4aa0", B:"#2e1e4a", e:"#ff5050", t:"#ffffff" }, grid: [
     "b..........b",
     "bb...bb...bb",
@@ -6830,7 +7073,7 @@ function begin() {
   if (cloudOn) setTimeout(() => push(), 2000);
   if (cloudOn) { setInterval(chatTick, 4000); setTimeout(() => chatLoad(), 3000); setTimeout(() => frLoad(), 4500); setTimeout(() => pmLoadThreads(), 5000); }
 }
-window.__thornwick = { get state() { return state; }, render, frLoad, hsSync, fr, sceneDrops: () => { const now = performance.now(), a = scene.anims.find(x => x.k === "xpdrop" && now >= x.start); return a ? (now - a.start) / a.dur : 0; }, roofPayout, roofTime, roofGen, roofJump, roofSpeed, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
+window.__thornwick = { get state() { return state; }, render, frLoad, hsSync, fr, rareDrop, MONSTERS, sceneDrops: () => { const now = performance.now(), a = scene.anims.find(x => x.k === "xpdrop" && now >= x.start); return a ? (now - a.start) / a.dur : 0; }, roofPayout, roofTime, roofGen, roofJump, roofSpeed, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
