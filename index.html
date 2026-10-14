@@ -1103,6 +1103,13 @@ const ITEMS = {
   anglerfish:    { name: "Anglerfish",      desc: "Food. Heals 22.", sell: 180 },
   raw_eel:       { name: "Raw abyssal eel", desc: "Cook it.", sell: 110 },
   eel:           { name: "Abyssal eel",     desc: "Food. Heals 26.", sell: 250 },
+  adamantite_ore:{ name: "Adamantite ore",  desc: "Smelt with 5 coal (Smithing 60).", sell: 65 },
+  adamantite_bar:{ name: "Adamantite bar",  desc: "Smith on the anvil.", sell: 220 },
+  adamantite_axe:{ name: "Adamantite axe",  desc: "Chop 22% faster.", sell: 230 },
+  adamantite_pickaxe:{ name: "Adamantite pickaxe", desc: "Mine 22% faster.", sell: 450 },
+  adamantite_sword:{ name: "Adamantite sword", desc: "Weapon. Attack 35.", sell: 230 },
+  adamantite_platebody:{ name: "Adamantite platebody", desc: "Armour. Defence 35.", sell: 1100 },
+  adamantite_arrow:{ name: "Adamantite arrows", desc: "Ammo. Ranged strength 26.", sell: 14 },
   cobalt_ore:    { name: "Cobalt ore",      desc: "Smelt with 6 coal.", sell: 90 },
   runite_ore:    { name: "Runite ore",      desc: "Smelt with 8 coal.", sell: 300 },
   cobalt_bar:    { name: "Cobalt bar",      desc: "Smith on the anvil.", sell: 300 },
@@ -1171,7 +1178,7 @@ const ITEMS = {
   gold_signet:   { name: "Gold signet",     desc: "A knight's ring. Very valuable.", rare: true, sell: 1200 },
 };
 // armour sets: every metal gets a full helm, platelegs and kiteshield (defence share of the platebody)
-const METAL_DEF = { bronze:[1,12,8], iron:[10,21,25], steel:[20,32,60], mithril:[30,46,170], cobalt:[40,60,450], runite:[55,72,1300] }; // defence req, body defence, base sell
+const METAL_DEF = { bronze:[1,12,8], iron:[10,21,25], steel:[20,32,60], mithril:[30,46,170], adamantite:[35,53,280], cobalt:[40,60,450], runite:[55,72,1300] }; // defence req, body defence, base sell
 const PIECES = { full_helm:["full helm",0.35], platelegs:["platelegs",0.6], kiteshield:["kiteshield",0.5] };
 for (const [m, [req, def, sell]] of Object.entries(METAL_DEF)) for (const [k, [label, share]] of Object.entries(PIECES)) {
   const cap = m[0].toUpperCase() + m.slice(1);
@@ -1264,6 +1271,7 @@ const ROCKS = [
   { id:"iron",    name:"Iron rock",    lvl:15, time:4.0, xp:35,   item:"iron_ore",    geode:1/200 },
   { id:"coal",    name:"Coal seam",    lvl:30, time:5.0, xp:50,   item:"coal",        geode:1/175 },
   { id:"mithril", name:"Mithril vein", lvl:40, time:6.0, xp:80,   item:"mithril_ore", geode:1/150 },
+  { id:"adamantite", name:"Adamantite vein", lvl:55, time:6.2, xp:110, item:"adamantite_ore", geode:1/135 },
   { id:"cobalt",  name:"Cobalt vein",  lvl:70, time:6.5, xp:140,   item:"cobalt_ore",  geode:1/120 },
   { id:"runite",  name:"Runite vein",  lvl:85, time:7.5, xp:200,  item:"runite_ore",  geode:1/100, gem:1/60 },
 ];
@@ -1277,12 +1285,12 @@ const GEODE_TABLE = [
   { item:"skyfeather",     weight:7,  min:3,  max:6 },
   { item:"uncut_ruby",     weight:5,  min:1,  max:1 },
 ];
-const PICKAXES = [["forgefire_pickaxe",0.7,70],["runite_pickaxe",0.7],["cobalt_pickaxe",0.75],["mithril_pickaxe",0.8],["steel_pickaxe",0.85],["iron_pickaxe",0.9],["bronze_pickaxe",0.95]];
+const PICKAXES = [["forgefire_pickaxe",0.7,70],["runite_pickaxe",0.7],["cobalt_pickaxe",0.75],["adamantite_pickaxe",0.78],["mithril_pickaxe",0.8],["steel_pickaxe",0.85],["iron_pickaxe",0.9],["bronze_pickaxe",0.95]];
 // Smithing: furnace (bars) then anvil (gear). Firemaking makes smelting faster.
 const SMITH = [];
-[["bronze",1,"Bronze bar",{copper_ore:1, tin_ore:1},6.2],["iron",15,"Iron bar",{iron_ore:1},12.5],["steel",30,"Steel bar",{iron_ore:1, coal:2},17.5],["mithril",50,"Mithril bar",{mithril_ore:1, coal:4},30],["cobalt",70,"Cobalt bar",{cobalt_ore:1, coal:6},37.5],["runite",85,"Runite bar",{runite_ore:1, coal:8},50]]
+[["bronze",1,"Bronze bar",{copper_ore:1, tin_ore:1},6.2],["iron",15,"Iron bar",{iron_ore:1},12.5],["steel",30,"Steel bar",{iron_ore:1, coal:2},17.5],["mithril",50,"Mithril bar",{mithril_ore:1, coal:4},30],["adamantite",60,"Adamantite bar",{adamantite_ore:1, coal:5},34],["cobalt",70,"Cobalt bar",{cobalt_ore:1, coal:6},37.5],["runite",85,"Runite bar",{runite_ore:1, coal:8},50]]
   .forEach(([m, l, n, inputs, xp]) => SMITH.push({ id:`${m}_bar`, section:"Furnace", name:`Smelt ${n.toLowerCase()}`, lvl:l, time:2.4, xp, inputs, out:`${m}_bar`, smelt:true }));
-[["bronze",1,12.5],["iron",15,25],["steel",30,37.5],["mithril",50,50],["cobalt",70,62.5],["runite",85,75]].forEach(([m, l, xpb]) => {
+[["bronze",1,12.5],["iron",15,25],["steel",30,37.5],["mithril",50,50],["adamantite",60,56],["cobalt",70,62.5],["runite",85,75]].forEach(([m, l, xpb]) => {
   const cap = m[0].toUpperCase() + m.slice(1);
   [["axe",0,1],["sword",3,1],["full_helm",7,2],["pickaxe",4,2],["kiteshield",12,3],["platelegs",16,3],["platebody",17,5]].forEach(([kind, add, bars]) => {
     if (m === "bronze" && kind === "platebody") return; // leather is the starter body
@@ -1436,13 +1444,14 @@ const FLETCH = [
   { id:"willow_shortbow", section:"Bows",   name:"Willow shortbow",    lvl:35, time:2.4, xp:85,  inputs:{ willow_logs:2 },               out:"willow_shortbow" },
   { id:"mithril_arrow",   section:"Arrows", name:"Mithril arrows ×15", lvl:45, time:2.0, xp:110, inputs:{ mithril_bar:1, maple_logs:1 }, out:"mithril_arrow", outQty:15 },
   { id:"maple_shortbow",  section:"Bows",   name:"Maple shortbow",     lvl:50, time:2.4, xp:130, inputs:{ maple_logs:2 },                out:"maple_shortbow" },
+  { id:"adamantite_arrow", section:"Arrows", name:"Adamantite arrows ×15", lvl:52, time:2.0, xp:130, inputs:{ adamantite_bar:1, maple_logs:1 }, out:"adamantite_arrow", outQty:15 },
   { id:"cobalt_arrow",    section:"Arrows", name:"Cobalt arrows ×15",  lvl:60, time:2.0, xp:150, inputs:{ cobalt_bar:1, yew_logs:1 },   out:"cobalt_arrow",  outQty:15 },
   { id:"yew_shortbow",    section:"Bows",   name:"Yew shortbow",       lvl:65, time:2.4, xp:170, inputs:{ yew_logs:2 },                out:"yew_shortbow" },
   { id:"runite_arrow",    section:"Arrows", name:"Runite arrows ×15",  lvl:75, time:2.0, xp:200, inputs:{ runite_bar:1, magic_logs:1 }, out:"runite_arrow",  outQty:15 },
   { id:"magic_shortbow",  section:"Bows",   name:"Magic shortbow",     lvl:80, time:2.4, xp:230, inputs:{ magic_logs:2 },              out:"magic_shortbow" },
 ];
 const BOWS   = [ ["stormcaller_bow",75,70], ["pvp_longbow",65,60], ["pvp_shortbow",40,42], ["wraith_bow",70,64], ["magic_shortbow",55,50], ["yew_shortbow",40,38], ["drakebone_bow",45,55], ["maple_shortbow",30,29], ["willow_shortbow",20,20], ["oak_shortbow",10,14], ["shortbow",1,8] ];        // id, ranged req, accuracy
-const ARROWS = [ ["runite_arrow",40], ["cobalt_arrow",30], ["mithril_arrow",22], ["steel_arrow",16], ["iron_arrow",10], ["bronze_arrow",7] ];                                                  // id, ranged strength
+const ARROWS = [ ["runite_arrow",40], ["cobalt_arrow",30], ["adamantite_arrow",26], ["mithril_arrow",22], ["steel_arrow",16], ["iron_arrow",10], ["bronze_arrow",7] ];                                                  // id, ranged strength
 const STAFFS = [ ["salamander_staff",70,64,["fire_rune"]], ["pvp_staff",65,60,["air_rune","fire_rune"]], ["pvp_wand",40,44,["air_rune"]], ["storm_staff",55,48,["air_rune","water_rune"]], ["archmage_staff",45,55,["air_rune","fire_rune"]], ["fire_staff",40,38,["fire_rune"]], ["earth_staff",25,28,["earth_rune"]], ["air_staff",10,18,["air_rune"]], ["apprentice_staff",1,10,[]] ]; // id, magic req, accuracy, free runes
 const SPELLS = [
   { id:"wind",  name:"Wind strike",  lvl:1,  max:2,  xp:5.5,  runes:{ air_rune:1 } },
@@ -1483,13 +1492,13 @@ const MONSTERS = [
     table:[{item:null,weight:20},{item:"coins",weight:50,min:80,max:220},{item:"raw_lobster",weight:10,min:1,max:3},{item:"steel_bar",weight:10,min:1,max:3},{item:"mithril_ore",weight:8,min:1,max:3},{item:"gold_signet",weight:2,min:1,max:1},{item:"fire_rune",weight:8,min:15,max:35},{item:"uncut_emerald",weight:3,min:1,max:1}],
     uniques:[{item:"rogue_rapier",chance:1/200},{item:"knight_oath",chance:1/300},{item:"archmage_staff",chance:1/250},{item:"pet_squire",chance:1/3000}] },
   { id:"sentinel", name:"Cursed sentinel", weak:"magic", lvl:48, hp:90, att:56, def:58, max:11, always:[],
-    table:[{item:null,weight:12},{item:"coins",weight:42,min:150,max:420},{item:"chaos_rune",weight:10,min:8,max:20},{item:"mithril_bar",weight:10,min:1,max:3},{item:"steel_bar",weight:8,min:2,max:4},{item:"uncut_emerald",weight:6,min:1,max:1},{item:"uncut_sapphire",weight:6,min:1,max:2},{item:"casket",weight:3,min:1,max:1}],
+    table:[{item:null,weight:12},{item:"coins",weight:42,min:150,max:420},{item:"chaos_rune",weight:10,min:8,max:20},{item:"mithril_bar",weight:10,min:1,max:3},{item:"steel_bar",weight:8,min:2,max:4},{item:"uncut_emerald",weight:6,min:1,max:1},{item:"uncut_sapphire",weight:6,min:1,max:2},{item:"casket",weight:3,min:1,max:1},{item:"adamantite_ore",weight:7,min:2,max:4}],
     uniques:[{item:"sentinel_helm",chance:1/220},{item:"sentinel_shield",chance:1/200}] },
   { id:"drake",   name:"Moss drake",   weak:"ranged", lvl:55, hp:120, att:65, def:62, max:14, always:[],
     table:[{item:"coins",weight:55,min:200,max:600},{item:"skyfeather",weight:11,min:5,max:10},{item:"casket",weight:10,min:1,max:1},{item:"maple_seed",weight:8,min:1,max:2},{item:"mithril_bar",weight:12,min:1,max:3},{item:"uncut_ruby",weight:4,min:1,max:1},{item:"fire_rune",weight:8,min:30,max:60},{item:"cobalt_ore",weight:6,min:2,max:4}],
     uniques:[{item:"adamant_sword",chance:1/120},{item:"drake_scale",chance:1/250},{item:"drake_heart",chance:1/300},{item:"drakebone_bow",chance:1/150},{item:"pet_drakeling",chance:1/4000}] },
   { id:"matriarch", name:"Thornback Matriarch", weak:"magic", lvl:60, hp:300, att:70, def:68, max:18, always:[{item:"thornback_spine",min:1,max:2}], boss:true,
-    table:[{item:"coins",weight:40,min:1000,max:3000},{item:"mithril_bar",weight:15,min:3,max:6},{item:"cobalt_ore",weight:12,min:4,max:8},{item:"uncut_ruby",weight:10,min:1,max:2},{item:"casket",weight:10,min:1,max:2},{item:"bird_nest",weight:7,min:2,max:4},{item:"yew_seed",weight:6,min:1,max:1}],
+    table:[{item:"coins",weight:40,min:1000,max:3000},{item:"mithril_bar",weight:15,min:3,max:6},{item:"adamantite_bar",weight:10,min:2,max:4},{item:"cobalt_ore",weight:12,min:4,max:8},{item:"uncut_ruby",weight:10,min:1,max:2},{item:"casket",weight:10,min:1,max:2},{item:"bird_nest",weight:7,min:2,max:4},{item:"yew_seed",weight:6,min:1,max:1}],
     uniques:[{item:"thornlash_blade",chance:1/150},{item:"thornback_shield",chance:1/120},{item:"pet_thornling",chance:1/1500}] },
   { id:"troll",   name:"Frost troll",  weak:"magic",  lvl:65, hp:160, att:75,  def:70,  max:16, always:[],
     table:[{item:null,weight:15},{item:"coins",weight:40,min:300,max:800},{item:"coal",weight:14,min:5,max:12},{item:"raw_shark",weight:12,min:1,max:3},{item:"cobalt_ore",weight:12,min:2,max:5},{item:"runite_ore",weight:4,min:1,max:1},{item:"yew_seed",weight:3,min:1,max:1},{item:"water_rune",weight:8,min:40,max:80},{item:"uncut_ruby",weight:3,min:1,max:1}],
@@ -1520,7 +1529,7 @@ const MONSTERS = [
     table:[{item:null,weight:15},{item:"coins",weight:42,min:100,max:260},{item:"chaos_rune",weight:10,min:8,max:18},{item:"steel_bar",weight:10,min:1,max:3},{item:"uncut_sapphire",weight:8,min:1,max:2},{item:"raw_lobster",weight:7,min:1,max:3},{item:"uncut_emerald",weight:4,min:1,max:1},{item:"casket",weight:2,min:1,max:1}],
     uniques:[{item:"banshee_veil",chance:1/200}] },
   { id:"gargant", name:"Stone gargant", slayer:55, weak:"ranged", lvl:55, hp:140, att:62, def:72, max:13, always:[{item:"gargant_shard",min:1,max:1}],
-    table:[{item:null,weight:10},{item:"coins",weight:40,min:250,max:700},{item:"mithril_ore",weight:15,min:3,max:6},{item:"coal",weight:15,min:6,max:12},{item:"uncut_ruby",weight:5,min:1,max:1},{item:"casket",weight:5,min:1,max:1},{item:"earth_rune",weight:8,min:20,max:40},{item:"uncut_emerald",weight:4,min:1,max:1}],
+    table:[{item:null,weight:10},{item:"coins",weight:40,min:250,max:700},{item:"mithril_ore",weight:15,min:3,max:6},{item:"coal",weight:15,min:6,max:12},{item:"uncut_ruby",weight:5,min:1,max:1},{item:"casket",weight:5,min:1,max:1},{item:"earth_rune",weight:8,min:20,max:40},{item:"uncut_emerald",weight:4,min:1,max:1},{item:"adamantite_ore",weight:8,min:3,max:6}],
     uniques:[{item:"gargant_maul",chance:1/180}] },
   { id:"basilisk", name:"Basilisk", slayer:65, weak:"magic", lvl:66, hp:170, att:76, def:80, max:16, always:[{item:"basilisk_eye",min:1,max:1}],
     table:[{item:null,weight:10},{item:"coins",weight:40,min:400,max:1000},{item:"cobalt_bar",weight:12,min:1,max:3},{item:"mithril_ore",weight:10,min:4,max:8},{item:"earth_rune",weight:10,min:30,max:60},{item:"uncut_ruby",weight:6,min:1,max:1},{item:"casket",weight:4,min:1,max:1}],
@@ -1598,8 +1607,8 @@ const SLAYER_SHOP = [
 ];
 const SKIP_COST = 30, SLAYER_XP = 6;   // Slayer xp per monster hitpoint, on task
 // Gear: best piece you own and meet the level for is used automatically
-const WEAPONS = [ ["gloamreaper",85,78,84], ["riftfang",80,80,72], ["thornlash_blade",60,60,56], ["lizard_glaive",20,23,19], ["pvp_greatsword",75,70,68], ["pvp_warblade",60,56,58], ["pvp_sabre",40,44,34], ["dawnforged_blade",75,72,66], ["voidlash",75,74,58], ["gilded_scimitar",65,58,50], ["voidreaver",70,66,60], ["gargant_maul",60,44,64], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
-const ARMOURS = [ ["lizardscale_body",20,34], ["hardleather_body",10,18], ["cinderscale_body",65,90], ["champ_body",65,88], ["pit_body",40,64], ["colossus_plate",70,95], ["troll_hide",60,85], ["runite_platebody",55,72], ["cobalt_platebody",40,60], ["drake_scale",50,75], ["mithril_platebody",30,46], ["steel_platebody",20,32], ["iron_platebody",10,21], ["leather_body",1,8] ]; // id, defence req, defence bonus
+const WEAPONS = [ ["gloamreaper",85,78,84], ["riftfang",80,80,72], ["thornlash_blade",60,60,56], ["lizard_glaive",20,23,19], ["pvp_greatsword",75,70,68], ["pvp_warblade",60,56,58], ["pvp_sabre",40,44,34], ["dawnforged_blade",75,72,66], ["voidlash",75,74,58], ["gilded_scimitar",65,58,50], ["voidreaver",70,66,60], ["gargant_maul",60,44,64], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamantite_sword",35,32,27], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
+const ARMOURS = [ ["lizardscale_body",20,34], ["hardleather_body",10,18], ["cinderscale_body",65,90], ["champ_body",65,88], ["pit_body",40,64], ["colossus_plate",70,95], ["troll_hide",60,85], ["runite_platebody",55,72], ["cobalt_platebody",40,60], ["adamantite_platebody",35,53], ["drake_scale",50,75], ["mithril_platebody",30,46], ["steel_platebody",20,32], ["iron_platebody",10,21], ["leather_body",1,8] ]; // id, defence req, defence bonus
 const PETS = ["pet_spiderling","pet_thornling","pet_wyvernling","pet_riftling","pet_chick","pet_goblin","pet_magpie","pet_giant","pet_squire","pet_drakeling","pet_troll","pet_wraith","pet_colossus","pet_gull","pet_parrot"];
 const FOOD = { eel:26, anglerfish:22, shark:20, sunfruit:18, swordfish:14, lobster:12, salmon:9, trout:7, baked_potato:4, cooked_chicken:3, shrimp:3, ship_biscuit:2 };
 const ROUND_MS = 2400, EAT_AT = 0.5, REGEN_MS = 6000;
@@ -1752,7 +1761,7 @@ const SHOP = [
   { item:"brew_angler",   price:120, qty:1, req:["fishing",1],     sec:"brews", stack:true },
   { item:"brew_miner",    price:180, qty:1, req:["mining",1],      sec:"brews", stack:true },
 ];
-const AXES = [["emberheart_axe",0.7,70],["runite_axe",0.7],["cobalt_axe",0.75],["mithril_axe",0.8],["steel_axe",0.85],["iron_axe",0.9],["bronze_axe",0.95]];
+const AXES = [["emberheart_axe",0.7,70],["runite_axe",0.7],["cobalt_axe",0.75],["adamantite_axe",0.78],["mithril_axe",0.8],["steel_axe",0.85],["iron_axe",0.9],["bronze_axe",0.95]];
 
 const NEST_TABLE = [
   { item:"coins",         weight:50, min:20, max:80 },
@@ -3636,6 +3645,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 54, date: "14 Oct 2026", title: "Adamantite", items: [
+    "A new metal between mithril and cobalt. Mine adamantite veins at Mining 55, and smelt adamantite bars at Smithing 60 (1 ore + 5 coal).",
+    "Smith the full adamantite set at Smithing 60–77: axe, sword, pickaxe, full helm, kiteshield, platelegs and platebody. The sword and armour need Attack or Defence 35.",
+    "Fletch adamantite arrows at Fletching 52 (ranged strength 26).",
+    "Cursed sentinels and Stone gargants drop adamantite ore, and the Thornback Matriarch drops adamantite bars." ] },
   { v: 53, date: "14 Oct 2026", title: "Tidier Smithing", items: [
     "The Smithing page now has a row of bars at the top: Furnace, Bronze, Iron, Steel, Mithril, Cobalt and Runite. Tap one to see only what you can smelt or make from it.",
     "Each bar shows how many you have, and bars you haven't unlocked show the level you need. The game remembers the last bar you picked." ] },
@@ -4393,7 +4407,7 @@ const ITEM_TPL = {
 };
 // colour sets
 const IC = {
-  cobalt:["#2f6fd0","#1a3f80","#7ab0f0","#2f6fd0"], runite:["#2ab8b0","#13706a","#8ae8e0","#2ab8b0"],
+  cobalt:["#2f6fd0","#1a3f80","#7ab0f0","#2f6fd0"], adamantite:["#3a9a5a","#1f5a32","#8ad8a0","#3a9a5a"], runite:["#2ab8b0","#13706a","#8ae8e0","#2ab8b0"],
   wood:["#8a5a2a","#4a2e16","#d9b37a","#b07a3e"], oak:["#a0703a","#5a3a1c","#e3c58e","#c0904e"], willow:["#7a7a3a","#45451e","#cfd08a","#9a9a50"], maple:["#9a3e22","#55200f","#e2a77e","#b85a36"],
   bronze:["#c07a3a","#7a4a1e","#e8b07a","#c07a3a"], iron:["#8a8f96","#4e5359","#c8ccd2","#8a8f96"], steel:["#b8c0c8","#6a727a","#e8eef4","#b8c0c8"], mithril:["#5a6fb8","#2f3e7a","#9fb2ee","#5a6fb8"], adamant:["#3f8a5a","#1f4f30","#8ad0a2","#3f8a5a"],
 };
@@ -4498,7 +4512,8 @@ const ITEM_ICON = {
   yew_seed:["seeds",["#6a8a3a","#3a5020","#000","#000"]], magic_seed:["seeds",["#5a8ad0","#2f4a8a","#000","#000"]],
   raw_shark:["fish",["#7a8a9a","#4a5866","#000","#000"]], shark:["fish",["#a07a4a","#6a4a2a","#000","#000"]], raw_anglerfish:["fish",["#c86a8a","#8a3a5a","#000","#000"]], anglerfish:["fish",["#c0703a","#7a4220","#000","#000"]],
   raw_eel:["swordfish",["#4a3a7a","#2a1e4a","#8a7ac0","#000"]], eel:["swordfish",["#8a5a3a","#5a3a20","#c09a6a","#000"]],
-  cobalt_ore:["ore",icRock("#3a8ad0")], runite_ore:["ore",icRock("#3ad0c8")],
+  cobalt_ore:["ore",icRock("#3a8ad0")], adamantite_ore:["ore",icRock("#3aa860")], adamantite_bar:["bar",IC.adamantite], adamantite_axe:["axe",IC.adamantite], adamantite_pickaxe:["pickaxe",IC.adamantite],
+  adamantite_sword:["sword",IC.adamantite], adamantite_platebody:["body",IC.adamantite], adamantite_arrow:["arrow",["#3a9a5a","#000","#000","#f2efe6"]], runite_ore:["ore",icRock("#3ad0c8")],
   cobalt_bar:["bar",IC.cobalt], runite_bar:["bar",IC.runite], cobalt_axe:["axe",IC.cobalt], runite_axe:["axe",IC.runite], cobalt_pickaxe:["pickaxe",IC.cobalt], runite_pickaxe:["pickaxe",IC.runite],
   cobalt_sword:["sword",IC.cobalt], runite_sword:["sword",IC.runite], cobalt_platebody:["body",IC.cobalt], runite_platebody:["body",IC.runite],
   cobalt_arrow:["arrow",["#2f6fd0","#000","#000","#f2efe6"]], runite_arrow:["arrow",["#2ab8b0","#000","#000","#f2efe6"]],
@@ -5264,7 +5279,7 @@ function drawSkillScene(now) {
 
   // ---- the thing you're working on ----
   if (skill === "woodcutting") { const r = drawGrid(ctx, "tree:" + a.id, TREE_GRID, { L: TREE_COL[a.id] || "#4fae4a", l: "#ffffff55", T: "#6a4220" }, oX + shake, ground, 7); objTop = ground - r.h; }
-  else if (skill === "mining") { const ore = { copper:"#e0803a", tin:"#c8ccd2", iron:"#a8603a", coal:"#4a4a50", mithril:"#6a7fd0", cobalt:"#3a8ad0", runite:"#3ad0c8", essence:"#e0d8f0" }[a.id] || "#c8ccd2"; const r = drawGrid(ctx, "rock:" + a.id, ROCK_GRID, { K: a.id === "essence" ? "#b8a8d8" : "#6b6560", k: "#9a948e", O: ore }, oX + shake, ground, 7); objTop = ground - r.h; }
+  else if (skill === "mining") { const ore = { copper:"#e0803a", tin:"#c8ccd2", iron:"#a8603a", coal:"#4a4a50", mithril:"#6a7fd0", adamantite:"#3aa860", cobalt:"#3a8ad0", runite:"#3ad0c8", essence:"#e0d8f0" }[a.id] || "#c8ccd2"; const r = drawGrid(ctx, "rock:" + a.id, ROCK_GRID, { K: a.id === "essence" ? "#b8a8d8" : "#6b6560", k: "#9a948e", O: ore }, oX + shake, ground, 7); objTop = ground - r.h; }
   else if (skill === "smithing") {
     if (a.smelt) { const r = drawGrid(ctx, "furnace", FURNACE_GRID, { B: "#5a5e66", b: "#33363c", O: working ? "#ff7a1a" : "#7a3a10", Y: working ? (Math.sin(now / 90) > 0 ? "#ffd04a" : "#ffb52e") : "#9a5a20" }, oX, ground, 7); objTop = ground - r.h; }
     else { const r = drawGrid(ctx, "anvil", ANVIL_GRID, { S: "#d4d8de", K: "#5a5e66", k: "#33363c" }, oX - 18, ground, 6); objTop = ground - r.h; if (working && a.out) drawIcon(ctx, a.out, oX - 30, objTop - 8, 22); }
