@@ -1337,6 +1337,16 @@ const CROPS = [
 const PATCH_LEVELS = [1, 1, 10, 25];
 // Herbs: [id, monster level that starts dropping it (also the Farming level for wild herb patches)]
 const HERBS = [["herb_marshwort", 1], ["herb_emberleaf", 10], ["herb_bitterroot", 20], ["herb_moonmoss", 30], ["herb_frostcap", 45], ["herb_stormpetal", 60], ["herb_duskbloom", 75]];
+// Seed drops from monsters: [item, monster level needed, weight, min, max]. 10% of kills (bosses 50%, double).
+const SEED_DROPS = [["potato_seed", 1, 30, 2, 5], ["barley_seed", 5, 22, 2, 4], ["acorn", 5, 12, 1, 2], ["hop_seed", 12, 18, 2, 4], ["willow_seed", 20, 10, 1, 1], ["maple_seed", 35, 6, 1, 1], ["yew_seed", 55, 3, 1, 1], ["magic_seed", 75, 1, 1, 1]];
+const SEED_CHANCE = 0.10, HERB_CHANCE = 0.14;
+function seedDrop(m) {
+  if (Math.random() >= (m.boss ? 0.5 : SEED_CHANCE)) return null;
+  const av = SEED_DROPS.filter(e => m.lvl >= e[1]);
+  let r = Math.random() * av.reduce((n, e) => n + e[2], 0);
+  for (const [item, , w, lo, hi] of av) if ((r -= w) < 0) return { item, qty: randInt(lo, hi) * (m.boss ? 2 : 1) };
+  return null;
+}
 // pick a herb up to `lvl`, favouring the three best tiers you can get
 function pickHerb(lvl) {
   const av = HERBS.filter(([, l]) => lvl >= l); if (!av.length) return HERBS[0][0];
@@ -1714,7 +1724,8 @@ function fightRound(m, sum) {
     const r = rollTable(m.table); if (r && r.item) { if (r.item === "coins" && worn("bandit_mask")) r.qty = Math.round(r.qty * 1.25); drops.push(r); }
     for (const u of m.uniques) if (Math.random() < u.chance * (worn("wealth_ring") ? 1.1 : 1) * (PETS.includes(u.item) ? 1 + 0.1 * apLvl("kin") : 1 + 0.05 * apLvl("luck"))) { drops.push({ item: u.item, qty: 1 }); sum.uniques = (sum.uniques || []).concat(ITEMS[u.item].name); }
     // herbs: about 1 kill in 7 (bosses usually drop a handful), plus the odd wildseed
-    if (Math.random() < (m.boss ? 0.6 : 0.14)) drops.push({ item: pickHerb(m.lvl), qty: m.boss ? randInt(2, 4) : 1 });
+    if (Math.random() < (m.boss ? 0.6 : HERB_CHANCE)) drops.push({ item: pickHerb(m.lvl), qty: m.boss ? randInt(2, 4) : 1 });
+    const sd = seedDrop(m); if (sd) drops.push(sd);
     if (Math.random() < (m.boss ? 1 / 8 : 1 / 60)) drops.push({ item: "wildseed", qty: 1 });
     for (const d of drops) { trackedAdd("mon-" + m.id, d.item, d.qty); sum.items[d.item] = (sum.items[d.item] || 0) + d.qty; if (ITEMS[d.item].rare) sum.rare.push(ITEMS[d.item].name); }
     state.fight.mhp = m.hp; // next one steps up
@@ -2633,6 +2644,10 @@ function bankPanel() {
     h += `<div class="filters bcats" role="group" aria-label="Item categories">${slotFilter ? `<button id="bf-slot" data-bfilter="All" aria-pressed="true">${SLOT_NAMES[slotFilter]} gear ×</button>` : ""}<button id="bf-All" data-bfilter="All" aria-pressed="${!slotFilter && bankFilter === "All"}">All <span class="ct">${keys.length}</span></button>${present.map(([c, ic]) => { const n = keys.filter(k => itemCat(k) === c).length; return `<button id="bf-${c.replace(/\W/g, "")}" data-bfilter="${c}" aria-pressed="${!slotFilter && bankFilter === c}">${icon(ic)}${c} <span class="ct">${n}</span></button>`; }).join("")}</div>`;
     h += `<div id="bankItems">${bankItemsHtml()}</div>${bankSel ? `<div style="height:170px" aria-hidden="true"></div>` : ""}`;
   } else {
+    const sw = SEED_DROPS.reduce((n, e) => n + e[2], 0);
+    h += `<h3>Monster seed drops <span>${Math.round(SEED_CHANCE * 100)}% of kills</span></h3><table class="loot">` + SEED_DROPS.map(([it, l, w, lo, hi]) => `<tr><td>${ITEMS[it].name}${hi > 1 ? ` ×${lo}–${hi}` : ""}</td><td class="num">Lv ${l}+</td><td class="num">${(w / sw * 100).toFixed(1)}%</td></tr>`).join("") + `</table>`;
+    h += `<h3>Monster herb drops <span>${Math.round(HERB_CHANCE * 100)}% of kills</span></h3><table class="loot">` + HERBS.map(([it, l]) => `<tr><td>${ITEMS[it].name}</td><td class="num">Lv ${l}+</td></tr>`).join("") + `</table>`;
+    h += `<p class="note">Monsters only drop seeds and herbs up to their own level; percentages are for a monster that can drop them all. Herbs lean towards the best three a monster can drop. Bosses drop seeds half the time (double amounts) and herbs most of the time.</p>`;
     h += lootTable("Bird's nest", NEST_TABLE) + lootTable("Casket", CASKET_TABLE) + lootTable("Geode", GEODE_TABLE) + lootTable("Essence rock gems", GEM_TABLE);
     h += `<p class="note">Monster and island uniques are listed in the collection logs on the Combat and Voyages pages.</p>`;
   }
@@ -2745,6 +2760,7 @@ function clogTree() {
       { id: "lightfoot", name: "Lightfoot set", sub: "Agility laps", items: LIGHTFOOT.map(i => ({ item: i, unique: true, rate: `${oneIn(COURSES[0].rare)}–${oneIn(COURSES[COURSES.length - 1].rare)} per lap` })) },
       { id: "thieving", name: "Pickpocketing", sub: "Thieving", items: TARGETS.flatMap(t => t.loot.filter(e => ITEMS[e.item].rare).map(e => ({ item: e.item, unique: true, rate: `${t.name.replace("Pickpocket ", "")} ${oneIn(pct(t.loot, e.item))}` }))) },
       { id: "jewellery", name: "Enchanted jewellery", sub: "Enchanting", items: ENCHANT.filter(e => e.section === "Jewellery").map(e => ({ item: e.out, rate: `Enchanting ${e.lvl}` })) },
+      { id: "seeddrops", name: "Seeds from monsters", sub: `${Math.round(SEED_CHANCE * 100)}% of kills, by monster level`, items: SEED_DROPS.map(([it, l, w]) => ({ item: it, rate: `Monsters level ${l}+ · ${(w / SEED_DROPS.reduce((n, e) => n + e[2], 0) * 100).toFixed(1)}% of seed drops` })) },
       { id: "herbs", name: "Herbs", sub: "Monster drops and wild herb patches", items: HERBS.map(([h, l]) => ({ item: h, rate: `Monsters level ${l}+` })) },
       { id: "potions", name: "Potions", sub: "Brewing", items: POTIONS.map(x => ({ item: x.out, rate: `Brewing ${x.lvl}` })) },
       { id: "brews", name: "Brews", sub: "Brewing", items: BREWS.map(b => ({ item: b.out, rate: `Brewing ${b.lvl}` })) },
@@ -3041,6 +3057,10 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 35, date: "14 Oct 2026", title: "Seeds from monsters", items: [
+    "Monsters now drop seeds on about 1 kill in 10, alongside their usual loot: potato, barley and hop seeds and acorns from anything, willow seeds from level 20, maple from 35, yew from 55 and, very rarely, magic seeds from level 75.",
+    "Bosses drop seeds half the time, in double amounts.",
+    "Bank › Drop tables now lists the seed and herb drop rates." ] },
   { v: 34, date: "14 Oct 2026", title: "PvP gear in the Glory shop", items: [
     "The Glory shop now sells PvP weapons and armour, earned with glory and arena wins.",
     "Pitfighter tier (10 arena wins): Duelist's sabre, Skirmisher's bow, Battlemage's staff and a Pitfighter's helm, platebody, platelegs and shield (Defence 40). The Pitfighter's warblade (Attack 60) needs 25 wins.",
