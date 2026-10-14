@@ -506,6 +506,17 @@ body.noscroll{overflow:hidden}
 .frbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px} .frbtns .btn{min-height:38px} .btn.danger{border-color:var(--danger);color:var(--danger)}
 .frtag{font-size:.72rem;font-weight:700;color:#8fd08f;border:1px solid #5fd06855;border-radius:999px;padding:1px 7px}
 .frset{display:flex;align-items:center;gap:8px;margin:14px 0 4px;font-size:.88rem}
+.frtabs{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;margin:0 0 12px}
+.frtabs button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;border:0;border-radius:9px;background:none;color:var(--muted);font:inherit;font-weight:700;cursor:pointer}
+.frtabs button[aria-selected="true"]{background:var(--ember);color:var(--bg)} .frtabs .badge{position:static}
+.pmmeta{display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:.72rem;color:var(--muted)} .pmmeta .badge{position:static}
+.frrow.unread .frtxt span{color:var(--text,#f2efe6);font-weight:700}
+.pmhead{display:flex;align-items:center;gap:10px;margin:0 0 8px} .pmhead .btn{min-height:38px} .pmhead div{display:flex;flex-direction:column} .pmhead span{font-size:.78rem;color:var(--muted)} .pmhead span.on{color:#8fd08f}
+.pmlist{display:flex;flex-direction:column;gap:4px;height:calc(100vh - 460px);height:calc(100dvh - 460px);min-height:200px;overflow-y:auto;overscroll-behavior:contain;padding:8px 10px;border:1px solid var(--line);border-radius:12px}
+.pmb{max-width:80%;align-self:flex-start;background:#ffffff0d;border-radius:14px 14px 14px 4px;padding:7px 11px;font-size:.92rem;line-height:1.35;overflow-wrap:anywhere;white-space:pre-wrap}
+.pmb.me{align-self:flex-end;background:#f0a33a26;border-radius:14px 14px 4px 14px}
+.pmb span{display:block;font-size:.66rem;color:var(--muted);margin-top:2px;text-align:right}
+.pmseen{align-self:flex-end;font-size:.7rem;color:var(--muted);margin:-2px 4px 2px}
 .cact{display:flex;align-items:center;gap:8px;margin:2px 0 6px 8px;font-size:.8rem;color:var(--muted)} .cact .btn{min-height:32px;padding:4px 10px}
 .ccompose{display:flex;gap:8px;margin-top:10px}
 .ccompose input{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none}
@@ -2541,7 +2552,7 @@ const RAIL = [
 const railKey = () => tab === "chat" ? "chat:" : tab === "friends" ? "friends:" : tab === "daily" ? "daily:" : tab === "shops" ? "shops:" : tab === "arena" || tab === "roof" || tab === "mini" ? "mini:" : tab === "combat" ? "combat:" + combatSub : tab === "clog" ? "clog:" + logSub : tab === "more" ? "more:" + moreSub : tab === "bank" ? "bank:" : "skills:";
 function renderRail() {
   const b = badges(), cur = railKey(); let h = "", g = "";
-  const badge = { "chat:": tab === "chat" ? 0 : chat.unread, "friends:": frRequests().length, "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
+  const badge = { "chat:": tab === "chat" ? 0 : chat.unread, "friends:": frRequests().length + pmUnread(), "skills:": b.skills, "bank:": b.bank, "more:quests": claimable(), "daily:": state.daily && state.daily.list ? dailyLeft() : 0 };
   for (const [id, label, ic, tb, sub, grp] of RAIL) {
     if (grp !== g) { h += `${g ? '<span class="sep"></span>' : ""}<h4>${grp}</h4>`; g = grp; }
     const key = tb + ":" + sub, n = badge[key], dot = key === "more:news" && newsUnseen();
@@ -3184,6 +3195,11 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 44, date: "14 Oct 2026", title: "Private messages", items: [
+    "Send private messages to your friends. Open a friend and tap Message, or tap a friend's name in Chat.",
+    "The Friends page now has a Messages tab with all your conversations, newest first. Unread messages show a badge here and in the side menu, and you get a pop-up when one arrives.",
+    "You can message someone once they've added you as a friend, so strangers can't message you. Remove a friend to stop their messages.",
+    "Messages are saved, so you can scroll back through a conversation, and \"Seen\" shows when your friend has read your latest message." ] },
   { v: 43, date: "14 Oct 2026", title: "Friends list", items: [
     "New Friends page in the side menu. Add anyone by their username, or tap a name in Chat and choose Add friend.",
     "See who's online right now and what they're training, or when they were last seen. Tap a friend to see their combat level and every skill level.",
@@ -4840,6 +4856,11 @@ document.addEventListener("click", e => {
   if (t.dataset.frhide) { frHidden = [...new Set(frHidden.concat(t.dataset.frhide))]; lsSet("thornwick-friends-hidden", frHidden); renderRail(); frRender(); return; }
   if (t.dataset.frsel) { fr.sel = fr.sel === t.dataset.frsel ? null : t.dataset.frsel; fr.confirm = null; frRender(); return; }
   if (t.dataset.frrm) { if (fr.confirm === t.dataset.frrm) frRemove(t.dataset.frrm); else { fr.confirm = t.dataset.frrm; frRender(); } return; }
+  if (t.dataset.pmopen) { pmOpen(t.dataset.pmopen); return; }
+  if (t.dataset.pmback) { pm.open = null; pmLoadThreads(); frRender(); return; }
+  if (t.dataset.frview) { frView = t.dataset.frview; if (frView === "messages") { pm.open = null; pmLoadThreads(); } frRender(); return; }
+  if (t.id === "pmSend") { pmSend(); return; }
+  if (t.id === "pmOlder") { pmLoadThread(true); return; }
   if (t.dataset.frmsg) { chat.draft = "@" + t.dataset.frmsg + " "; chatSeen = chat.lastId; chat.unread = 0; tab = "chat"; render(); setTimeout(() => { chatRender("bottom"); chatLoad(); const i = $("chatInput"); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 0); window.scrollTo(0, 0); return; }
   if (t.id === "chatOlder") { chatLoad(true); return; }
   if (t.dataset.chatdel) { chatDelete(+t.dataset.chatdel); return; }
@@ -4956,8 +4977,8 @@ document.addEventListener("change", e => { if (e.target.id === "autoChop") { sta
 document.addEventListener("change", e => { if (e.target.id === "frAlerts") { state.opts.frAlerts = e.target.checked; save(); } });
 document.addEventListener("change", e => { if (e.target.id === "autoPot") { state.opts.autoPot = e.target.checked; toast(e.target.checked ? "Auto-drink on: combat potions stay topped up while you fight" : "Auto-drink off"); save(); } });
 document.addEventListener("toggle", e => { if (e.target && e.target.id === "eqStats") state.opts.eqStats = e.target.open; }, true);
-document.addEventListener("input", e => { if (e.target.id === "frInput") { fr.draft = e.target.value; return; } if (e.target.id === "chatInput") { chat.draft = e.target.value.slice(0, 200); const c = $("chatCount"); if (c) c.textContent = `${chat.draft.length}/200`; return; } if (e.target.id === "bankSearch") { bankSearch = e.target.value; const el = $("bankItems"); if (el) el.innerHTML = bankItemsHtml(); return; } if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "loginName") nameInput(e.target.value); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
-document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "chatInput") { e.preventDefault(); chatSend(); return; } if (e.target.id === "frInput") { e.preventDefault(); frAdd(fr.draft); return; } if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "loginName") saveUsername(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
+document.addEventListener("input", e => { if (e.target.id === "frInput") { fr.draft = e.target.value; return; } if (e.target.id === "pmInput") { if (pm.open) pm.draft[pm.open] = e.target.value.slice(0, 500); const c = $("pmCount"); if (c) c.textContent = `${e.target.value.length}/500`; return; } if (e.target.id === "chatInput") { chat.draft = e.target.value.slice(0, 200); const c = $("chatCount"); if (c) c.textContent = `${chat.draft.length}/200`; return; } if (e.target.id === "bankSearch") { bankSearch = e.target.value; const el = $("bankItems"); if (el) el.innerHTML = bankItemsHtml(); return; } if (e.target.id === "saveCode") saveDraft = e.target.value; if (e.target.id === "hsName") hs.nameDraft = e.target.value; if (e.target.id === "loginName") nameInput(e.target.value); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") cloud.emailDraft = e.target.value; if (e.target.id === "cloudCode" || e.target.id === "loginCode") cloud.codeDraft = e.target.value; });
+document.addEventListener("keydown", e => { if (e.key !== "Enter") return; if (e.target.id === "chatInput") { e.preventDefault(); chatSend(); return; } if (e.target.id === "frInput") { e.preventDefault(); frAdd(fr.draft); return; } if (e.target.id === "pmInput") { e.preventDefault(); pmSend(); return; } if (e.target.id === "hsName") hsSaveName(); if (e.target.id === "loginName") saveUsername(); if (e.target.id === "cloudEmail" || e.target.id === "loginEmail") sendCode(); if (e.target.id === "cloudCode" || e.target.id === "loginCode") verifyCode(); });
 
 /* ================= CLOUD SAVE (Supabase) =================
    Sign in with an emailed code; the save lives in the `saves` table (one row per player).
@@ -5011,7 +5032,7 @@ async function accessToken() {
   return refreshing;
 }
 function signOutLocal(msg) {
-  cm.s = null; cm.rev = null; cm.synced = null; cm.hsName = null; cm.hsXp = null; saveMeta(); hs.rows = null; fr.rows = null; fr.at = 0; fr.online = null;
+  cm.s = null; cm.rev = null; cm.synced = null; cm.hsName = null; cm.hsXp = null; saveMeta(); hs.rows = null; fr.rows = null; fr.at = 0; fr.online = null; pm.threads = null; pm.open = null; pm.msgs = []; pm.draft = {};
   const wasOpen = loginOpen();
   cloud.step = "out"; cloud.codeDraft = ""; cloud.msg = msg || ""; render();
   if (started) showLogin(); else if (wasOpen) renderLogin();
@@ -6449,7 +6470,7 @@ function chatBody() {
     if (day !== lastDay) { h += `<div class="cday">${new Date(m.created_at).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}</div>`; lastDay = day; }
     const mine = chat.mine.has(m.id);
     h += `<div class="cmsg ${mine ? "me" : ""}"><div class="ch"><button class="cname" data-chatname="${esc(m.name)}" ${mine ? "disabled" : ""}>${esc(m.name)}</button><span class="clvl" title="Total level">${fmt(m.lvl)}</span><span class="ctime" title="${esc(new Date(m.created_at).toLocaleString())}">${chatAgo(m.created_at)}</span>${mine ? `<button class="cdel" data-chatdel="${m.id}" aria-label="Delete your message" title="Delete">×</button>` : ""}</div><div class="cb">${esc(m.body)}</div></div>`;
-    if (chat.sel === m.name && !mine && m === list.filter(x => x.name === chat.sel).slice(-1)[0]) h += `<div class="cact"><span>${esc(m.name)}</span>${cm.s && cm.hsName ? frIsFriend(m.name) ? `<span class="frtag">Friend</span>` : `<button class="btn" data-fradd="${esc(m.name)}">Add friend</button>` : ""}<button class="btn" data-chatmute="${esc(m.name)}">Mute</button><button class="btn" data-chatclose="1">Cancel</button></div>`;
+    if (chat.sel === m.name && !mine && m === list.filter(x => x.name === chat.sel).slice(-1)[0]) h += `<div class="cact"><span>${esc(m.name)}</span>${cm.s && cm.hsName ? frIsFriend(m.name) ? `<button class="btn" data-pmopen="${esc(m.name)}">Message</button>` : `<button class="btn" data-fradd="${esc(m.name)}">Add friend</button>` : ""}<button class="btn" data-chatmute="${esc(m.name)}">Mute</button><button class="btn" data-chatclose="1">Cancel</button></div>`;
   }
   h += `</div>`;
   if (chat.err) h += `<p class="cerr">${esc(chat.err)}</p>`;
@@ -6478,6 +6499,8 @@ function chatTick() {
   if (!cloudOn || !started) return;
   fr.tick++;
   if (cm.s && cm.hsName && ((tab === "friends" && !document.hidden && fr.tick % 3 === 0) || fr.tick % 8 === 0)) frLoad();
+  const pmLive = tab === "friends" && frView === "messages" && !document.hidden;
+  if (cm.s && cm.hsName) { if (pmLive && pm.open) pmLoadThread(); if ((pmLive && fr.tick % 2 === 0) || fr.tick % 4 === 0) pmLoadThreads(); }
   chat.tick++;
   const open = tab === "chat" && !document.hidden;
   if (open || chat.tick % 15 === 0) chatLoad();
@@ -6545,14 +6568,17 @@ function frRow(r, req) {
     const xp = r.xp || {};
     h += `<div class="frmore"><div class="frstat">${on ? "Online now" : frSeen(r)} · Combat <b>${r.combat_level || 3}</b> · Total <b>${fmt(r.total_level || 0)}</b>${r.they_added ? ` · <span class="frtag">Friends with you</span>` : ""}</div>
       <div class="frskills">${Object.keys(SKILLS).map(k => `<span title="${esc(SKILLS[k].name)}: ${fmt(xp[k] || 0)} xp">${icon(k)}<b>${levelOf(xp[k] || 0)}</b></span>`).join("")}</div>
-      <div class="frbtns"><button class="btn" data-frmsg="${esc(r.name)}">Message in chat</button><button class="btn ${fr.confirm === r.name ? "danger" : ""}" data-frrm="${esc(r.name)}">${fr.confirm === r.name ? "Tap again to remove" : "Remove"}</button></div></div>`;
+      <div class="frbtns"><button class="btn solid" data-pmopen="${esc(r.name)}">Message</button><button class="btn ${fr.confirm === r.name ? "danger" : ""}" data-frrm="${esc(r.name)}">${fr.confirm === r.name ? "Tap again to remove" : "Remove"}</button></div></div>`;
   }
   return h + `</div>`;
 }
 function friendsBody() {
   if (!cm.s) return `<div class="hsme"><span>Sign in to keep a friends list and see when your friends are playing.</span><button class="btn solid" id="hsSignIn">Sign in</button></div>`;
   if (!cm.hsName) return `<div class="hsme"><span>Choose a username to use the friends list.</span><button class="btn solid" id="pickName">Choose username</button></div>`;
-  let h = `<div class="fradd"><input class="cin" id="frInput" maxlength="12" placeholder="Add a friend by username" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-label="Friend's username" value="${esc(fr.draft)}"><button class="btn solid" id="frAddBtn" ${fr.busy ? "disabled" : ""}>Add</button></div>
+  const un = pmUnread();
+  let h = `<div class="frtabs" role="tablist"><button data-frview="friends" role="tab" aria-selected="${frView === "friends"}">Friends${frRequests().length ? ` <span class="badge">${frRequests().length}</span>` : ""}</button><button data-frview="messages" role="tab" aria-selected="${frView === "messages"}">Messages${un ? ` <span class="badge">${un > 99 ? "99+" : un}</span>` : ""}</button></div>`;
+  if (frView === "messages") return h + pmBody();
+  h += `<div class="fradd"><input class="cin" id="frInput" maxlength="12" placeholder="Add a friend by username" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-label="Friend's username" value="${esc(fr.draft)}"><button class="btn solid" id="frAddBtn" ${fr.busy ? "disabled" : ""}>Add</button></div>
     <p class="lmsg frmsg" id="frMsg" role="status">${esc(fr.msg)}</p>`;
   if (fr.err) h += `<p class="cerr">${esc(fr.err)}</p>`;
   if (!fr.rows) return h + `<p class="note">${fr.loading ? "Loading your friends…" : ""}</p>`;
@@ -6571,11 +6597,122 @@ function friendsPanel() {
   return `<div class="pagehead"><h2>Friends</h2><span id="frCount">${frHead()}</span></div><div id="frBody">${friendsBody()}</div>`;
 }
 // redraw just the friends page (keeps your typing)
-function frRender() {
+function frRender(scroll) {
   const el = $("frBody"); if (tab !== "friends" || !el) return;
   const f = document.activeElement && document.activeElement.id;
+  const old = $("pmList"), atBottom = !old || old.scrollHeight - old.scrollTop - old.clientHeight < 40, prevH = old ? old.scrollHeight : 0, prevTop = old ? old.scrollTop : 0;
   el.innerHTML = friendsBody(); const c = $("frCount"); if (c) c.textContent = frHead();
-  if (f && $(f)) { $(f).focus({ preventScroll: true }); if (f === "frInput") { const i = $(f); i.setSelectionRange(i.value.length, i.value.length); } }
+  const list = $("pmList");
+  if (list) { if (scroll === "older") list.scrollTop = prevTop + (list.scrollHeight - prevH); else if (scroll === "bottom" || atBottom || !old) list.scrollTop = list.scrollHeight; else list.scrollTop = prevTop; }
+  if (f && $(f)) { const i = $(f); i.focus({ preventScroll: true }); if (f === "frInput" || f === "pmInput") i.setSelectionRange(i.value.length, i.value.length); }
+}
+
+/* ================= PRIVATE MESSAGES =================
+   Supabase table private_messages + rpc pm_send / pm_threads / pm_thread (see the SQL doc). You can message a player
+   once they have you on their friends list, so strangers can't message you; removing someone stops their messages.
+   Opening a conversation marks it read; the sender sees "Seen". */
+let frView = "friends";
+const pm = { threads: null, at: 0, loading: false, err: "", open: null, msgs: [], more: true, draft: {}, sending: false, terr: "", tloading: false, seenNew: null };
+const pmUnread = () => (pm.threads || []).reduce((n, t) => n + (t.name === pm.open && tab === "friends" && frView === "messages" ? 0 : t.unread || 0), 0);
+const pmThread = name => (pm.threads || []).find(t => t.name.toLowerCase() === String(name || "").toLowerCase());
+function pmCanSend(name) { const t = pmThread(name), f = (fr.rows || []).find(r => r.name.toLowerCase() === String(name || "").toLowerCase()); return !!((t && t.can_send) || (f && f.they_added)); }
+async function pmLoadThreads() {
+  if (!cloudOn || !cm.s || !cm.hsName || pm.loading) return;
+  pm.loading = true;
+  try {
+    const rows = await api("/rest/v1/rpc/pm_threads", { method: "POST", body: {} }, true);
+    const prev = pm.threads; pm.threads = rows || []; pm.at = Date.now(); pm.err = "";
+    if (prev) for (const t of pm.threads) {
+      const was = prev.find(x => x.name === t.name);
+      const fresh = !t.last_mine && t.unread > 0 && (!was || new Date(t.last_at) > new Date(was.last_at));
+      const looking = tab === "friends" && frView === "messages" && pm.open === t.name && !document.hidden;
+      if (fresh && !looking) toast(`${t.name}: ${t.last_body.length > 70 ? t.last_body.slice(0, 70) + "…" : t.last_body}`, true);
+    }
+  } catch (e) { pm.err = e.status === 0 ? "Can't reach your messages right now." : (e.msg || "Messages error"); }
+  pm.loading = false; renderRail(); if (tab === "friends" && frView === "messages" && !pm.open) frRender();
+}
+function pmOpen(name) {
+  const t = pmThread(name), real = t ? t.name : ((fr.rows || []).find(r => r.name.toLowerCase() === name.toLowerCase()) || { name }).name;
+  frView = "messages"; pm.open = real; pm.msgs = []; pm.more = true; pm.terr = "";
+  if (tab !== "friends") { tab = "friends"; render(); window.scrollTo(0, 0); } else frRender("bottom");
+  pmLoadThread().then(() => { const i = $("pmInput"); if (i && !(window.matchMedia && matchMedia("(pointer:coarse)").matches)) i.focus({ preventScroll: true }); });
+}
+async function pmLoadThread(older) {
+  const name = pm.open; if (!name || !cm.s || pm.tloading) return;
+  pm.tloading = true; if (!pm.msgs.length && !older) frRender("bottom");
+  try {
+    const body = { p_name: name };
+    if (older && pm.msgs.length) body.p_before = pm.msgs[0].id;
+    else if (pm.msgs.length) body.p_after = pm.msgs[pm.msgs.length - 1].id;
+    const rows = await api("/rest/v1/rpc/pm_thread", { method: "POST", body }, true) || [];
+    if (pm.open !== name) { pm.tloading = false; return; }
+    if ((older || !pm.msgs.length) && rows.length < 50) pm.more = false;
+    const byId = new Map(pm.msgs.map(m => [m.id, m]));
+    for (const r of rows) byId.set(r.id, r);
+    // refresh "Seen" on your recent messages (cheap: only when something arrived or every few polls)
+    pm.msgs = [...byId.values()].sort((a, b) => a.id - b.id);
+    const t = pmThread(name); if (t) t.unread = 0;
+    pm.terr = ""; pm.tloading = false; renderRail();
+    if (rows.length || older || !pm.loadedOnce) frRender(older ? "older" : "auto");
+    pm.loadedOnce = true;
+    if (!older && pm.msgs.some(m => m.mine && !m.read_at)) pmSeenCheck(name);
+    return;
+  } catch (e) { pm.terr = e.status === 0 ? "Can't reach your messages right now." : (e.msg || "Couldn't load messages."); }
+  pm.tloading = false; frRender();
+}
+// has the other player read what you sent? (re-read the newest page now and then)
+let pmSeenAt = 0;
+async function pmSeenCheck(name) {
+  if (Date.now() - pmSeenAt < 12000) return; pmSeenAt = Date.now();
+  try {
+    const rows = await api("/rest/v1/rpc/pm_thread", { method: "POST", body: { p_name: name } }, true) || [];
+    if (pm.open !== name) return; let changed = false;
+    for (const r of rows) { const m = pm.msgs.find(x => x.id === r.id); if (m && m.read_at !== r.read_at) { m.read_at = r.read_at; changed = true; } }
+    if (changed) frRender();
+  } catch (e) {}
+}
+async function pmSend() {
+  const name = pm.open; if (!name || pm.sending) return;
+  const text = (pm.draft[name] || "").replace(/\s+/g, " ").trim().slice(0, 500);
+  if (!text) return;
+  pm.sending = true; pm.terr = ""; frRender("bottom");
+  try {
+    await api("/rest/v1/rpc/pm_send", { method: "POST", body: { p_to: name, p_body: text } }, true);
+    pm.draft[name] = ""; pm.sending = false; await pmLoadThread(); pmLoadThreads();
+  } catch (e) { pm.terr = e.status === 0 ? "Can't reach the server right now." : (e.msg || "Couldn't send that."); }
+  pm.sending = false; frRender("bottom");
+  const i = $("pmInput"); if (i) i.focus({ preventScroll: true });
+}
+function pmBody() {
+  if (pm.open) {
+    const name = pm.open, f = (fr.rows || []).find(r => r.name === name), on = f && frOnline(f), can = pmCanSend(name);
+    let h = `<div class="pmhead"><button class="btn" data-pmback="1" aria-label="Back to messages">‹ Back</button><div><b>${esc(name)}</b><span class="${on ? "on" : ""}">${f ? (on ? "Online · " + esc(f.doing || "Idle") : frSeen(f)) : ""}</span></div></div>`;
+    h += `<div class="pmlist" id="pmList" role="log" aria-live="polite" aria-label="Messages with ${esc(name)}">`;
+    if (pm.more && pm.msgs.length >= 50) h += `<button class="linkbtn chatolder" id="pmOlder">Load older messages</button>`;
+    if (!pm.msgs.length) h += pm.tloading ? `<p class="note">Loading…</p>` : `<div class="empty">No messages yet. Say hello to ${esc(name)}!</div>`;
+    let lastDay = ""; const lastMine = [...pm.msgs].reverse().find(m => m.mine);
+    for (const m of pm.msgs) {
+      const day = new Date(m.created_at).toDateString();
+      if (day !== lastDay) { h += `<div class="cday">${new Date(m.created_at).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}</div>`; lastDay = day; }
+      h += `<div class="pmb ${m.mine ? "me" : ""}"><div>${esc(m.body)}</div><span title="${esc(new Date(m.created_at).toLocaleString())}">${new Date(m.created_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</span></div>`;
+      if (m === lastMine && m.read_at && m === pm.msgs[pm.msgs.length - 1]) h += `<div class="pmseen">Seen</div>`;
+    }
+    h += `</div>`;
+    if (pm.terr) h += `<p class="cerr">${esc(pm.terr)}</p>`;
+    if (can) { const d = pm.draft[name] || ""; h += `<div class="ccompose"><input id="pmInput" maxlength="500" placeholder="Message ${esc(name)}…" value="${esc(d)}" autocomplete="off" enterkeyhint="send" aria-label="Message"><button class="btn solid" id="pmSend" ${pm.sending ? "disabled" : ""}>${pm.sending ? "…" : "Send"}</button></div><div class="cfoot"><span id="pmCount">${d.length}/500</span><span>Only you and ${esc(name)} can see these.</span></div>`; }
+    else h += `<div class="ccompose locked"><span>${esc(name)} needs to add you as a friend before you can message them.</span></div>`;
+    return h;
+  }
+  let h = "";
+  if (pm.err) h += `<p class="cerr">${esc(pm.err)}</p>`;
+  if (!pm.threads) return h + `<p class="note">${pm.loading ? "Loading messages…" : ""}</p>`;
+  if (!pm.threads.length) h += `<div class="empty">No messages yet. Open a friend on the Friends tab and tap Message.</div>`;
+  for (const t of pm.threads) {
+    const f = (fr.rows || []).find(r => r.name === t.name), on = f ? frOnline(f) : t.updated_at && Date.now() - new Date(t.updated_at).getTime() < FR_ONLINE_MS;
+    h += `<div class="frrow ${on ? "on" : ""} ${t.unread ? "unread" : ""}"><button class="frmain" data-pmopen="${esc(t.name)}"><span class="frdot" aria-hidden="true"></span><span class="frtxt"><b>${esc(t.name)}</b><span>${t.last_mine ? "You: " : ""}${esc(t.last_body)}</span></span><span class="pmmeta"><span>${chatAgo(t.last_at)}</span>${t.unread ? `<span class="badge">${t.unread}</span>` : ""}</span></button></div>`;
+  }
+  h += `<p class="note">Players can message you once you've added them as a friend. Remove someone to stop their messages.</p>`;
+  return h;
 }
 
 /* ================= LOGIN SCREEN ================= */
@@ -6691,7 +6828,7 @@ function begin() {
   render(); renderNow();
   lastFrame = performance.now(); requestAnimationFrame(frame);
   if (cloudOn) setTimeout(() => push(), 2000);
-  if (cloudOn) { setInterval(chatTick, 4000); setTimeout(() => chatLoad(), 3000); setTimeout(() => frLoad(), 4500); }
+  if (cloudOn) { setInterval(chatTick, 4000); setTimeout(() => chatLoad(), 3000); setTimeout(() => frLoad(), 4500); setTimeout(() => pmLoadThreads(), 5000); }
 }
 window.__thornwick = { get state() { return state; }, render, frLoad, hsSync, fr, sceneDrops: () => { const now = performance.now(), a = scene.anims.find(x => x.k === "xpdrop" && now >= x.start); return a ? (now - a.start) / a.dur : 0; }, roofPayout, roofTime, roofGen, roofJump, roofSpeed, arena, arenaStart, arenaMove, arenaLoad, arenaNpcs, arenaState, ghostFighter, ASHOP, buyAshop, roof, roofNew, roofStep, roofPress, roofState, roofRelease, ROOF_UNLOCKS, buySpecial, ensureSpecial, todaySpecial, makeBoss, DSPECIAL, weekKey, buyDshop, rerollDaily, makeChallenges, checkDaily, ensureDaily, dailyText, dailyProgress, makeDaily, todayKey, apBalance, skillClueOdds, get started() { return started; }, giveClue, clueTick, openClueCasket, dawnPopTest: dawnPop, makeStep, stepText, clueGo, fullDawn, DAWNFORGED, CLUE_TIERS, clueFromKill, clueFromSkill, newTask, slayerKill, givePet, petRoll, taskMon, buySlayer, fightTask, onTask, SKILL_PETS, SLAYER_SHOP, allPets, drawFollower, renderSheet, get tab() { return tab; }, showLogin, cloud, get cm() { return cm; }, push, cloudCheck, drawVoyageScene, drawSkillScene, get skq() { return skq; }, ACTIONS, ITEMS, SHOP, CROPS, BREWS, VOYAGES, BOATS, COURSES, stunMs, lapFail, xpMult, FOOD, NEST_TABLE, CASKET_TABLE, GEODE_TABLE, GEM_TABLE, EYRIE, totalLevel, GEAR, eq, worn, equipItem, defBonus, autoEquip, QUESTS, questProgress, claimQuest, checkQuests, unlocksBetween, levelPop, report, fuelItem, iconURL, clogTree, got, drawScene, fx, playerMax, playerAcc, combatLevel, casts, SPELLS, buyUpgrade, buyGoods, voyageFood, voyageRolls, startBrew, collectBrew, drink, buildBoat, sail, unload, voyageMs, actionTime, findAction, SMITH, weapon, combatLevel, MONSTERS, playerAcc, playerMax, foeAcc, burnChance, RECIPES, thieveChance, TARGETS, advance, plant, harvest, fertilise, sell, buy, openNests, levelOf, XP_TABLE };
 window.claude?.hot?.snapshot?.(() => ({ state }));
