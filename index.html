@@ -758,6 +758,7 @@ const SKILLS = {
   ranged:      { name: "Ranged" },
   magic:       { name: "Magic" },
   fletching:   { name: "Fletching" },
+  crafting:    { name: "Crafting" },
   thieving:    { name: "Thieving" },
   slayer:      { name: "Slayer" },
 };
@@ -870,6 +871,25 @@ const ITEMS = {
   mire_greaves:  { name: "Mire greaves",    desc: "Bog horror unique. Legs, Defence 35.", rare: true, sell: 6000 },
   gargant_maul:  { name: "Gargant maul",    desc: "Stone gargant unique. Weapon, Attack 60. Hits very hard.", rare: true, sell: 20000 },
   voidlash:      { name: "Voidlash",        desc: "Void stalker unique. Weapon, Attack 75. Very accurate.", rare: true, sell: 40000 },
+  hide:          { name: "Hide",            desc: "A rough animal hide. Tan it into leather with Crafting.", sell: 6 },
+  leather:       { name: "Leather",         desc: "Tanned hide, ready to craft.", sell: 14 },
+  leather_cowl:  { name: "Leather cowl",    desc: "Crafted. Head, Defence 3.", sell: 10 },
+  leather_chaps: { name: "Leather chaps",   desc: "Crafted. Legs, Defence 5.", sell: 20 },
+  hardleather_body:{ name: "Hardleather body", desc: "Crafted. Body, Defence 18 (needs Defence 10).", sell: 45 },
+  silk_cape:     { name: "Silk cape",       desc: "Crafted from spider silk. Cape, Defence 3.", sell: 60 },
+  batwing_cape:  { name: "Batwing cape",    desc: "Crafted. Cape, Defence 6.", sell: 300 },
+  void_cloak:    { name: "Void cloak",      desc: "Crafted. Cape, Defence 14. The best cape for defence.", sell: 9000 },
+  lizardscale_body:{ name: "Lizardscale body", desc: "Crafted. Body, Defence 34 (needs Defence 20).", sell: 400 },
+  shellguard:    { name: "Shellguard",      desc: "Crafted. Shield, Defence 22 (needs Defence 20).", sell: 250 },
+  spined_helm:   { name: "Spined helm",     desc: "Crafted. Head, Defence 30 (needs Defence 50).", sell: 3500 },
+  stone_greaves: { name: "Stone greaves",   desc: "Crafted. Legs, Defence 46 (needs Defence 55).", sell: 2600 },
+  emberscale_legs:{ name: "Emberscale legs", desc: "Crafted. Legs, Defence 56 (needs Defence 65).", sell: 5500 },
+  wyvernbone_helm:{ name: "Wyvernbone helm", desc: "Crafted. Head, Defence 38 (needs Defence 75).", sell: 9000 },
+  rift_buckler:  { name: "Rift buckler",    desc: "Crafted. Shield, Defence 52 (needs Defence 80).", sell: 18000 },
+  wisp_pendant:  { name: "Wisp pendant",    desc: "Crafted. Amulet, Defence 4. +5% Slayer xp while worn.", sell: 1000 },
+  gaze_amulet:   { name: "Basilisk gaze amulet", desc: "Crafted. Amulet, Defence 8. Monsters hit you 5% less often while worn.", sell: 3000 },
+  dragon_amulet: { name: "Dragonstone amulet", desc: "Crafted. Amulet, Defence 16. +5% combat xp while worn.", sell: 90000 },
+  pet_stitch:    { name: "Stitch",          desc: "Crafting pet. A hedgehog who keeps your needles sharp. +3% Crafting xp.", rare: true },
   silk_hood:     { name: "Silk hood",       desc: "Cave spider unique. Head, Defence 6. Light as a web.", rare: true, sell: 1500 },
   lizard_glaive: { name: "Lizard glaive",   desc: "Marsh lizardman unique. Weapon, Attack 20. Better than mithril for its level.", rare: true, sell: 3000 },
   marsh_cloak:   { name: "Marsh cloak",     desc: "Marsh lizardman unique. Cape, Defence 6.", rare: true, sell: 2500 },
@@ -948,7 +968,7 @@ const ITEMS = {
   steel_sword:   { name: "Steel sword",     desc: "Weapon. Attack 20.", sell: 400 },
   mithril_sword: { name: "Mithril sword",   desc: "Weapon. Attack 30.", sell: 1300 },
   adamant_sword: { name: "Drakefang blade", desc: "Moss drake unique. Weapon, Attack 45. The best weapon in the game.", rare: true, sell: 8000 },
-  leather_body:  { name: "Leather body",    desc: "Armour. Defence 1.", sell: 8 },
+  leather_body:  { name: "Leather body",    desc: "Body, Defence 8. Craft it from leather or buy one.", sell: 8 },
   iron_platebody:{ name: "Iron platebody",  desc: "Armour. Defence 10.", sell: 130 },
   steel_platebody:{ name: "Steel platebody",desc: "Armour. Defence 20.", sell: 500 },
   mithril_platebody:{ name: "Mithril platebody", desc: "Armour. Defence 30.", sell: 1600 },
@@ -1299,6 +1319,28 @@ const VOYAGES = [
     uniques:[{item:"tidebreaker_charm",chance:1/40}] },
 ];
 
+// Crafting: tan hides into leather, then turn leather, silk and monster materials into armour and jewellery
+const CRAFT = [
+  { id:"leather",          section:"Tanning",       name:"Tan leather",         lvl:1,  time:1.2, xp:5,   inputs:{ hide:1 },                               out:"leather" },
+  { id:"leather_cowl",     section:"Leatherwork",   name:"Leather cowl",        lvl:1,  time:2.4, xp:14,  inputs:{ leather:1 },                            out:"leather_cowl" },
+  { id:"leather_body",     section:"Leatherwork",   name:"Leather body",        lvl:5,  time:2.4, xp:25,  inputs:{ leather:2 },                            out:"leather_body" },
+  { id:"leather_chaps",    section:"Leatherwork",   name:"Leather chaps",       lvl:10, time:2.4, xp:28,  inputs:{ leather:2 },                            out:"leather_chaps" },
+  { id:"hardleather_body", section:"Leatherwork",   name:"Hardleather body",    lvl:20, time:2.6, xp:45,  inputs:{ leather:3, coal:1 },                    out:"hardleather_body" },
+  { id:"silk_cape",        section:"Silk & cloth",  name:"Silk cape",           lvl:15, time:2.6, xp:40,  inputs:{ spider_silk:4 },                        out:"silk_cape" },
+  { id:"batwing_cape",     section:"Silk & cloth",  name:"Batwing cape",        lvl:35, time:2.8, xp:110, inputs:{ bat_wing:8, spider_silk:4 },            out:"batwing_cape" },
+  { id:"void_cloak",       section:"Silk & cloth",  name:"Void cloak",          lvl:85, time:3.2, xp:480, inputs:{ void_essence:6, spider_silk:10 },       out:"void_cloak" },
+  { id:"lizardscale_body", section:"Monster crafts",name:"Lizardscale body",    lvl:25, time:3.0, xp:90,  inputs:{ lizard_scale:6, leather:2 },            out:"lizardscale_body" },
+  { id:"shellguard",       section:"Monster crafts",name:"Shellguard",          lvl:30, time:3.0, xp:95,  inputs:{ crawler_shell:5, leather:1 },           out:"shellguard" },
+  { id:"spined_helm",      section:"Monster crafts",name:"Spined helm",         lvl:50, time:3.0, xp:210, inputs:{ thornback_spine:4, steel_bar:2 },       out:"spined_helm" },
+  { id:"stone_greaves",    section:"Monster crafts",name:"Stone greaves",       lvl:56, time:3.0, xp:240, inputs:{ gargant_shard:6, mithril_bar:2 },       out:"stone_greaves" },
+  { id:"emberscale_legs",  section:"Monster crafts",name:"Emberscale legs",     lvl:70, time:3.2, xp:330, inputs:{ ember_scale:8, cobalt_bar:2 },          out:"emberscale_legs" },
+  { id:"wyvernbone_helm",  section:"Monster crafts",name:"Wyvernbone helm",     lvl:78, time:3.2, xp:400, inputs:{ wyvern_bone:5, runite_bar:1 },          out:"wyvernbone_helm" },
+  { id:"rift_buckler",     section:"Monster crafts",name:"Rift buckler",        lvl:90, time:3.4, xp:560, inputs:{ rift_tooth:8, runite_bar:3 },           out:"rift_buckler" },
+  { id:"wisp_pendant",     section:"Amulets",       name:"Wisp pendant",        lvl:42, time:3.0, xp:150, inputs:{ banshee_wisp:3, uncut_sapphire:1 },     out:"wisp_pendant" },
+  { id:"gaze_amulet",      section:"Amulets",       name:"Basilisk gaze amulet",lvl:62, time:3.0, xp:280, inputs:{ basilisk_eye:3, uncut_ruby:1 },         out:"gaze_amulet" },
+  { id:"dragon_amulet",    section:"Amulets",       name:"Dragonstone amulet",  lvl:95, time:3.6, xp:900, inputs:{ dragonstone:1, runite_bar:2 },          out:"dragon_amulet" },
+];
+
 // Fletching: logs into bows, bars + logs into arrows (15 per craft)
 const FLETCH = [
   { id:"bronze_arrow",    section:"Arrows", name:"Bronze arrows ×15",  lvl:1,  time:2.0, xp:20,  inputs:{ bronze_bar:1, logs:1 },        out:"bronze_arrow",  outQty:15 },
@@ -1332,25 +1374,25 @@ const CTYPES = { melee:"Melee", ranged:"Ranged", magic:"Magic" };
 // Combat. lvl = combat level needed. always = guaranteed drops, table = weighted roll on each kill (item null = nothing).
 const MONSTERS = [
   { id:"chicken", name:"Chicken",      lvl:1,  hp:3,   att:1,  def:1,  max:1,  always:[{item:"raw_chicken",min:1,max:1}],
-    table:[{item:null,weight:80},{item:"coins",weight:20,min:2,max:6},{item:"skyfeather",weight:4,min:1,max:2}],
+    table:[{item:null,weight:72},{item:"coins",weight:20,min:2,max:6},{item:"hide",weight:8,min:1,max:1},{item:"skyfeather",weight:4,min:1,max:2}],
     uniques:[{item:"golden_feather",chance:1/400},{item:"pet_chick",chance:1/1000}] },
   { id:"goblin",  name:"Goblin",       weak:"ranged", lvl:3,  hp:5,   att:5,  def:4,  max:2,  always:[],
-    table:[{item:null,weight:30},{item:"coins",weight:40,min:5,max:25},{item:"potato_seed",weight:10,min:1,max:3},{item:"copper_ore",weight:10,min:1,max:3},{item:"tin_ore",weight:10,min:1,max:3},{item:"air_rune",weight:8,min:3,max:8},{item:"bronze_bar",weight:4,min:1,max:1}],
+    table:[{item:null,weight:30},{item:"coins",weight:40,min:5,max:25},{item:"potato_seed",weight:10,min:1,max:3},{item:"copper_ore",weight:10,min:1,max:3},{item:"tin_ore",weight:10,min:1,max:3},{item:"hide",weight:8,min:1,max:2},{item:"air_rune",weight:8,min:3,max:8},{item:"bronze_bar",weight:4,min:1,max:1}],
     uniques:[{item:"goblin_cleaver",chance:1/150},{item:"pet_goblin",chance:1/1500}] },
   { id:"cave_spider", name:"Cave spider", weak:"magic", lvl:8, hp:10, att:9, def:7, max:2, always:[],
     table:[{item:null,weight:25},{item:"coins",weight:35,min:8,max:25},{item:"spider_silk",weight:15,min:1,max:2},{item:"air_rune",weight:10,min:5,max:15},{item:"bronze_bar",weight:8,min:1,max:2},{item:"raw_shrimp",weight:5,min:1,max:3},{item:"uncut_sapphire",weight:2,min:1,max:1}],
     uniques:[{item:"silk_hood",chance:1/150},{item:"pet_spiderling",chance:1/1500}] },
   { id:"bandit",  name:"Bandit",       weak:"magic", lvl:15, hp:18,  att:17, def:14, max:3,  always:[],
-    table:[{item:null,weight:20},{item:"coins",weight:50,min:20,max:60},{item:"raw_trout",weight:10,min:1,max:3},{item:"iron_ore",weight:14,min:2,max:5},{item:"bronze_bar",weight:6,min:1,max:3},{item:"silver_locket",weight:2,min:1,max:1},{item:"earth_rune",weight:8,min:5,max:15},{item:"uncut_sapphire",weight:2,min:1,max:1}],
+    table:[{item:null,weight:20},{item:"coins",weight:50,min:20,max:60},{item:"raw_trout",weight:10,min:1,max:3},{item:"iron_ore",weight:14,min:2,max:5},{item:"bronze_bar",weight:6,min:1,max:3},{item:"silver_locket",weight:2,min:1,max:1},{item:"earth_rune",weight:8,min:5,max:15},{item:"uncut_sapphire",weight:2,min:1,max:1},{item:"hide",weight:10,min:1,max:3}],
     uniques:[{item:"bandit_mask",chance:1/200},{item:"pet_magpie",chance:1/2000}] },
   { id:"lizardman", name:"Marsh lizardman", weak:"ranged", lvl:20, hp:26, att:23, def:20, max:4, always:[],
     table:[{item:null,weight:18},{item:"coins",weight:40,min:30,max:90},{item:"lizard_scale",weight:12,min:1,max:2},{item:"raw_salmon",weight:10,min:1,max:3},{item:"willow_logs",weight:10,min:3,max:8},{item:"water_rune",weight:8,min:10,max:25},{item:"iron_bar",weight:5,min:1,max:2},{item:"uncut_sapphire",weight:3,min:1,max:1}],
     uniques:[{item:"lizard_glaive",chance:1/160},{item:"marsh_cloak",chance:1/220}] },
   { id:"giant",   name:"Hill giant",   weak:"ranged", lvl:25, hp:35,  att:30, def:26, max:6,  always:[],
-    table:[{item:null,weight:15},{item:"coins",weight:45,min:40,max:120},{item:"willow_seed",weight:8,min:1,max:1},{item:"maple_seed",weight:4,min:1,max:1},{item:"coal",weight:15,min:3,max:8},{item:"iron_bar",weight:10,min:1,max:4},{item:"earth_rune",weight:6,min:10,max:20},{item:"raw_salmon",weight:6,min:1,max:3},{item:"uncut_sapphire",weight:3,min:1,max:1}],
+    table:[{item:null,weight:15},{item:"coins",weight:45,min:40,max:120},{item:"willow_seed",weight:8,min:1,max:1},{item:"maple_seed",weight:4,min:1,max:1},{item:"coal",weight:15,min:3,max:8},{item:"iron_bar",weight:10,min:1,max:4},{item:"earth_rune",weight:6,min:10,max:20},{item:"raw_salmon",weight:6,min:1,max:3},{item:"uncut_sapphire",weight:3,min:1,max:1},{item:"hide",weight:10,min:2,max:4}],
     uniques:[{item:"giant_club",chance:1/150},{item:"pet_giant",chance:1/2500}] },
   { id:"ogre", name:"Ironclad ogre", weak:"magic", lvl:33, hp:45, att:38, def:36, max:7, always:[],
-    table:[{item:null,weight:15},{item:"coins",weight:42,min:60,max:170},{item:"coal",weight:12,min:4,max:10},{item:"iron_bar",weight:10,min:2,max:5},{item:"steel_bar",weight:8,min:1,max:3},{item:"earth_rune",weight:8,min:15,max:40},{item:"raw_lobster",weight:6,min:1,max:2},{item:"uncut_emerald",weight:3,min:1,max:1}],
+    table:[{item:null,weight:15},{item:"coins",weight:42,min:60,max:170},{item:"coal",weight:12,min:4,max:10},{item:"iron_bar",weight:10,min:2,max:5},{item:"steel_bar",weight:8,min:1,max:3},{item:"earth_rune",weight:8,min:15,max:40},{item:"raw_lobster",weight:6,min:1,max:2},{item:"uncut_emerald",weight:3,min:1,max:1},{item:"hide",weight:8,min:2,max:5}],
     uniques:[{item:"ogre_helm",chance:1/170},{item:"ironhide_shield",chance:1/200}] },
   { id:"knight",  name:"Rogue knight", weak:"magic", lvl:40, hp:60,  att:48, def:48, max:9,  always:[],
     table:[{item:null,weight:20},{item:"coins",weight:50,min:80,max:220},{item:"raw_lobster",weight:10,min:1,max:3},{item:"steel_bar",weight:10,min:1,max:3},{item:"mithril_ore",weight:8,min:1,max:3},{item:"gold_signet",weight:2,min:1,max:1},{item:"fire_rune",weight:8,min:15,max:35},{item:"uncut_emerald",weight:3,min:1,max:1}],
@@ -1406,7 +1448,7 @@ const MONSTERS = [
     uniques:[{item:"riftfang",chance:1/240},{item:"pet_riftling",chance:1/4000}] },
 ];
 // Skilling pets: one per skill. Rolled per action, so the odds depend on time spent, not on how fast the action is.
-const SKILL_PETS = { woodcutting:"pet_twiglet", firemaking:"pet_cinder", farming:"pet_burrow", fishing:"pet_puffin", cooking:"pet_crumb", mining:"pet_pebble", smithing:"pet_clinker", fletching:"pet_quill", enchanting:"pet_glimmer", brewing:"pet_hops", agility:"pet_scamper", thieving:"pet_fidget", slayer:"pet_grimling" };
+const SKILL_PETS = { woodcutting:"pet_twiglet", firemaking:"pet_cinder", farming:"pet_burrow", fishing:"pet_puffin", cooking:"pet_crumb", mining:"pet_pebble", smithing:"pet_clinker", fletching:"pet_quill", crafting:"pet_stitch", enchanting:"pet_glimmer", brewing:"pet_hops", agility:"pet_scamper", thieving:"pet_fidget", slayer:"pet_grimling" };
 const PET_HOURS = 60;               // average hours of training per pet at a mid-level action
 const PET_PER_HARVEST = 1 / 300, PET_PER_BREW = 1 / 150, PET_PER_TASK = 1 / 60;
 
@@ -1447,7 +1489,7 @@ const SLAYER_SHOP = [
 const SKIP_COST = 30, SLAYER_XP = 6;   // Slayer xp per monster hitpoint, on task
 // Gear: best piece you own and meet the level for is used automatically
 const WEAPONS = [ ["riftfang",80,80,72], ["thornlash_blade",60,60,56], ["lizard_glaive",20,23,19], ["pvp_greatsword",75,70,68], ["pvp_warblade",60,56,58], ["pvp_sabre",40,44,34], ["dawnforged_blade",75,72,66], ["voidlash",75,74,58], ["gilded_scimitar",65,58,50], ["voidreaver",70,66,60], ["gargant_maul",60,44,64], ["runite_sword",55,48,42], ["cobalt_sword",40,36,31], ["adamant_sword",45,52,46], ["rogue_rapier",35,42,27], ["giant_club",25,14,34], ["goblin_cleaver",5,9,13], ["mithril_sword",30,28,24], ["steel_sword",20,20,16], ["iron_sword",10,12,10], ["bronze_sword",1,7,6] ]; // id, attack req, accuracy, strength
-const ARMOURS = [ ["cinderscale_body",65,90], ["champ_body",65,88], ["pit_body",40,64], ["colossus_plate",70,95], ["troll_hide",60,85], ["runite_platebody",55,72], ["cobalt_platebody",40,60], ["drake_scale",50,75], ["mithril_platebody",30,46], ["steel_platebody",20,32], ["iron_platebody",10,21], ["leather_body",1,8] ]; // id, defence req, defence bonus
+const ARMOURS = [ ["lizardscale_body",20,34], ["hardleather_body",10,18], ["cinderscale_body",65,90], ["champ_body",65,88], ["pit_body",40,64], ["colossus_plate",70,95], ["troll_hide",60,85], ["runite_platebody",55,72], ["cobalt_platebody",40,60], ["drake_scale",50,75], ["mithril_platebody",30,46], ["steel_platebody",20,32], ["iron_platebody",10,21], ["leather_body",1,8] ]; // id, defence req, defence bonus
 const PETS = ["pet_spiderling","pet_thornling","pet_wyvernling","pet_riftling","pet_chick","pet_goblin","pet_magpie","pet_giant","pet_squire","pet_drakeling","pet_troll","pet_wraith","pet_colossus","pet_gull","pet_parrot"];
 const FOOD = { eel:26, anglerfish:22, shark:20, sunfruit:18, swordfish:14, lobster:12, salmon:9, trout:7, baked_potato:4, cooked_chicken:3, shrimp:3, ship_biscuit:2 };
 const ROUND_MS = 2400, EAT_AT = 0.5, REGEN_MS = 6000;
@@ -1528,7 +1570,7 @@ const FERTILISE_COST = 10;
 
 // General store (Shops › General store). Prices are about 3–4× what the item sells for, so nothing can be
 // bought and sold back for profit. sec = store section; stack items can be bought ×1/×10/×100.
-const STORE_SECS = [["seeds", "Seeds", "potato_seed"], ["food", "Food", "trout"], ["ammo", "Arrows & runes", "fire_rune"], ["weapons", "Weapons", "steel_sword"], ["armour", "Armour", "iron_platebody"], ["tools", "Tools", "iron_pickaxe"], ["brews", "Brewing", "vial"]];
+const STORE_SECS = [["seeds", "Seeds", "potato_seed"], ["food", "Food", "trout"], ["ammo", "Arrows & runes", "fire_rune"], ["weapons", "Weapons", "steel_sword"], ["armour", "Armour", "iron_platebody"], ["tools", "Tools", "iron_pickaxe"], ["brews", "Brewing", "vial"], ["crafting", "Crafting", "leather"]];
 const SHOP = [
   { item:"potato_seed", price:10,   qty:5, req:["farming",1], sec:"seeds", stack:true },
   { item:"willow_seed", price:90,   qty:1, req:["farming",15], sec:"seeds", stack:true },
@@ -1593,6 +1635,8 @@ const SHOP = [
   { item:"mithril_pickaxe", price:1200, req:["mining",30], sec:"tools" },
   // brews
   { item:"vial", price:6, qty:1, req:["brewing",1], sec:"brews", stack:true },
+  { item:"hide", price:15, qty:1, req:["crafting",1], sec:"crafting", stack:true },
+  { item:"spider_silk", price:40, qty:1, req:["crafting",15], sec:"crafting", stack:true },
   { item:"wildseed", price:600, qty:1, req:["farming",9], sec:"seeds", stack:true },
   { item:"brew_forester", price:80,  qty:1, req:["woodcutting",1], sec:"brews", stack:true },
   { item:"brew_angler",   price:120, qty:1, req:["fishing",1],     sec:"brews", stack:true },
@@ -1653,7 +1697,7 @@ function rollTable(table) {
 const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 /* ================= STATE ================= */
-const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{}, ach:{}, stats:{}, apSpent:0, apUp:{}, apBonus:0, daily:{}, weekly:{}, dspecial:{}, arena:{}, roof:{} });
+const fresh = () => ({ v:2, xp:{woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, crafting:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0, slayer:0}, bank:{ potato_seed:5 }, active:{skill:"woodcutting", id:"tree"}, progress:0, last:Date.now(), feed:[], patches:[null,null,null,null], opts:{autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, hp:10, fight:null, regen:0, kills:{}, clog:{}, clogSrc:{}, buffs:{}, barrels:[null,null,null], boats:{}, islands:{}, upgrades:{}, life:{}, qdone:{}, qseen:{}, loadouts:{ melee:{}, ranged:{}, magic:{} }, slayer:{ task:null, points:0, streak:0, done:0 }, clues:{ held:{}, done:{} }, look:{}, ach:{}, stats:{}, apSpent:0, apUp:{}, apBonus:0, daily:{}, weekly:{}, dspecial:{}, arena:{}, roof:{} });
 let state = fresh();
 let tab = "skills";
 let bankSub = "items", bankFilter = "All", bankSel = null;
@@ -1680,7 +1724,7 @@ function logSrc(src, item, q) {
   if (first) { const where = clogEntryName(src); toast(`New collection log item: ${ITEMS[item].name}`, true); log(`New collection log item: <b>${ITEMS[item].name}</b> (${where})`, "r"); }
 }
 function trackedAdd(src, item, q) { trackedDrop = true; add(item, q); trackedDrop = false; logSrc(src, item, q); }
-const ACTIONS = { brewing: POTIONS, fletching: FLETCH, enchanting: ENCHANT, mining: ROCKS, smithing: SMITH, combat: MONSTERS, woodcutting: TREES, firemaking: FIRES, fishing: SPOTS, cooking: RECIPES, agility: COURSES, thieving: TARGETS };
+const ACTIONS = { brewing: POTIONS, fletching: FLETCH, crafting: CRAFT, enchanting: ENCHANT, mining: ROCKS, smithing: SMITH, combat: MONSTERS, woodcutting: TREES, firemaking: FIRES, fishing: SPOTS, cooking: RECIPES, agility: COURSES, thieving: TARGETS };
 const findAction = (skill, id) => (ACTIONS[skill] || []).find(a => a.id === id);
 const cropById = id => CROPS.find(c => c.id === id);
 const totalLevel = () => Object.keys(SKILLS).reduce((s, k) => s + lvl(k), 0);
@@ -1738,6 +1782,10 @@ Object.assign(GEAR, {
   pit_helm:{ slot:"head", req:["defence", 40], def:22 }, pit_legs:{ slot:"legs", req:["defence", 40], def:38 }, pit_shield:{ slot:"shield", req:["defence", 40], def:32 },
   champ_helm:{ slot:"head", req:["defence", 65], def:32 }, champ_legs:{ slot:"legs", req:["defence", 65], def:52 }, champ_shield:{ slot:"shield", req:["defence", 65], def:44 },
   bandit_mask:{ slot:"head", def:2 }, smuggler_coat:{ slot:"body", def:15 },
+  leather_cowl:{ slot:"head", def:3 }, leather_chaps:{ slot:"legs", def:5 }, silk_cape:{ slot:"cape", def:3 }, batwing_cape:{ slot:"cape", def:6 }, void_cloak:{ slot:"cape", def:14 },
+  shellguard:{ slot:"shield", req:["defence", 20], def:22 }, spined_helm:{ slot:"head", req:["defence", 50], def:30 }, stone_greaves:{ slot:"legs", req:["defence", 55], def:46 },
+  emberscale_legs:{ slot:"legs", req:["defence", 65], def:56 }, wyvernbone_helm:{ slot:"head", req:["defence", 75], def:38 }, rift_buckler:{ slot:"shield", req:["defence", 80], def:52 },
+  wisp_pendant:{ slot:"amulet", def:4 }, gaze_amulet:{ slot:"amulet", def:8 }, dragon_amulet:{ slot:"amulet", def:16 },
   silk_hood:{ slot:"head", def:6 }, marsh_cloak:{ slot:"cape", def:6 }, ogre_helm:{ slot:"head", req:["defence", 30], def:18 }, ironhide_shield:{ slot:"shield", req:["defence", 30], def:28 },
   sentinel_helm:{ slot:"head", req:["defence", 45], def:26 }, sentinel_shield:{ slot:"shield", req:["defence", 45], def:38 }, thornback_shield:{ slot:"shield", req:["defence", 60], def:46 },
   wyvern_helm:{ slot:"head", req:["defence", 75], def:36 }, crawler_shield:{ slot:"shield", req:["defence", 15], def:16 }, banshee_veil:{ slot:"head", req:["defence", 40], def:22 },
@@ -1824,7 +1872,7 @@ function baseMax() {
   return 0.5 + (lvl("strength") + 8 + (state.opts.style === "strength" ? 3 : 0)) * ((weapon() ? weapon()[3] : 0) + 64) / 640;
 }
 const playerMax = () => 1 + Math.max(1, Math.floor(baseMax() * potMax() * (worn("fury_ring") ? 1.1 : 1) * (buffOn("giant") ? 1.1 : 1)));
-const foeAcc = m => potDef() * hitChance((m.att + 9) * 64, (lvl("defence") + 8 + (state.opts.style === "defence" ? 3 : 0)) * (defBonus() + 64)) * (has("warding_charm") ? 0.85 : 1) * (worn("knight_oath") ? 0.9 : 1);
+const foeAcc = m => potDef() * hitChance((m.att + 9) * 64, (lvl("defence") + 8 + (state.opts.style === "defence" ? 3 : 0)) * (defBonus() + 64)) * (has("warding_charm") ? 0.85 : 1) * (worn("knight_oath") ? 0.9 : 1) * (worn("gaze_amulet") ? 0.95 : 1);
 const bestFood = () => Object.keys(FOOD).find(has);
 const foodCount = () => Object.keys(FOOD).reduce((s, f) => s + qty(f), 0);
 const reqMet = (skill, a) => skill === "combat" ? combatLevel() >= a.lvl && (!a.slayer || lvl("slayer") >= a.slayer) : lvl(skill) >= a.lvl;
@@ -1907,7 +1955,7 @@ function gather(item, sum, skill) {
   }
   gotItem(sum, item, n);
 }
-const CRAFT_SKILLS = ["smithing","enchanting","fletching","brewing"];
+const CRAFT_SKILLS = ["smithing","enchanting","fletching","brewing","crafting"];
 const smithBlock = a => { const miss = Object.entries(a.inputs).find(([k, q]) => qty(k) < q); return miss ? `Out of ${ITEMS[miss[0]].name.toLowerCase()}` : ""; };
 const inputsText = a => Object.entries(a.inputs).map(([k, q]) => `${q > 1 ? q + "× " : ""}${ITEMS[k].name.toLowerCase()} (<span class="num" data-q="${k}"></span>)`).join(" + ");
 const petCount = () => PETS.filter(has).length;
@@ -1947,7 +1995,8 @@ function xpMult(skill) {
   m *= 1 + 0.02 * apLvl("scholar");
   m *= 1 + 0.05 * apLvl("mythic");
   if (worn("champion_cape")) m *= 1.03;
-  if (skill === "slayer") { if (has("echo_charm")) m *= 1.1; if (has("bone_charm")) m *= 1.05; }
+  if (skill === "slayer") { if (has("echo_charm")) m *= 1.1; if (has("bone_charm")) m *= 1.05; if (worn("wisp_pendant")) m *= 1.05; }
+  if (worn("dragon_amulet") && ["attack","strength","defence","hitpoints","ranged","magic"].includes(skill)) m *= 1.05;
   return m;
 }
 function gainXp(skill, x, sum) {
@@ -2489,7 +2538,7 @@ function loadObj(o) {
   if (!o || typeof o !== "object" || !o.xp) return false;
   const f = fresh();
   state = Object.assign(f, o);
-  state.xp = Object.assign({woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0}, o.xp);
+  state.xp = Object.assign({woodcutting:0, firemaking:0, farming:0, agility:0, thieving:0, fishing:0, cooking:0, mining:0, smithing:0, enchanting:0, brewing:0, crafting:0, seafaring:0, attack:0, strength:0, defence:0, hitpoints:1154, ranged:0, magic:0, fletching:0}, o.xp);
   state.bank = o.bank || {}; state.feed = o.feed || [];
   state.patches = Array.isArray(o.patches) ? o.patches.concat([null,null,null,null]).slice(0, 4) : [null,null,null,null];
   state.opts = Object.assign({autoChop:true, style:"attack", ctype:"melee", rstyle:"accurate", spell:"wind", fuel:"auto"}, o.opts);
@@ -2592,7 +2641,7 @@ function signature() {
 
 const SKILL_GROUPS = [
   ["Gathering", ["woodcutting","fishing","mining","farming"]],
-  ["Production", ["firemaking","cooking","smithing","fletching","enchanting","brewing"]],
+  ["Production", ["firemaking","cooking","smithing","fletching","crafting","enchanting","brewing"]],
   ["Utility", ["agility","thieving","seafaring","slayer"]],
 ];
 const SECTIONS = [["skills","Skills","✦"],["combat","Combat","⚔"],["clog","Log","▤"],["bank","Bank","◫"],["more","More","≡"]];
@@ -2675,6 +2724,7 @@ function skillHead(skill) {
   else if (skill === "enchanting") perks = `<span class="chip on">Runes and staffs for Magic</span><span class="chip on">Gems from essence rocks (1/80) and geodes</span><span class="chip on">Jewellery works while it's in your bank</span>`;
   else if (skill === "brewing") perks = `<span class="chip on">Barrels ferment while you're away</span><span class="chip ${worn("roots_ring") ? "on" : ""}">Ring of roots${worn("roots_ring") ? ": 25% sooner" : " (Enchanting)"}</span>`;
   else if (skill === "seafaring") perks = `<span class="chip on">Voyages ${(Math.min(0.3, lvl("seafaring") * 0.005) * 100).toFixed(1)}% shorter</span><span class="chip ${has("captain_compass") ? "on" : ""}">Captain's compass${has("captain_compass") ? ": −25%" : " (Stormwrack)"}</span>`;
+  else if (skill === "crafting") perks = `<span class="chip on">Hides drop from animals and humanoids, or buy them in the General store</span><span class="chip on">Monster materials become armour and amulets</span>`;
   else if (skill === "fletching") perks = `<span class="chip on">Bows and arrows for Ranged</span><span class="chip on">Arrows: a bar + a log makes 15</span>`;
   else if (skill === "fishing") perks = (has("hearthfire_rod") ? `<span class="chip ${hasTool("hearthfire_rod") ? "on" : ""}">Hearthfire rod: 10% cooked${hasTool("hearthfire_rod") ? "" : " (needs Fishing 70)"}</span>` : "") + `<span class="chip ${has("lucky_lure") ? "on" : ""}">Lucky lure${has("lucky_lure") ? ": 10% faster" : " (from caskets)"}</span><span class="chip on">Raw fish feeds Cooking</span>`;
   else if (skill === "cooking") perks = `<span class="chip on">Firemaking ${lvl("firemaking")}: burn −${(lvl("firemaking") * 0.3).toFixed(1)}%</span><span class="chip on">Better logs burn longer</span><span class="chip on">Fuel: <span class="num" data-fuel></span> logs</span>`;
@@ -2718,13 +2768,13 @@ function actionList(skill) {
       : skill === "thieving" ? `<span class="ok">${Math.round(thieveChance(a) * 100)}% success</span> · stun ${(stunMs(a) / 1000).toFixed(1)}s · ${a.loot.filter(e => e.item !== "coins").map(e => ITEMS[e.item].name.toLowerCase()).join(", ") || a.loot[0].min + " coins"}`
       : skill === "mining" ? `${t}s · <span class="num" data-q="${a.item}"></span> in bank · geode 1/${Math.round(1 / geodeChance(a))}`
       : skill === "enchanting" ? `${a.section === "Jewellery" || a.section === "Staffs" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Enchanted. ", ""))}</span>${has(a.out) ? " (owned)" : ""}<br>` : ""}${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
-      : skill === "smithing" || skill === "fletching" || skill === "brewing" ? `${skill === "brewing" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Drink: ", "").replace(" for 15 min.", ""))}</span><br>` : ""}${t}s · ${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
+      : skill === "smithing" || skill === "fletching" || skill === "brewing" || skill === "crafting" ? `${skill === "brewing" ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Drink: ", "").replace(" for 15 min.", ""))}</span><br>` : skill === "crafting" && GEAR[a.out] ? `<span class="ok">${esc(ITEMS[a.out].desc.replace("Crafted. ", "").replace("Crafted from spider silk. ", ""))}</span>${has(a.out) ? " (owned)" : ""}<br>` : ""}${t}s · ${inputsText(a)}${noLogs ? ` · <span class="lock">${smithBlock(a).replace("Out of", "Need more")}</span>` : ""}`
       : skill === "fishing" ? `${t}s · <span class="num" data-q="${a.item}"></span> in bank · casket 1/${Math.round(1 / casketChance(a))}`
       : noLogs ? `No ${ITEMS[a.item].name.toLowerCase()}. ${a.hint || "Chop some first."}`
       : skill === "cooking" ? `${t}s · <span class="num" data-q="${a.item}"></span> to cook · burn ${Math.round(burnChance(a) * 100)}%`
       : `${t}s · <span class="num" data-q="${a.item}"></span> ${ITEMS[a.item].name.toLowerCase()} to burn`;
     return head + `<button class="act" id="act-${skill}-${a.id}" data-skill="${skill}" data-id="${a.id}" aria-pressed="${active}" ${locked || noLogs ? "disabled" : ""}>
-      <span class="nm">${skill === "brewing" ? icon(a.out) : ""}${esc(a.name)}</span><span class="meta">${meta}</span>
+      <span class="nm">${skill === "brewing" || skill === "crafting" ? icon(a.out) : ""}${esc(a.name)}</span><span class="meta">${meta}</span>
       <span class="side"><b>+${a.xp}</b>xp</span></button>`;
   }).join("") + `</div>`;
   if (CRAFT_SKILLS.includes(skill) && shown.length < list.length) h += `<p class="note">More recipes unlock as you level.</p>`;
@@ -2768,7 +2818,7 @@ function farmingPanel() {
 }
 
 // Bank categories, in the order they're shown. [name, icon]
-const BANK_CATS = [["To open", "casket"], ["Currency", "coins"], ["Logs", "logs"], ["Ores & bars", "iron_ore"], ["Gems & essence", "uncut_ruby"], ["Fish & meat", "raw_trout"], ["Food", "shark"], ["Seeds & crops", "potato_seed"], ["Herbs", "herb_moonmoss"], ["Brews & potions", "pot_strength"], ["Ammo & runes", "fire_rune"], ["Weapons", "steel_sword"], ["Armour", "iron_platebody"], ["Capes & cosmetics", "explorer_cape"], ["Tools", "iron_pickaxe"], ["Jewellery", "fury_ring"], ["Charms & keepsakes", "lucky_horseshoe"], ["Monster drops", "bat_wing"], ["Pets", "pet_chick"], ["Trophies", "trophy_kills"], ["Other", "more"]];
+const BANK_CATS = [["To open", "casket"], ["Currency", "coins"], ["Logs", "logs"], ["Ores & bars", "iron_ore"], ["Gems & essence", "uncut_ruby"], ["Fish & meat", "raw_trout"], ["Food", "shark"], ["Seeds & crops", "potato_seed"], ["Herbs", "herb_moonmoss"], ["Brews & potions", "pot_strength"], ["Ammo & runes", "fire_rune"], ["Weapons", "steel_sword"], ["Armour", "iron_platebody"], ["Capes & cosmetics", "explorer_cape"], ["Tools", "iron_pickaxe"], ["Jewellery", "fury_ring"], ["Charms & keepsakes", "lucky_horseshoe"], ["Hides & leather", "leather"], ["Monster drops", "bat_wing"], ["Pets", "pet_chick"], ["Trophies", "trophy_kills"], ["Other", "more"]];
 const BANK_CAT_NAMES = BANK_CATS.map(c => c[0]);
 const TOOL_IDS = new Set([...AXES, ...PICKAXES].map(x => x[0]).concat(["hearthfire_rod"]));
 const CROP_OUTS = new Set(CROPS.map(c => c.out).concat(["potato"]));
@@ -2787,6 +2837,7 @@ function itemCat(k) {
   if (k === "logs" || k.endsWith("_logs") || k === "ashes") return "Logs";
   if (k.endsWith("_ore") || k.endsWith("_bar") || k === "coal") return "Ores & bars";
   if (k.startsWith("uncut_") || ["rune_essence", "runestone", "pearl", "dragonstone"].includes(k)) return "Gems & essence";
+  if (k === "hide" || k === "leather") return "Hides & leather";
   if (k.startsWith("raw_")) return "Fish & meat";
   if (k.endsWith("_seed") || k === "acorn" || CROP_OUTS.has(k)) return "Seeds & crops";
   if (TOOL_IDS.has(k)) return "Tools";
@@ -3277,6 +3328,12 @@ function combatPanel() {
 /* ================= WHAT'S NEW =================
    Add an entry at the top of UPDATES for every release (same number as sw.js VERSION). */
 const UPDATES = [
+  { v: 46, date: "14 Oct 2026", title: "New skill: Crafting", items: [
+    "Crafting is a new Production skill. Tan hides into leather, then make leather armour, silk capes, monster armour and amulets.",
+    "Hides drop from chickens, goblins, bandits, hill giants and ogres, and you can buy hides and spider silk in the General store's new Crafting section.",
+    "Monster materials finally have a use: lizard scales, crawler shells, thornback spines, gargant shards, ember scales, wyvern bones, rift teeth and more become helms, legs, shields and capes.",
+    "Three crafted amulets have effects: Wisp pendant (+5% Slayer xp), Basilisk gaze amulet (monsters hit you 5% less often) and the Dragonstone amulet (+5% combat xp).",
+    "Crafting has its own pet, Stitch, and counts towards the Artisan achievement." ] },
   { v: 45, date: "14 Oct 2026", title: "New monsters and bigger loot", items: [
     "Seven new monsters to fight: Cave spider (8), Marsh lizardman (20), Ironclad ogre (33), Cursed sentinel (48), Ember salamander (72), Storm wyvern (88) and a new boss, the Thornback Matriarch (60).",
     "Four new Slayer monsters: Cave crawler (Slayer 20), Wailing banshee (Slayer 42), Basilisk (Slayer 65) and the Riftmaw (Slayer 90). They show up in Slayer tasks too.",
@@ -3582,6 +3639,19 @@ const ICON_PAL = {
   K:"#6b7480", k:"#3a4048", F:"#e3b98f", f:"#b58a63", T:"#c2a36b", t:"#8a7044", L:"#b07a3e",
 };
 const ICONS = {
+  crafting: [
+    "..........WS",
+    ".........Ss.",
+    "..BBBBBBSB..",
+    ".BLLLLLSLLB.",
+    ".BLRLRSRLLB.",
+    ".BLLLSLLLLB.",
+    ".BLRSRLRLLB.",
+    ".BLSLLLLLLB.",
+    ".BSLRLRLRLB.",
+    ".SBBBBBBBB..",
+    "S...........",
+    "............"],
   slayer: [
     "............",
     "...WWWWWW...",
@@ -3990,6 +4060,14 @@ const IC = {
 };
 const icRock = (fleck) => ["#6b6560","#3a3632","#9a948e",fleck];
 const ITEM_ICON = {
+  hide:["pile",["#a0784a","#5a3e22","#c8a070","#000"]], leather:["pile",["#8a5a2a","#4a2e16","#b07a3e","#000"]],
+  leather_cowl:["hood",["#8a5a2a","#4a2e16","#b07a3e","#000"]], leather_chaps:["legs",["#8a5a2a","#4a2e16","#b07a3e","#000"]], hardleather_body:["body",["#6b4220","#3a2410","#a06a3a","#000"]],
+  silk_cape:["cape",["#e8e4dc","#9a948a","#ffffff","#000"]], batwing_cape:["cape",["#5a3a8a","#2e1e4a","#8a6ac0","#000"]], void_cloak:["cape",["#3a1e6a","#1e0f3a","#7dff6a","#000"]],
+  lizardscale_body:["body",["#4aa05a","#2e6a3a","#d8d08a","#000"]], shellguard:["kite",["#a08a5a","#6a5a3a","#d8c89a","#000"]],
+  spined_helm:["helm",["#5a8a3a","#355a22","#e0d49a","#000"]], stone_greaves:["legs",["#8a8f96","#4e5359","#c8ccd2","#000"]],
+  emberscale_legs:["legs",["#e0502a","#9a2a18","#f7c23a","#000"]], wyvernbone_helm:["helm",["#d8e4ee","#7a8a9a","#4a7ab0","#000"]], rift_buckler:["kite",["#4a1e6a","#1e0a2e","#f0f0f0","#000"]],
+  wisp_pendant:["amulet",["#c8e0f0","#000","#ffffff","#8aa8c8"]], gaze_amulet:["amulet",["#c8c070","#000","#f0f040","#5a7a3a"]], dragon_amulet:["amulet",["#e8b84a","#000","#f0b0ff","#c040ff"]],
+  pet_stitch:["pet",["#8a6a4a","#4a3422","#000","#e3b98f"]],
   silk_hood:["hood",["#e8e4dc","#9a948a","#5a4646","#000"]], marsh_cloak:["cape",["#4aa05a","#2e6a3a","#d8d08a","#000"]], lizard_glaive:["sword",["#b0b8c0","#4aa05a","#000","#6b4a2a"]],
   ogre_helm:["helm",["#9aa3ad","#5a6068","#8a9a5a","#000"]], ironhide_shield:["kite",["#9aa3ad","#5a6068","#8a9a5a","#000"]],
   sentinel_helm:["helm",["#6a7080","#3e4250","#7dd8ff","#000"]], sentinel_shield:["kite",["#6a7080","#3e4250","#7dd8ff","#000"]],
@@ -4612,7 +4690,7 @@ function drawXpDrops(ctx, x, top, H, now, prog) {
 
 /* ================= SKILLING SCENES ================= */
 // Every action skill gets a little animated scene in the same chunky outlined style as combat.
-const SCENE_SKILLS = ["woodcutting","firemaking","fishing","cooking","mining","smithing","fletching","enchanting","agility","thieving"];
+const SCENE_SKILLS = ["woodcutting","firemaking","fishing","cooking","mining","smithing","fletching","crafting","enchanting","agility","thieving"];
 const OUTLINE = "#0b0b0d";
 // outline a grid once, cache by key
 const _og = {};
@@ -4711,7 +4789,7 @@ function skillBackdrop(ctx, W, H, skill, now) {
   const tiles = (c1, c2) => { for (let x = 0, i = 0; x < W; x += 16, i++) for (let y = ground, j = 0; y < H; y += 16, j++) { ctx.fillStyle = (i + j) % 2 ? c1 : c2; ctx.fillRect(x, y, 16, 16); } ctx.fillStyle = OUTLINE; ctx.fillRect(0, ground, W, 2); };
   const moon = () => { ctx.fillStyle = "#e6e9dc"; ctx.globalAlpha = .85; ctx.beginPath(); ctx.arc(W * 0.9, 24, 9, 0, 7); ctx.fill(); ctx.globalAlpha = 1; };
   const pines = c => { ctx.fillStyle = c; for (let i = 0; i < 9; i++) { const x = (i / 8) * W + (i % 2 ? 14 : -6), h = 46 + (i * 37 % 30); ctx.beginPath(); ctx.moveTo(x - 18, ground); ctx.lineTo(x, ground - h); ctx.lineTo(x + 18, ground); ctx.fill(); } };
-  if (["woodcutting","firemaking","fletching"].includes(skill)) { sky("#0b1410", "#16241d"); moon(); pines("#0f1c16"); tiles("#24402e", "#2c4c36"); }
+  if (["woodcutting","firemaking","fletching","crafting"].includes(skill)) { sky("#0b1410", "#16241d"); moon(); pines("#0f1c16"); tiles("#24402e", "#2c4c36"); }
   else if (skill === "fishing") {
     sky("#0b1418", "#14242a"); moon(); pines("#0e1a1c");
     tiles("#3a4a2e", "#445636");
@@ -4782,7 +4860,7 @@ function drawSkillScene(now) {
   const pX = W * 0.3, oX = W * 0.68, s = 8;
   const t = working ? Math.max(0, Math.min(1, state.progress / actionTime(skill, a))) : 0;
   const bob = still ? 0 : Math.sin(now / 420) * 1.2;
-  const swingDown = working && !still && (now - sscene.swingAt < 220 || (["woodcutting","mining","smithing","fletching"].includes(skill) && (now % 900) < 160));
+  const swingDown = working && !still && (now - sscene.swingAt < 220 || (["woodcutting","mining","smithing","fletching","crafting"].includes(skill) && (now % 900) < 160));
   const shake = working && !still && now - sscene.shakeAt < 200 ? Math.sin((now - sscene.shakeAt) / 20) * 2 : 0;
   let objTop = ground - 60, px2 = pX;
 
@@ -4825,7 +4903,7 @@ function drawSkillScene(now) {
     const r = drawGrid(ctx, "npc:" + a.id, WORKER.grid, pal, oX + (alert ? -6 : 0), ground + bob * 0.6, s, true); objTop = ground - r.h;
     if (alert) { ctx.font = "800 18px Karla, sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 4; ctx.strokeStyle = OUTLINE; ctx.strokeText("!", oX, objTop - 6); ctx.fillStyle = "#ff3b30"; ctx.fillText("!", oX, objTop - 6); }
   }
-  else if (skill === "fletching") { if (a) drawIcon(ctx, a.out, oX, ground - 30, 40); objTop = ground - 54; }
+  else if (skill === "fletching" || skill === "crafting") { if (a) drawIcon(ctx, a.out, oX, ground - 30, 40); objTop = ground - 54; }
 
   // ---- you ----
   let pdx = 0, pdy = 0;
@@ -4838,7 +4916,7 @@ function drawSkillScene(now) {
   drawFollower(ctx, px2 - WORKER.grid[0].length * s / 2 - 22, ground, now, still);
   const pr = drawHero(ctx, "skill", px2 + pdx, ground + bob + pdy, s);
   const hx = px2 + pdx + 4.5 * s, hy = ground + bob + pdy - 2.8 * s;
-  const tool = { woodcutting: "axe", mining: "pickaxe", smithing: "hammer", fletching: "knife" }[skill];
+  const tool = { woodcutting: "axe", mining: "pickaxe", smithing: "hammer", fletching: "knife", crafting: "knife" }[skill];
   if (tool) { const pose = TOOLS[tool][swingDown ? 1 : 0]; drawGrid(ctx, "tool:" + tool + (swingDown ? 1 : 0), pose, TOOL_PAL, hx + 10, hy + 6, 5); }
   if (skill === "fishing") {
     // rod and line out to a bobbing float
@@ -4860,7 +4938,7 @@ function drawSkillScene(now) {
   for (const p of sscene.parts) {
     const q = (now - p.start) / p.life, x = (skill === "agility" || skill === "thieving" ? px2 : oX) + p.x + p.vx * (now - p.start) / 16, y = (skill === "fishing" ? ground : objTop + 20) + p.y + p.vy * (now - p.start) / 16 + 0.5 * ((now - p.start) / 16) ** 2 * 0.08;
     ctx.globalAlpha = 1 - q;
-    ctx.fillStyle = { woodcutting:"#c8a46a", mining:"#ffd04a", smithing:"#ff9a2a", fletching:"#d9b37a", firemaking:"#ffb52e", cooking:"#e6e9dc", enchanting:"#c79bf2", fishing:"#7fb8d8", agility:"#e6e9dc", thieving:"#f7d35a" }[p.kind];
+    ctx.fillStyle = { woodcutting:"#c8a46a", mining:"#ffd04a", smithing:"#ff9a2a", fletching:"#d9b37a", crafting:"#c8905a", firemaking:"#ffb52e", cooking:"#e6e9dc", enchanting:"#c79bf2", fishing:"#7fb8d8", agility:"#e6e9dc", thieving:"#f7d35a" }[p.kind];
     ctx.fillRect(x, y, 4, 4);
   }
   ctx.globalAlpha = 1;
@@ -5714,7 +5792,7 @@ const ACH_TRACKS = [
   { id: "ore",     group: "Gathering", name: "Prospector", unit: "ores mined", stat: () => lifeOf(ROCKS.map(t => t.item)), tiers: BIG },
   { id: "crops",   group: "Gathering", name: "Green thumb", unit: "crops grown", stat: () => lifeOf(CROPS.map(c => c.out)), tiers: [50, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000] },
   { id: "cooked",  group: "Production", name: "Head chef", unit: "meals cooked", stat: () => lifeOf(RECIPES.map(r => r.out)), tiers: [50, 250, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000] },
-  { id: "crafted", group: "Production", name: "Artisan", unit: "items smithed, fletched and enchanted", stat: () => (state.stats.smithing || 0) + (state.stats.fletching || 0) + (state.stats.enchanting || 0), tiers: [50, 250, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000] },
+  { id: "crafted", group: "Production", name: "Artisan", unit: "items smithed, fletched, crafted and enchanted", stat: () => (state.stats.smithing || 0) + (state.stats.fletching || 0) + (state.stats.crafting || 0) + (state.stats.enchanting || 0), tiers: [50, 250, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000] },
   { id: "fires",   group: "Production", name: "Firestarter", unit: "fires lit", stat: () => state.stats.firemaking || 0, tiers: [50, 250, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000] },
   { id: "pockets", group: "Adventure", name: "Pickpocket", unit: "successful pickpockets", stat: () => state.stats.thieving || 0, tiers: [25, 100, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000] },
   { id: "laps",    group: "Adventure", name: "Free runner", unit: "agility laps", stat: () => state.stats.agility || 0, tiers: [10, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000] },
@@ -5807,7 +5885,7 @@ const AP_UPGRADES = [
   { id: "insight", rank: 3, name: "Hunter's insight", costs: [400],  desc: () => "+20% Slayer points from tasks." },
   { id: "barrel",  rank: 4, name: "Brewmaster's barrel", costs: [500], desc: () => "Every barrel gives 1 extra brew." },
   { id: "clover",  rank: 5, name: "Four-leaf clover", costs: [700],  desc: () => "+1 roll in every clue reward casket." },
-  { id: "touch",   rank: 6, name: "Master's touch",   costs: [900],  desc: () => "10% chance to keep your materials when smithing, fletching, enchanting or cooking." },
+  { id: "touch",   rank: 6, name: "Master's touch",   costs: [900],  desc: () => "10% chance to keep your materials when smithing, fletching, crafting, enchanting or cooking." },
   { id: "glass",   rank: 7, name: "Endless hourglass", costs: [1200], desc: () => "Offline progress lasts 6 hours longer, on top of Long rest." },
   { id: "lens",    rank: 8, name: "Dawnseeker's lens", costs: [1500], desc: () => "Dawnforged pieces are 50% more likely." },
   { id: "mythic",  rank: 9, name: "Mythic aura",      costs: [2000], desc: () => "+5% xp in every skill, and a violet aura around your character." },
